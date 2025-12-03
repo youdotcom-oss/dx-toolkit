@@ -58,6 +58,7 @@ export const registerExpressTool = ({
               text: `Error: ${errorMessage}`,
             },
           ],
+          structuredContent: undefined,
           isError: true,
         };
       }

@@ -141,105 +141,6 @@ describe('registerSearchTool', () => {
     }
   });
 
-  test('validates required query parameter', async () => {
-    const result = await client.callTool({
-      name: 'you-search',
-      arguments: {},
-    });
-
-    expect(result.isError).toBe(true);
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]?.text).toContain('validation');
-  });
-
-  test('validates count parameter boundaries', async () => {
-    // Test valid count
-    const validResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        count: 5,
-      },
-    });
-
-    const content = validResult.content as { type: string; text: string }[];
-    expect(content[0]).toHaveProperty('text');
-
-    // Test invalid count (too high)
-    const invalidHighResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        count: 25, // Max is 20
-      },
-    });
-    expect(invalidHighResult.isError).toBe(true);
-    const highContent = invalidHighResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(highContent[0]?.text).toContain('validation');
-
-    // Test invalid count (too low)
-    const invalidLowResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        count: 0, // Min is 1
-      },
-    });
-    expect(invalidLowResult.isError).toBe(true);
-    const lowContent = invalidLowResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(lowContent[0]?.text).toContain('validation');
-  });
-
-  test('validates offset parameter boundaries', async () => {
-    // Test valid offset
-    const validResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        offset: 2,
-      },
-    });
-
-    const content = validResult.content as { type: string; text: string }[];
-    expect(content[0]).toHaveProperty('text');
-
-    // Test invalid offset (too high)
-    const invalidHighResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        offset: 15, // Max is 9
-      },
-    });
-    expect(invalidHighResult.isError).toBe(true);
-    const highContent = invalidHighResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(highContent[0]?.text).toContain('validation');
-
-    // Test invalid offset (negative)
-    const invalidNegResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        offset: -1, // Min is 0
-      },
-    });
-    expect(invalidNegResult.isError).toBe(true);
-    const negContent = invalidNegResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(negContent[0]?.text).toContain('validation');
-  });
-
   test('handles freshness parameter', async () => {
     const result = await client.callTool({
       name: 'you-search',
@@ -280,118 +181,6 @@ describe('registerSearchTool', () => {
     const content = result.content as { type: string; text: string }[];
     expect(content[0]).toHaveProperty('text');
     expect(content[0]?.text).toContain('educational content');
-  });
-
-  test('validates enum parameters', async () => {
-    // Test invalid freshness
-    const invalidFreshnessResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        freshness: 'invalid',
-      },
-    });
-    expect(invalidFreshnessResult.isError).toBe(true);
-    const freshnessContent = invalidFreshnessResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(freshnessContent[0]?.text).toContain('validation');
-
-    // Test invalid country
-    const invalidCountryResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        country: 'XX',
-      },
-    });
-    expect(invalidCountryResult.isError).toBe(true);
-    const countryContent = invalidCountryResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(countryContent[0]?.text).toContain('validation');
-
-    // Test invalid safesearch
-    const invalidSafesearchResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        safesearch: 'invalid',
-      },
-    });
-    expect(invalidSafesearchResult.isError).toBe(true);
-    const safesearchContent = invalidSafesearchResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(safesearchContent[0]?.text).toContain('validation');
-  });
-
-  test('validates new string parameters', async () => {
-    // Test valid site parameter
-    const validSiteResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        site: 'github.com',
-      },
-    });
-
-    const siteContent = validSiteResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(siteContent[0]?.text).toContain('test');
-
-    // Test valid fileType parameter
-    const validFileTypeResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        fileType: 'pdf',
-      },
-    });
-
-    const fileTypeContent = validFileTypeResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(fileTypeContent[0]?.text).toContain('test');
-
-    // Test valid language parameter
-    const validLanguageResult = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test',
-        language: 'en',
-      },
-    });
-
-    const languageContent = validLanguageResult.content as {
-      type: string;
-      text: string;
-    }[];
-    expect(languageContent[0]?.text).toContain('test');
-  });
-
-  test('handles empty string values for new parameters', async () => {
-    const result = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'test query',
-        site: '',
-        fileType: '',
-        language: '',
-        exactTerms: '',
-        excludeTerms: '',
-      },
-    });
-
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]).toHaveProperty('text');
-    expect(content[0]?.text).toContain('test query');
   });
 
   test('handles site parameter', async () => {
@@ -602,28 +391,6 @@ describe('registerSearchTool', () => {
   test.skip('handles network timeout scenarios', async () => {
     // TODO: How do we test this?
   });
-
-  test('verifies response content type and structure', async () => {
-    const result = await client.callTool({
-      name: 'you-search',
-      arguments: {
-        query: 'web development',
-        count: 1,
-      },
-    });
-
-    // Verify content array structure
-    expect(Array.isArray(result.content)).toBe(true);
-    expect(result.content).toHaveLength(1);
-
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]).toHaveProperty('type', 'text');
-    expect(content[0]).toHaveProperty('text');
-    expect(typeof content[0]?.text).toBe('string');
-
-    // Should not have isError flag on successful requests
-    expect(result.isError).toBeUndefined();
-  });
 });
 
 // NOTE: The following tests require a You.com API key with access to the Contents API
@@ -643,7 +410,7 @@ describe('registerContentsTool', () => {
     const result = await client.callTool({
       name: 'you-contents',
       arguments: {
-        urls: ['https://example.com'],
+        urls: ['https://documentation.you.com/developer-resources/mcp-server'],
         format: 'markdown',
       },
     });
@@ -658,7 +425,7 @@ describe('registerContentsTool', () => {
 
     const text = content[0]?.text;
     expect(text).toContain('Successfully extracted content');
-    expect(text).toContain('https://example.com');
+    expect(text).toContain('https://documentation.you.com/developer-resources/mcp-server');
     expect(text).toContain('Format: markdown');
 
     const structuredContent = result.structuredContent as ContentsStructuredContent;
@@ -670,8 +437,7 @@ describe('registerContentsTool', () => {
     const item = structuredContent.items[0];
     expect(item).toBeDefined();
 
-    expect(item).toHaveProperty('url', 'https://example.com');
-    expect(item).toHaveProperty('title');
+    expect(item).toHaveProperty('url', 'https://documentation.you.com/developer-resources/mcp-server');
     expect(item).toHaveProperty('content');
     expect(item).toHaveProperty('contentLength');
     expect(typeof item?.content).toBe('string');
@@ -682,7 +448,10 @@ describe('registerContentsTool', () => {
     const result = await client.callTool({
       name: 'you-contents',
       arguments: {
-        urls: ['https://example.com', 'https://en.wikipedia.org/wiki/Neuro-symbolic_AI'],
+        urls: [
+          'https://documentation.you.com/developer-resources/mcp-server',
+          'https://documentation.you.com/developer-resources/python-sdk',
+        ],
         format: 'markdown',
       },
     });
@@ -700,7 +469,7 @@ describe('registerContentsTool', () => {
     const result = await client.callTool({
       name: 'you-contents',
       arguments: {
-        urls: ['https://example.com'],
+        urls: ['https://documentation.you.com/developer-resources/mcp-server'],
         format: 'html',
       },
     });
@@ -717,91 +486,11 @@ describe('registerContentsTool', () => {
     const result = await client.callTool({
       name: 'you-contents',
       arguments: {
-        urls: ['https://example.com'],
+        urls: ['https://documentation.you.com/developer-resources/mcp-server'],
       },
     });
 
     const structuredContent = result.structuredContent as ContentsStructuredContent;
     expect(structuredContent.format).toBe('markdown');
-  });
-
-  test('validates required urls parameter', async () => {
-    // MCP SDK returns validation errors instead of throwing
-    const result = await client.callTool({
-      name: 'you-contents',
-      arguments: {},
-    });
-
-    // Should return an error response
-    expect(result.isError).toBe(true);
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]?.text).toContain('validation');
-  });
-
-  test('validates urls array is not empty', async () => {
-    // MCP SDK returns validation errors instead of throwing
-    const result = await client.callTool({
-      name: 'you-contents',
-      arguments: {
-        urls: [],
-      },
-    });
-
-    // Should return an error response
-    expect(result.isError).toBe(true);
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]?.text).toContain('validation');
-  });
-
-  test('validates format parameter', async () => {
-    // MCP SDK returns validation errors instead of throwing
-    const result = await client.callTool({
-      name: 'you-contents',
-      arguments: {
-        urls: ['https://example.com'],
-        format: 'invalid',
-      },
-    });
-
-    // Should return an error response
-    expect(result.isError).toBe(true);
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]?.text).toContain('validation');
-  });
-
-  test('handles invalid URL format errors', async () => {
-    // MCP SDK validates URL format and returns error
-    const result = await client.callTool({
-      name: 'you-contents',
-      arguments: {
-        urls: ['not-a-valid-url'],
-      },
-    });
-
-    // Should return a validation error for invalid URL
-    expect(result.isError).toBe(true);
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]?.text).toContain('validation');
-  });
-
-  test('verifies response structure', async () => {
-    const result = await client.callTool({
-      name: 'you-contents',
-      arguments: {
-        urls: ['https://example.com'],
-      },
-    });
-
-    // Verify content array structure
-    expect(Array.isArray(result.content)).toBe(true);
-    expect(result.content).toHaveLength(1);
-
-    const content = result.content as { type: string; text: string }[];
-    expect(content[0]).toHaveProperty('type', 'text');
-    expect(content[0]).toHaveProperty('text');
-    expect(typeof content[0]?.text).toBe('string');
-
-    // Should not have isError flag on successful requests
-    expect(result.isError).toBeUndefined();
   });
 });

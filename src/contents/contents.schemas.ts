@@ -20,7 +20,7 @@ export type ContentsQuery = z.infer<typeof ContentsQuerySchema>;
  */
 const ContentsItemSchema = z.object({
   url: z.string().describe('URL'),
-  title: z.string().describe('Title'),
+  title: z.string().optional().describe('Title'),
   html: z.string().optional().describe('HTML content'),
   markdown: z.string().optional().describe('Markdown content'),
 });
@@ -44,7 +44,7 @@ export const ContentsStructuredContentSchema = z.object({
     .array(
       z.object({
         url: z.string().describe('URL'),
-        title: z.string().describe('Title'),
+        title: z.string().optional().describe('Title'),
         content: z.string().describe('Extracted content'),
         contentLength: z.number().describe('Content length'),
       }),

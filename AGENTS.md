@@ -13,6 +13,7 @@ A Model Context Protocol (MCP) server that provides web search, AI agent, and co
 > **Note for end users**: If you want to use this MCP server (not develop or contribute), see [README.md](./README.md) for setup instructions, getting started guides, and usage examples.
 
 **This guide (AGENTS.md) is for developers, contributors, and AI coding agents** who want to:
+
 - Set up a local development environment
 - Understand the codebase architecture
 - Contribute code or bug fixes
@@ -24,7 +25,7 @@ A Model Context Protocol (MCP) server that provides web search, AI agent, and co
 ## Tech Stack
 
 - **Runtime**: Bun >= 1.2.21 (not Node.js)
-- **Framework**: Model Context Protocol SDK v1.22.0
+- **Framework**: Model Context Protocol SDK v1.24.0
 - **HTTP Server**: Hono v4.10.6 with @hono/mcp for HTTP transport (SSE protocol support)
 - **Validation**: Zod 3.25.76 for schema validation
 - **Testing**: Bun test (built-in test runner)
@@ -61,6 +62,7 @@ This project uses [Biome](https://biomejs.dev/) for automated code formatting an
 ### Manual Adherence Required
 
 **Arrow Functions**: Always use arrow functions for declarations (not enforced by Biome)
+
 ```ts
 // ✅ Preferred
 export const fetchData = async (params: Params) => { ... };
@@ -70,6 +72,7 @@ export async function fetchData(params: Params) { ... }
 ```
 
 **No Unused Exports**: All exports must be actively used (Biome detects unused variables/imports, but NOT unused exports)
+
 ```bash
 # Before adding exports, verify usage:
 grep -r "ExportName" src/
@@ -78,38 +81,45 @@ grep -r "ExportName" src/
 ### MCP-Specific Patterns
 
 **Schema Design**: Always use Zod for input/output validation
+
 ```ts
 export const MyToolInputSchema = z.object({
-  query: z.string().min(1).describe('Search query'),
-  limit: z.number().optional().describe('Max results'),
+  query: z.string().min(1).describe("Search query"),
+  limit: z.number().optional().describe("Max results"),
 });
 ```
 
 **Error Handling**: Always use try/catch with typed error handling
+
 ```ts
 try {
   const response = await apiCall();
   return formatResponse(response);
 } catch (err: unknown) {
   const errorMessage = err instanceof Error ? err.message : String(err);
-  await logger({ level: 'error', data: `API call failed: ${errorMessage}` });
-  return { content: [{ type: 'text', text: `Error: ${errorMessage}` }], isError: true };
+  await logger({ level: "error", data: `API call failed: ${errorMessage}` });
+  return {
+    content: [{ type: "text", text: `Error: ${errorMessage}` }],
+    isError: true,
+  };
 }
 ```
 
 **Logging**: Use `getLogger(mcp)` helper, never console.log
+
 ```ts
-import { getLogger } from '../shared/get-logger.ts';
+import { getLogger } from "../shared/get-logger.ts";
 
 const logger = getLogger(mcp);
-await logger({ level: 'info', data: `Operation successful: ${result}` });
-await logger({ level: 'error', data: `Operation failed: ${errorMessage}` });
+await logger({ level: "info", data: `Operation successful: ${result}` });
+await logger({ level: "error", data: `Operation failed: ${errorMessage}` });
 ```
 
 **Response Format**: Return both `content` and `structuredContent`
+
 ```ts
 return {
-  content: [{ type: 'text', text: formattedText }],
+  content: [{ type: "text", text: formattedText }],
   structuredContent: responseData,
 };
 ```
@@ -157,6 +167,7 @@ bun run format:package           # Format package.json only
 ## Contributing
 
 For detailed contribution guidelines, including:
+
 - Bug reporting
 - Feature requests
 - Pull request workflow
@@ -170,6 +181,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 ### Tool Registration
 
 Use Zod schemas for tool parameter validation. See examples:
+
 - Search tool: `src/search/register-search-tool.ts:7-86`
 - Express tool: `src/express/register-express-tool.ts:7-66`
 - Contents tool: `src/contents/register-contents-tool.ts:7-89`
@@ -186,7 +198,6 @@ Use `getLogger(mcp)` helper, never console.log. See `src/shared/get-logger.ts:8-
 
 Include mailto links in error logs using `generateErrorReportLink()` helper (`src/shared/generate-error-report-link.ts:6-37`). This creates one-click error reporting with full diagnostic context.
 
-
 ## Testing
 
 ### Test Organization
@@ -196,6 +207,7 @@ Include mailto links in error logs using `generateErrorReportLink()` helper (`sr
 - **Coverage Target**: >80% for core utilities
 
 For test patterns, see:
+
 - Unit tests: `src/search/tests/search.utils.spec.ts`
 - Integration tests: `src/tests/tool.spec.ts`
 
@@ -204,22 +216,25 @@ For test patterns, see:
 **IMPORTANT: Avoid patterns that silently skip assertions** - they hide failures.
 
 ❌ **Early Returns** - Silently exits test, skips remaining assertions
+
 ```ts
 if (!item) return; // Bad: test passes even if item is undefined
 ```
 
 ❌ **Redundant Conditionals** - Asserts defined, then conditionally checks type
+
 ```ts
 expect(item?.markdown).toBeDefined();
 if (item?.markdown) {
-  expect(typeof item.markdown).toBe('string'); // Redundant!
+  expect(typeof item.markdown).toBe("string"); // Redundant!
 }
 ```
 
 ✅ **Let tests fail naturally** - Use optional chaining and direct assertions:
+
 ```ts
 expect(item).toBeDefined();
-expect(item).toHaveProperty('url'); // Fails with clear error if undefined
+expect(item).toHaveProperty("url"); // Fails with clear error if undefined
 ```
 
 ### Running Tests
@@ -243,6 +258,7 @@ Requires `YDC_API_KEY` environment variable for API tests.
 **Symptom**: Error message "YDC_API_KEY environment variable is required"
 
 **Solution**:
+
 ```bash
 # Set up .env file
 echo "export YDC_API_KEY=your-actual-api-key-here" > .env
@@ -260,6 +276,7 @@ echo $YDC_API_KEY
 **Symptom**: `bun run build` fails with TypeScript errors
 
 **Solution**:
+
 ```bash
 # Check TypeScript errors
 bun run check:types
@@ -277,6 +294,7 @@ bun run build
 **Symptom**: Tests fail with 429 (Too Many Requests) errors
 
 **Solution**:
+
 - Wait a few minutes before re-running tests
 - Run specific test suites instead of all tests at once
 - Use `bun test --bail` to stop after first failure
@@ -287,6 +305,7 @@ bun run build
 **Symptom**: Docker build fails with permission errors
 
 **Solution**:
+
 ```bash
 # Ensure Docker daemon is running
 docker info
@@ -303,6 +322,7 @@ groups $USER
 **Symptom**: Pre-commit hook fails or `bun run check` shows errors
 
 **Solution**:
+
 ```bash
 # Auto-fix most issues
 bun run check:write
@@ -324,6 +344,7 @@ bun run lint:fix
 **Symptom**: "Cannot find module" errors in TypeScript
 
 **Solution**:
+
 - Always use `.js` extensions in imports (even for `.ts` files)
 - Check that the file exists at the specified path
 - Use relative paths correctly (`./` for same directory, `../` for parent)
@@ -334,11 +355,13 @@ bun run lint:fix
 **Symptom**: MCP client can't connect to server
 
 **Solution for Stdio mode**:
+
 - Verify the path to `stdio.ts` or `stdio.js` is correct and absolute
 - Check that Bun is installed and in PATH
 - Test manually: `bun src/stdio.ts`
 
 **Solution for HTTP mode**:
+
 - Verify server is running: `curl http://localhost:4000/mcp-health`
 - Check port isn't in use: `lsof -i :4000` (macOS/Linux)
 - Verify Bearer token matches your API key
@@ -369,13 +392,13 @@ const validatedResponse = ResponseSchema.parse(jsonResponse);
 
 // Handle specific status codes
 if (response.status === 401) {
-  throw new Error('Invalid or expired API key');
+  throw new Error("Invalid or expired API key");
 }
 if (response.status === 403) {
-  throw new Error('API key lacks permissions for this endpoint');
+  throw new Error("API key lacks permissions for this endpoint");
 }
 if (response.status === 429) {
-  throw new Error('Rate limit exceeded');
+  throw new Error("Rate limit exceeded");
 }
 ```
 
@@ -418,7 +441,7 @@ Content extraction from web pages
 graph TD
     Clients["MCP Clients
     (Claude Desktop, Claude Code, Custom Clients)"]
-    
+
     Clients -->|"Stdio (Local)"| Stdio["src/stdio.ts
     - Process I/O
     - JSON-RPC"]
@@ -426,14 +449,14 @@ graph TD
     - /mcp
     - /mcp-health
     - Bearer Auth"]
-    
+
     Stdio --> Server["src/get-mcp-server.ts
     MCP Server Factory
     - registerTool()
     - Tool Handlers
     - Logging"]
     HTTP --> Server
-    
+
     Server --> Search["you-search
     - Validation
     - Query Build
@@ -446,7 +469,7 @@ graph TD
     - Validation
     - Multi-URL
     - Formatting"]
-    
+
     Search -->|X-API-Key| APIs["You.com APIs
     - Search API (ydc-index.io)
     - Agent API (api.you.com)
@@ -458,6 +481,7 @@ graph TD
 ### Request Flow
 
 **Stdio Transport (Local Development)**:
+
 1. MCP Client sends JSON-RPC request via stdin
 2. `stdio.ts` receives and parses request
 3. Calls MCP Server with tool name + parameters
@@ -467,6 +491,7 @@ graph TD
 7. JSON-RPC response sent via stdout
 
 **HTTP Transport (Remote Deployment)**:
+
 1. MCP Client connects via SSE to `/mcp`
 2. Client sends tool request over SSE connection
 3. `http.ts` authenticates Bearer token
@@ -558,6 +583,7 @@ This section covers local development setup, self-hosting options, and productio
 ### Local development setup
 
 **Prerequisites:**
+
 - Bun >= 1.2.21 installed
 - You.com API key from [you.com/platform/api-keys](https://you.com/platform/api-keys)
 
@@ -583,6 +609,7 @@ bun start
 ```
 
 **Verify setup:**
+
 ```bash
 # Test STDIO mode
 echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | bun src/stdio.ts
@@ -613,7 +640,7 @@ curl http://localhost:4000/mcp-health
 **Docker Compose:**
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   youdotcom-mcp:
     build: .
@@ -626,13 +653,13 @@ services:
 
 ### Deployment modes
 
-| Mode | Use Case | Transport | Command |
-|------|----------|-----------|---------|
-| **STDIO Dev** | Local development and testing | STDIO | `bun run dev` |
-| **STDIO Prod** | MCP client integration (local) | STDIO | `./bin/stdio.js` |
-| **HTTP Dev** | Local HTTP server testing | HTTP/SSE | `bun start` |
-| **HTTP Prod** | Remote clients, web apps, production | HTTP/SSE | `bun run build && bun bin/http` |
-| **Docker** | Containerized deployment | HTTP/SSE | `docker run ...` |
+| Mode           | Use Case                             | Transport | Command                         |
+| -------------- | ------------------------------------ | --------- | ------------------------------- |
+| **STDIO Dev**  | Local development and testing        | STDIO     | `bun run dev`                   |
+| **STDIO Prod** | MCP client integration (local)       | STDIO     | `./bin/stdio.js`                |
+| **HTTP Dev**   | Local HTTP server testing            | HTTP/SSE  | `bun start`                     |
+| **HTTP Prod**  | Remote clients, web apps, production | HTTP/SSE  | `bun run build && bun bin/http` |
+| **Docker**     | Containerized deployment             | HTTP/SSE  | `docker run ...`                |
 
 ### Production deployment
 
@@ -662,10 +689,10 @@ PORT=4000 bun bin/http
 
 **Environment variables:**
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `YDC_API_KEY` | Yes | - | You.com API key |
-| `PORT` | No | 4000 | HTTP server port (HTTP mode only) |
+| Variable      | Required | Default | Description                       |
+| ------------- | -------- | ------- | --------------------------------- |
+| `YDC_API_KEY` | Yes      | -       | You.com API key                   |
+| `PORT`        | No       | 4000    | HTTP server port (HTTP mode only) |
 
 **Production considerations:**
 
@@ -693,6 +720,7 @@ bun test         # Built-in test runner
 ```
 
 **Import Extensions** (enforced by Biome):
+
 - Local files: `.ts` extension
 - NPM packages: `.js` extension
 - JSON files: `.json` with import assertion

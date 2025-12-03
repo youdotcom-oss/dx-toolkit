@@ -81,6 +81,7 @@ export const registerContentsTool = ({
               text: `Error extracting contents: ${errorMessage}`,
             },
           ],
+          structuredContent: undefined,
           isError: true,
         };
       }

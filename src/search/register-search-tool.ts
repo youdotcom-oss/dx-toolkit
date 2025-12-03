@@ -78,6 +78,7 @@ export const registerSearchTool = ({
               text: `Error: ${errorMessage}`,
             },
           ],
+          structuredContent: undefined,
           isError: true,
         };
       }

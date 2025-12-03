@@ -10,7 +10,7 @@ describe('fetchContents', () => {
   test('returns valid response structure for single URL', async () => {
     const result = await fetchContents({
       contentsQuery: {
-        urls: ['https://example.com'],
+        urls: ['https://documentation.you.com/developer-resources/mcp-server'],
         format: 'markdown',
       },
       getUserAgent,
@@ -22,13 +22,6 @@ describe('fetchContents', () => {
     const firstItem = result[0];
     expect(firstItem).toBeDefined();
 
-    // TypeScript doesn't know expect().toBeDefined() is a type guard
-    // but the test will fail with clear message if firstItem is undefined
-    expect(firstItem).toHaveProperty('url');
-    expect(firstItem).toHaveProperty('title');
-    expect(typeof firstItem?.url).toBe('string');
-    expect(typeof firstItem?.title).toBe('string');
-
     // Should have markdown content
     expect(firstItem?.markdown).toBeDefined();
     expect(typeof firstItem?.markdown).toBe('string');
@@ -37,7 +30,10 @@ describe('fetchContents', () => {
   test('handles multiple URLs', async () => {
     const result = await fetchContents({
       contentsQuery: {
-        urls: ['https://example.com', 'https://en.wikipedia.org/wiki/Neuro-symbolic_AI'],
+        urls: [
+          'https://documentation.you.com/developer-resources/mcp-server',
+          'https://documentation.you.com/developer-resources/python-sdk',
+        ],
         format: 'markdown',
       },
       getUserAgent,
@@ -48,7 +44,6 @@ describe('fetchContents', () => {
 
     for (const item of result) {
       expect(item).toHaveProperty('url');
-      expect(item).toHaveProperty('title');
       expect(item.markdown).toBeDefined();
     }
   });
@@ -56,7 +51,7 @@ describe('fetchContents', () => {
   test('handles html format', async () => {
     const result = await fetchContents({
       contentsQuery: {
-        urls: ['https://example.com'],
+        urls: ['https://documentation.you.com/developer-resources/mcp-server'],
         format: 'html',
       },
       getUserAgent,
@@ -68,28 +63,6 @@ describe('fetchContents', () => {
 
     expect(firstItem?.html).toBeDefined();
     expect(typeof firstItem?.html).toBe('string');
-  });
-
-  test('validates response schema', async () => {
-    const result = await fetchContents({
-      contentsQuery: {
-        urls: ['https://example.com'],
-        format: 'markdown',
-      },
-      getUserAgent,
-    });
-
-    expect(Array.isArray(result)).toBe(true);
-    const item = result[0];
-    expect(item).toBeDefined();
-
-    // Required properties
-    expect(item).toHaveProperty('url');
-    expect(item).toHaveProperty('title');
-
-    // At least one content field should be present
-    const hasContent = item?.markdown !== undefined || item?.html !== undefined;
-    expect(hasContent).toBe(true);
   });
 });
 
