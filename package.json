@@ -19,6 +19,8 @@
   "keywords": [
     "mcp",
     "web search",
+    "live news",
+    "answers",
     "model context protocol"
   ],
   "bin": "bin/stdio.js",
