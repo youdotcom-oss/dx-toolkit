@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ydc-server": {
+      "command": "bun",
+      "args": ["dev"],
+      "env": {
+        "YDC_API_KEY": "<you.com api key>"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+# === PACKAGE-LEVEL GITIGNORE ===
+# This ignores package-specific build artifacts and lock files
+# Also prevents OSS contributor artifacts from being synced via git subtree
+
+# Dependencies (prevents OSS PR artifacts from syncing)
+node_modules/
+.npmrc
+
+# Lock files - packages should NEVER have their own lock files
+# All dependencies managed by root workspace
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs (package-specific)
+bin/stdio.js
+dist/
+build/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Logs (prevents OSS PR artifacts from syncing)
+logs/
+*.log
+loglevel.json
+
+# Coverage (package-specific)
+coverage/
+*.lcov
+.nyc_output/
+
+# Test artifacts (package-specific)
+test-results/
+test-output/
+
+# Vitest cache
+.vitest/
+
+# Temporary files (prevents OSS PR artifacts from syncing)
+tmp/
+temp/
+.tmp/
+*.bak

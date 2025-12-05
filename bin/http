@@ -1,0 +1,32 @@
+#!/usr/bin/env bun
+
+import httpApp from '../src/http.js';
+
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
+
+console.log(`Starting You.com MCP Server in HTTP mode...`);
+console.log(`Server will be available at: http://localhost:${port}`);
+console.log(`Health check endpoint: http://localhost:${port}/mcp-health`);
+console.log(`MCP endpoint: http://localhost:${port}/mcp`);
+console.log(`Authentication: Bearer token required for /mcp endpoint`);
+
+const server = Bun.serve({
+  port,
+  fetch: httpApp.fetch.bind(httpApp),
+});
+
+console.log(`✅ You.com MCP Server started successfully on port ${port}`);
+console.log(`🔍 Use Bearer token in Authorization header for API access`);
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n🛑 Shutting down You.com MCP Server...');
+  server.stop();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Shutting down You.com MCP Server...');
+  server.stop();
+  process.exit(0);
+});
