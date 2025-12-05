@@ -208,7 +208,7 @@ This package is published to npm via the `.github/workflows/publish-mcp.yml` wor
 
 This package follows standard Git tagging conventions:
 
-- **Git tags**: `v{version}` (e.g., `v1.3.4`, `v1.4.0-experimental-1`)
+- **Git tags**: `v{version}` (e.g., `v1.3.4`, `v1.4.0-next.1`)
 - **GitHub releases**: `v{version}` (e.g., `Release v1.3.4`)
 - **package.json**: `{version}` (no "v" prefix, e.g., `1.3.4`)
 - **npm package**: `{version}` (no "v" prefix, e.g., `@youdotcom-oss/mcp@1.3.4`)
