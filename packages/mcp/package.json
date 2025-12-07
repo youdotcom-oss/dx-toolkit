@@ -9,12 +9,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/youdotcom-oss/mcp-server.git"
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/mcp"
   },
   "bugs": {
-    "url": "https://github.com/youdotcom-oss/mcp-server/issues"
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
   },
-  "homepage": "https://github.com/youdotcom-oss/mcp-server/tree/main#readme",
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/mcp#readme",
   "author": "You.com (https://you.com)",
   "keywords": [
     "mcp",
