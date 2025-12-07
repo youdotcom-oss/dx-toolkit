@@ -134,7 +134,7 @@ mkdir -p packages/{package-name}/docs
 
 ### 3. Source Files
 
-**File: packages/{package-name}/src/main.ts**
+**File: packages/{package-name}/src/utils.ts**
 ```typescript
 // Public API exports for {npm-package-name}
 // Used when consuming this package as a library
@@ -142,7 +142,7 @@ mkdir -p packages/{package-name}/docs
 // Export your main functionality here
 // Example:
 // export * from './schemas.ts';
-// export * from './utils.ts';
+// export * from './helpers.ts';
 
 export const placeholder = 'Add your exports here';
 ```
@@ -218,9 +218,9 @@ Developer documentation for contributors and AI coding agents.
 ## Tech Stack
 
 - **Runtime**: Bun >= 1.2.21 (not Node.js)
-- **Validation**: Zod 3.25.76
+- **Validation**: Zod ^4.1.13
 - **Testing**: Bun test (built-in)
-- **Code Quality**: Biome 2.3.7 (linter + formatter)
+- **Code Quality**: Biome 2.3.8 (linter + formatter)
 - **Type Checking**: TypeScript 5.9.3
 
 ## Quick Start
@@ -427,50 +427,14 @@ EOF
 cat ".github/workflows/publish-${PACKAGE_NAME}.yml"
 ```
 
-### 6. Update sync-from-oss-pr.yml
-
-**File: .github/workflows/sync-from-oss-pr.yml**
-
-**Update 1: Add to workflow inputs (lines 10-12)**
-```yaml
-options:
-  - mcp
-  - ai-sdk-plugin
-  - {package-name}  # ADD THIS LINE
-```
-
-**Update 2: Add to package mapping (lines 46-52, before the else clause)**
-```bash
-elif [[ "$PACKAGE" == "{package-name}" ]]; then
-  OSS_REPO="{oss-repo}"
-  REMOTE_URL="https://github.com/{oss-repo}.git"
-  REMOTE_NAME="oss-{package-name}"
-```
-
-**Update 3: Update error message (line 57)**
-Change: `Must be 'mcp' or 'ai-sdk-plugin'`
-To: `Must be 'mcp', 'ai-sdk-plugin', or '{package-name}'`
-
-### 7. Update close-oss-pr-after-release.yml
-
-**File: .github/workflows/close-oss-pr-after-release.yml**
-
-**Add to package mapping (lines 119-121, before the else clause)**
-```bash
-elif [[ "$PACKAGE" == "{package-name}" ]]; then
-  OSS_REPO="{oss-repo}"
-```
-
-**Update error message (line 122)**
-Add `'{package-name}'` to the list of known packages in the warning.
-
 ## Post-Creation Steps
 
 ### Automatic Actions
 
-1. Run `bun install` from repository root
-2. Verify workspace linkage: `bun run --filter {npm-package-name} check`
-3. Display success summary with file count
+1. Delete existing lockfile: `rm bun.lock`
+2. Run `bun install` from repository root to regenerate lockfile with new package
+3. Verify workspace linkage: `bun run --filter {npm-package-name} check`
+4. Display success summary with file count
 
 ### Manual Steps Checklist
 
@@ -575,7 +539,7 @@ packages/{package-name}/
 │   ├── commit-msg
 │   └── pre-commit
 ├── src/
-│   └── main.ts
+│   └── utils.ts
 ├── tests/
 ├── docs/
 │   └── API.md
@@ -588,11 +552,9 @@ packages/{package-name}/
 └── CONTRIBUTING.md
 \`\`\`
 
-## Workflow Files Updated
+## Workflow Files Created
 
 - ✅ Created: `.github/workflows/publish-{package-name}.yml`
-- ✅ Updated: `.github/workflows/sync-from-oss-pr.yml`
-- ✅ Updated: `.github/workflows/close-oss-pr-after-release.yml`
 ```
 
 ## Error Handling
@@ -640,6 +602,7 @@ If ANY step fails during file creation:
 2. **On failure**:
    - Delete the entire package directory: `rm -rf packages/{package-name}`
    - Restore workflow files: `git checkout .github/workflows/`
+   - Delete lockfile and reinstall: `rm bun.lock && bun install`
    - Print error message with details
 3. **Print recovery instructions**
 
@@ -650,8 +613,8 @@ Error: {error-message}
 
 Rolling back changes...
 - Deleted: packages/{package-name}/
-- Restored: .github/workflows/sync-from-oss-pr.yml
-- Restored: .github/workflows/close-oss-pr-after-release.yml
+- Restored: .github/workflows/publish-{package-name}.yml
+- Cleaned lockfile and reinstalled dependencies
 
 Rollback complete. No changes were made.
 
@@ -691,8 +654,6 @@ Before marking as complete, verify:
 - ✅ Source files created with appropriate templates
 - ✅ Documentation files created with proper content
 - ✅ Publish workflow created and syntactically valid
-- ✅ Sync workflow updated with new package
-- ✅ Close workflow updated with new package
 - ✅ `bun install` runs successfully
 - ✅ Package passes `bun run check`
 - ✅ Post-creation checklist displayed to user
