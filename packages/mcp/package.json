@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "1.3.5-next.11",
+  "version": "1.3.5-next.12",
   "description": "You.com API Model Context Protocol Server",
   "license": "MIT",
   "engines": {
