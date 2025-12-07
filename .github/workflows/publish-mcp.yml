@@ -17,33 +17,81 @@ permissions:
 jobs:
   publish:
     uses: ./.github/workflows/_publish-package.yml
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
     with:
       npm_package_name: "@youdotcom-oss/mcp"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
 
+  update-remote-version:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger version update via repository_dispatch
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+        run: |
+          gh api repos/${{ secrets.DEPLOYMENT_REPO }}/dispatches \
+            --method POST \
+            --field event_type="update-mcp-version" \
+            --field client_payload[version]="${{ needs.publish.outputs.version }}"
+
   deploy-production:
     if: needs.publish.outputs.is_prerelease == 'false'
-    needs: [publish]
+    needs: [publish, update-remote-version]
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger production deployment
+      - name: Wait for remote version update to complete
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh workflow run deploy-prod.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --field version=${{ needs.publish.outputs.version }}
+          echo "⏳ Waiting for version update job to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
 
-  deploy-staging:
-    if: needs.publish.outputs.is_prerelease == 'true'
-    needs: [publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger staging deployment
+          max_attempts=3  # Check up to 3 times (20s, 40s, 60s)
+          check_interval=20  # Check every 20 seconds
+          attempt=0
+          cutoff_time=$(date -u -d '90 seconds ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-90S +%Y-%m-%dT%H:%M:%SZ)
+
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Waiting ${check_interval}s before check ${attempt}/${max_attempts}..."
+            sleep $check_interval
+
+            # Get the most recent workflow run ID
+            run_id=$(gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/actions/workflows/update-version.yml/runs?per_page=1" \
+              --jq ".workflow_runs[] | select(.created_at > \"$cutoff_time\") | .id")
+
+            if [[ -z "$run_id" ]]; then
+              echo "No recent workflow run found within last 90 seconds"
+              continue
+            fi
+
+            echo "Found workflow run ID: $run_id"
+
+            # Get the update-version job status from the workflow run
+            job_status=$(gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/actions/runs/$run_id/jobs" \
+              --jq '.jobs[] | select(.name == "update-version") | "\(.status):\(.conclusion)"')
+
+            echo "Job status: ${job_status:-job not found}"
+
+            if [[ "$job_status" == "completed:success" ]]; then
+              echo "✅ Version update job completed successfully"
+              exit 0
+            elif [[ "$job_status" == "completed:failure" ]] || [[ "$job_status" == "completed:cancelled" ]]; then
+              echo "❌ Version update job failed with status: $job_status"
+              exit 1
+            fi
+          done
+
+          echo "⚠️ Version update job did not complete after ${max_attempts} checks ($(($max_attempts * $check_interval))s total)"
+          exit 1
+
+      - name: Trigger production deployment via repository_dispatch
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh workflow run deploy-staging.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --field version=${{ needs.publish.outputs.version }}
+          gh api repos/${{ secrets.DEPLOYMENT_REPO }}/dispatches \
+            --method POST \
+            --field event_type="deploy-mcp-production" \
+            --field client_payload[version]="${{ needs.publish.outputs.version }}"
