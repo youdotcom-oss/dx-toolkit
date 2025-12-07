@@ -350,7 +350,11 @@ This convention follows industry standards used by Node.js  and most major proje
   - **update-remote-version** job: Sends `update-mcp-version` event to deployment repository
   - **deploy-production** job: Conditionally sends `deploy-mcp-production` event (only for stable releases)
   - Uses `DEPLOYMENT_REPO` secret to specify target repository (e.g., `Su-Sea/youdotcom-mcp-server`)
-  - 30-second delay before production deployment to ensure version update completes
+  - Actively verifies remote version update completion before deployment:
+    - Polls every 20 seconds for up to 3 attempts (60s total)
+    - Checks specific `update-version` job status using GitHub API
+    - Only considers runs created within last 90 seconds
+    - Fails fast if remote job fails or times out
   - Prereleases skip production deployment (`is_prerelease == 'true'`)
 - Required Secrets:
   - `PUBLISH_TOKEN`: For git operations bypassing branch protection
