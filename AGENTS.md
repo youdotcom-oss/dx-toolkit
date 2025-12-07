@@ -349,7 +349,7 @@ This convention follows industry standards used by Node.js  and most major proje
 - Deployment Architecture:
   - **update-remote-version** job: Sends `update-mcp-version` event to deployment repository
   - **deploy-production** job: Conditionally sends `deploy-mcp-production` event (only for stable releases)
-  - Uses `DEPLOYMENT_REPO` secret to specify target repository (e.g., `Su-Sea/youdotcom-mcp-server`)
+  - Uses `DEPLOYMENT_REPO` secret to specify target repository
   - Actively verifies remote version update completion before deployment:
     - Polls every 20 seconds for up to 3 attempts (60s total)
     - Checks specific `update-version` job status using GitHub API
