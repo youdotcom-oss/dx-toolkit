@@ -16,13 +16,17 @@ jobs:
       - name: Check if internal contributor
         id: check_internal
         run: |
-          # Check if user is an org member
-          if gh api orgs/youdotcom-oss/members/${{ github.event.pull_request.user.login }} 2>/dev/null; then
+          # Check repository permission (works for both public and private org members)
+          RESPONSE=$(gh api repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }}/permission 2>/dev/null || echo '{"permission":"none"}')
+          PERMISSION=$(echo "$RESPONSE" | jq -r '.permission')
+
+          # Admin, maintain, or write = internal contributor
+          if [[ "$PERMISSION" == "admin" ]] || [[ "$PERMISSION" == "maintain" ]] || [[ "$PERMISSION" == "write" ]]; then
             echo "is_internal=true" >> $GITHUB_OUTPUT
-            echo "✓ User is a youdotcom-oss organization member"
+            echo "✓ User has $PERMISSION permission on repository"
           else
             echo "is_internal=false" >> $GITHUB_OUTPUT
-            echo "✗ User is not a youdotcom-oss organization member"
+            echo "✗ User has $PERMISSION permission (not internal)"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
