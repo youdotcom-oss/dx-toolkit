@@ -27,24 +27,25 @@ jobs:
     needs: [publish]
     runs-on: ubuntu-latest
     steps:
-      - name: Update version on remote repository
+      - name: Trigger version update via repository_dispatch
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh workflow run update-version.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --ref main \
-            --field version=${{ needs.publish.outputs.version }}
+          gh api repos/Su-Sea/youdotcom-mcp-server/dispatches \
+            --method POST \
+            --field event_type="update-mcp-version" \
+            --field client_payload[version]="${{ needs.publish.outputs.version }}"
 
   deploy-production:
     if: needs.publish.outputs.is_prerelease == 'false'
     needs: [publish, update-remote-version]
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger production deployment
+      - name: Trigger production deployment via repository_dispatch
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh workflow run deploy-prod.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --ref main
+          gh api repos/Su-Sea/youdotcom-mcp-server/dispatches \
+            --method POST \
+            --field event_type="deploy-mcp-production" \
+            --field client_payload[version]="${{ needs.publish.outputs.version }}"
