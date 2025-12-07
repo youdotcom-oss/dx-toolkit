@@ -361,12 +361,13 @@ jobs:
           IS_PRERELEASE: ${{ needs.create-release.outputs.is_prerelease }}
         run: |
           # NPM trusted publishing uses OIDC token automatically
+          # Provenance attestations are generated automatically (no --provenance flag needed)
           # No need to configure .npmrc or NPM_TOKEN
 
           if [[ "$IS_PRERELEASE" == "true" ]]; then
             echo "Publishing as next (prerelease)"
-            npm publish --provenance --access public --tag next
+            npm publish --access public --tag next
           else
             echo "Publishing as latest (stable)"
-            npm publish --provenance --access public
+            npm publish --access public
           fi
