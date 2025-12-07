@@ -15,6 +15,10 @@ on:
         description: "Next prerelease number (optional)"
         required: false
         type: string
+    secrets:
+      PUBLISH_TOKEN:
+        description: "Token with permissions to push to protected branches"
+        required: true
     outputs:
       version:
         description: "The published version"
