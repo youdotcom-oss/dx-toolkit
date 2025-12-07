@@ -45,46 +45,31 @@ jobs:
       - name: Wait for remote version update to complete
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          VERSION: ${{ needs.publish.outputs.version }}
         run: |
-          echo "⏳ Waiting for version update job to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
+          echo "⏳ Waiting for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
+          echo "Looking for release: mcp@v${VERSION}"
 
           max_attempts=3  # Check up to 3 times (20s, 40s, 60s)
           check_interval=20  # Check every 20 seconds
           attempt=0
-          cutoff_time=$(date -u -d '90 seconds ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-90S +%Y-%m-%dT%H:%M:%SZ)
 
           while [ $attempt -lt $max_attempts ]; do
             attempt=$((attempt + 1))
             echo "Waiting ${check_interval}s before check ${attempt}/${max_attempts}..."
             sleep $check_interval
 
-            # Get the most recent workflow run ID
-            run_id=$(gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/actions/workflows/update-version.yml/runs?per_page=1" \
-              --jq ".workflow_runs[] | select(.created_at > \"$cutoff_time\") | .id")
-
-            if [[ -z "$run_id" ]]; then
-              echo "No recent workflow run found within last 90 seconds"
-              continue
-            fi
-
-            echo "Found workflow run ID: $run_id"
-
-            # Get the update-version job status from the workflow run
-            job_status=$(gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/actions/runs/$run_id/jobs" \
-              --jq '.jobs[] | select(.name == "update-version") | "\(.status):\(.conclusion)"')
-
-            echo "Job status: ${job_status:-job not found}"
-
-            if [[ "$job_status" == "completed:success" ]]; then
-              echo "✅ Version update job completed successfully"
+            # Check if the release exists (uses Contents: read permission)
+            if gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/releases/tags/mcp@v${VERSION}" >/dev/null 2>&1; then
+              echo "✅ Version update completed - release mcp@v${VERSION} found on remote"
               exit 0
-            elif [[ "$job_status" == "completed:failure" ]] || [[ "$job_status" == "completed:cancelled" ]]; then
-              echo "❌ Version update job failed with status: $job_status"
-              exit 1
+            else
+              echo "Release not found yet, continuing..."
             fi
           done
 
-          echo "⚠️ Version update job did not complete after ${max_attempts} checks ($(($max_attempts * $check_interval))s total)"
+          echo "⚠️ Version update did not complete after ${max_attempts} checks ($(($max_attempts * $check_interval))s total)"
+          echo "Release mcp@v${VERSION} was not found on ${{ secrets.DEPLOYMENT_REPO }}"
           exit 1
 
       - name: Trigger production deployment via repository_dispatch
