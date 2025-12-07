@@ -125,12 +125,15 @@ mkdir -p packages/{package-name}/docs
   - name: `{npm-package-name}`
   - version: `0.1.0`
   - description: `{description}`
-  - repository.url: `git+https://github.com/{oss-repo}.git`
-  - bugs.url: `https://github.com/{oss-repo}/issues`
-  - homepage: `https://github.com/{oss-repo}/tree/main#readme`
+  - repository.url: `git+https://github.com/youdotcom-oss/dx-toolkit.git`
+  - repository.directory: `packages/{package-name}`
+  - bugs.url: `https://github.com/youdotcom-oss/dx-toolkit/issues`
+  - homepage: `https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/{package-name}#readme`
   - keywords: `{keywords-array}`
 - Keep minimal dependencies (typically just `zod` for validation)
 - Remove server-specific fields: no `bin` field needed
+
+**IMPORTANT**: All packages in this monorepo should point to the `dx-toolkit` repository, NOT to individual OSS repositories. The `directory` field indicates the package location within the monorepo.
 
 ### 3. Source Files
 
