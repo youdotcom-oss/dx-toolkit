@@ -151,7 +151,7 @@ jobs:
           echo "✅ Version format validated: $version"
       - uses: actions/checkout@v4
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.PUBLISH_TOKEN }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -360,7 +360,7 @@ jobs:
       - name: Create GitHub Release
         id: release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           VERSION: ${{ needs.update-version.outputs.version }}
           PACKAGE_NAME: ${{ needs.update-version.outputs.package_name }}
           IS_PRERELEASE: ${{ needs.update-version.outputs.is_prerelease }}
