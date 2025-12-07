@@ -13,18 +13,12 @@ jobs:
       id-token: write
 
     steps:
-      - name: Debug - Show PR author association
-        run: |
-          echo "Author association: '${{ github.event.pull_request.author_association }}'"
-          echo "Author login: '${{ github.event.pull_request.user.login }}'"
-          echo "PR number: ${{ github.event.pull_request.number }}"
-          echo "Event action: ${{ github.event.action }}"
-
       - name: Skip if external contributor
         if: |
           github.event.pull_request.author_association != 'OWNER' &&
           github.event.pull_request.author_association != 'MEMBER' &&
-          github.event.pull_request.author_association != 'COLLABORATOR'
+          github.event.pull_request.author_association != 'COLLABORATOR' &&
+          github.event.pull_request.author_association != 'CONTRIBUTOR'
         run: |
           echo "Skipping code review for external contributor"
           echo "Association: ${{ github.event.pull_request.author_association }}"
@@ -34,7 +28,8 @@ jobs:
         if: |
           github.event.pull_request.author_association == 'OWNER' ||
           github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR'
+          github.event.pull_request.author_association == 'COLLABORATOR' ||
+          github.event.pull_request.author_association == 'CONTRIBUTOR'
         with:
           fetch-depth: 1
 
@@ -42,7 +37,8 @@ jobs:
         if: |
           github.event.pull_request.author_association == 'OWNER' ||
           github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR'
+          github.event.pull_request.author_association == 'COLLABORATOR' ||
+          github.event.pull_request.author_association == 'CONTRIBUTOR'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           track_progress: true #
