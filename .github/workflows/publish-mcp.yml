@@ -22,28 +22,28 @@ jobs:
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
 
-  deploy-production:
-    if: ${{ needs.publish.outputs.is_prerelease == 'false' }}
-    needs: [publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger production deployment
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-        run: |
-          gh workflow run deploy-prod.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --field version=${{ needs.publish.outputs.version }}
+  # deploy-production:
+  #   if: ${{ needs.publish.outputs.is_prerelease == 'false' }}
+  #   needs: [publish]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger production deployment
+  #       env:
+  #         GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+  #       run: |
+  #         gh workflow run deploy-prod.yml \
+  #           --repo Su-Sea/youdotcom-mcp-server \
+  #           --field version=${{ needs.publish.outputs.version }}
 
-  deploy-staging:
-    if: ${{ needs.publish.outputs.is_prerelease == 'true' }}
-    needs: [publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger staging deployment
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-        run: |
-          gh workflow run deploy-staging.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --field version=${{ needs.publish.outputs.version }}
+  # deploy-staging:
+  #   if: ${{ needs.publish.outputs.is_prerelease == 'true' }}
+  #   needs: [publish]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger staging deployment
+  #       env:
+  #         GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+  #       run: |
+  #         gh workflow run deploy-staging.yml \
+  #           --repo Su-Sea/youdotcom-mcp-server \
+  #           --field version=${{ needs.publish.outputs.version }}
