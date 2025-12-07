@@ -25,11 +25,11 @@ A Model Context Protocol (MCP) server that provides web search, AI agent, and co
 ## Tech Stack
 
 - **Runtime**: Bun >= 1.2.21 (not Node.js)
-- **Framework**: Model Context Protocol SDK v1.24.0
-- **HTTP Server**: Hono v4.10.6 with @hono/mcp for HTTP transport (SSE protocol support)
-- **Validation**: Zod 3.25.76 for schema validation
+- **Framework**: Model Context Protocol SDK ^1.24.3
+- **HTTP Server**: Hono ^4.10.7 with @hono/mcp for HTTP transport (SSE protocol support)
+- **Validation**: Zod ^4.1.13 for schema validation
 - **Testing**: Bun test (built-in test runner)
-- **Code Quality**: Biome 2.3.7 (linter + formatter)
+- **Code Quality**: Biome 2.3.8 (linter + formatter)
 - **Type Checking**: TypeScript 5.9.3
 - **Git Hooks**: lint-staged 16.2.7
 
@@ -609,7 +609,7 @@ graph TD
 
 ### Library Export
 
-- `src/main.ts` - Public API export file for library consumers
+- `src/utils.ts` - Public API export file for library consumers
   - Exports all schemas from contents, express, and search tools
   - Exports utility functions from contents, express, and search
   - Exports shared utilities (checkResponseForErrors, formatSearchResultsText)
