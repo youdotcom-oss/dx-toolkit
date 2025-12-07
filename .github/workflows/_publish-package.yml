@@ -1,0 +1,382 @@
+name: Reusable Package Publisher
+
+on:
+  workflow_call:
+    inputs:
+      npm_package_name:
+        description: "NPM package name (e.g., @youdotcom-oss/mcp)"
+        required: true
+        type: string
+      oss_repo:
+        description: "OSS repository (e.g., youdotcom-oss/mcp-server)"
+        required: true
+        type: string
+      version:
+        description: "Version to publish (e.g., 1.0.0)"
+        required: true
+        type: string
+      next:
+        description: "Next prerelease number (optional)"
+        required: false
+        type: string
+    secrets:
+      RELEASE_ADMIN_TOKEN:
+        required: true
+      YDC_OSS_PUBLISH_TOKEN:
+        required: true
+      NPM_TOKEN:
+        required: true
+
+env:
+  REPO_NAME: "dx-toolkit"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create Release
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+      is_prerelease: ${{ steps.set_version.outputs.is_prerelease }}
+      release_notes: ${{ steps.release.outputs.release_notes }}
+    steps:
+      - name: Validate inputs
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+        run: |
+          # SECURITY: Validate all inputs before use to prevent injection
+          # Using env vars instead of direct interpolation to prevent shell injection
+
+          # Validate version format (semver with optional pre-release suffix)
+          if ! echo "$INPUT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9]+)?$'; then
+            echo "::error::Invalid version format: $INPUT_VERSION"
+            echo "::error::Expected: X.Y.Z or X.Y.Z-suffix (e.g., 1.0.0 or 1.0.0-beta)"
+            exit 1
+          fi
+
+          # Validate npm package name format (@scope/package-name)
+          if ! echo "$INPUT_NPM_PACKAGE_NAME" | grep -qE '^@[a-z0-9-]+/[a-z0-9-]+$'; then
+            echo "::error::Invalid npm package name: $INPUT_NPM_PACKAGE_NAME"
+            echo "::error::Expected: @scope/package-name (lowercase, hyphens allowed)"
+            exit 1
+          fi
+
+          echo "✓ Input validation passed"
+
+      - name: Set version
+        id: set_version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_NEXT: ${{ inputs.next }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          INPUT_NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+        run: |
+          base_version="$INPUT_VERSION"
+          next="$INPUT_NEXT"
+          branch="$BRANCH_NAME"
+          package_name="$INPUT_NPM_PACKAGE_NAME"
+
+          # Auto-treat as prerelease if not on main branch
+          if [[ "$branch" != "main" ]]; then
+            echo "⚠️  Non-main branch detected: $branch"
+            echo "⚠️  Automatically treating as prerelease"
+
+            if [[ -n "$next" ]]; then
+              # User provided next number
+              echo "version=${base_version}-next.${next}" >> $GITHUB_OUTPUT
+            else
+              # Auto-increment: find highest next version for this base version
+              echo "Finding highest next version for ${base_version}..."
+
+              # Get all versions matching pattern from npm
+              EXISTING_VERSIONS=$(npm view "$package_name" versions --json 2>/dev/null || echo "[]")
+
+              # Validate we got valid JSON
+              if ! echo "$EXISTING_VERSIONS" | jq empty 2>/dev/null; then
+                echo "::warning::Could not fetch versions from npm, defaulting to next.1"
+                NEXT_NUMBER=1
+              else
+                # Find highest next number for this base version
+                # Use jq to safely extract and find max (prevents injection, no external commands)
+                HIGHEST=$(printf '%s' "$EXISTING_VERSIONS" | jq -r --arg base "$base_version" '
+                  [.[] | select(startswith($base + "-next.")) | ltrimstr($base + "-next.") | tonumber]
+                  | max // empty
+                ')
+
+                if [[ -z "$HIGHEST" ]]; then
+                  NEXT_NUMBER=1
+                else
+                  NEXT_NUMBER=$((HIGHEST + 1))
+                fi
+              fi
+
+              echo "Next prerelease version: ${base_version}-next.${NEXT_NUMBER}"
+              echo "version=${base_version}-next.${NEXT_NUMBER}" >> $GITHUB_OUTPUT
+            fi
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            # Main branch - honor next input
+            if [[ -n "$next" ]]; then
+              echo "version=${base_version}-next.${next}" >> $GITHUB_OUTPUT
+              echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "version=${base_version}" >> $GITHUB_OUTPUT
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+      - name: Validate input version
+        env:
+          VERSION: ${{ steps.set_version.outputs.version }}
+        run: |
+          version="$VERSION"
+
+          # Check for 'v' prefix (common mistake)
+          if [[ "$version" =~ ^v ]]; then
+            echo "::error::Version should not include 'v' prefix"
+            echo "::error::Enter '1.3.4' not 'v1.3.4'"
+            echo "::error::The workflow will automatically add 'v' for Git tags"
+            exit 1
+          fi
+
+          # Validate semver format (allows dots in prerelease suffix for formats like 1.0.0-next.1)
+          if [[ ! "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-([a-zA-Z0-9._-]+))?$ ]]; then
+            echo "::error::Version must have the format 'x.y.z' or 'x.y.z-<string>', where x, y, and z are numbers."
+            exit 1
+          fi
+
+          echo "✅ Version format validated: $version"
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Configure Git
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+
+      - name: Update package.json version and workspace dependencies
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.version }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          # SAFE: All inputs validated in "Validate inputs" step with strict regex
+          # Derive package directory from npm package name
+          # @youdotcom-oss/mcp -> mcp
+          PACKAGE_NAME="${NPM_PACKAGE_NAME#@youdotcom-oss/}"
+
+          # Validate package name extraction
+          if [[ -z "$PACKAGE_NAME" ]] || [[ "$PACKAGE_NAME" == "$NPM_PACKAGE_NAME" ]]; then
+            echo "::error::Failed to extract package name from $NPM_PACKAGE_NAME"
+            echo "::error::Expected format: @youdotcom-oss/package-name"
+            exit 1
+          fi
+
+          PACKAGE_DIR="packages/${PACKAGE_NAME}"
+
+          # Validate package directory exists
+          if [[ ! -d "$PACKAGE_DIR" ]]; then
+            echo "::error::Package directory not found: $PACKAGE_DIR"
+            echo "::error::Extracted package name: $PACKAGE_NAME"
+            exit 1
+          fi
+
+          # Update the package version using jq (more reliable than npm version for prerelease formats)
+          cd "$PACKAGE_DIR"
+          PKG_JSON="package.json"
+          if ! jq --arg ver "$VERSION" '.version = $ver' "$PKG_JSON" > "${PKG_JSON}.tmp"; then
+            echo "::error::Failed to update package.json version to $VERSION"
+            exit 1
+          fi
+          mv "${PKG_JSON}.tmp" "$PKG_JSON"
+          echo "Updated package.json version to $VERSION"
+          cd ../..
+
+          # Find and update workspace dependencies
+          echo "Checking for workspace packages that depend on $PACKAGE_NAME..."
+          UPDATED_PACKAGES=0
+
+          for pkg_json in packages/*/package.json; do
+            # Skip the package we just updated
+            if [[ "$pkg_json" == "${PACKAGE_DIR}/package.json" ]]; then
+              continue
+            fi
+
+            # Check if this package depends on the updated package using jq
+            # Use jq --arg to safely pass variables (prevents injection)
+            HAS_DEP=$(jq -e --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json" > /dev/null 2>&1 && echo "true" || echo "false")
+
+            if [[ "$HAS_DEP" == "true" ]]; then
+              echo "Updating dependency in $pkg_json to version $VERSION"
+
+              # Update dependencies with exact version (no ^ prefix) using jq
+              if jq -e --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg]' "$pkg_json" > /dev/null 2>&1; then
+                jq --arg pkg "$PACKAGE_NAME" --arg ver "$VERSION" '.dependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp" && mv "${pkg_json}.tmp" "$pkg_json"
+                echo "  ✓ Updated dependencies"
+              fi
+
+              # Update devDependencies with exact version (no ^ prefix) using jq
+              if jq -e --arg pkg "$PACKAGE_NAME" '.devDependencies[$pkg]' "$pkg_json" > /dev/null 2>&1; then
+                jq --arg pkg "$PACKAGE_NAME" --arg ver "$VERSION" '.devDependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp" && mv "${pkg_json}.tmp" "$pkg_json"
+                echo "  ✓ Updated devDependencies"
+              fi
+
+              # Validate exact version format (no ^ or ~ prefix)
+              ACTUAL_VERSION=$(jq -r --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
+              if [[ "$ACTUAL_VERSION" != "$VERSION" ]]; then
+                echo "::error::Failed to update to exact version in $pkg_json"
+                echo "::error::Expected: $VERSION"
+                echo "::error::Got: $ACTUAL_VERSION"
+                exit 1
+              fi
+
+              git add "$pkg_json"
+              UPDATED_PACKAGES=$((UPDATED_PACKAGES + 1))
+            fi
+          done
+
+          # Verify version sync BEFORE committing
+          cd "$PACKAGE_DIR"
+          PACKAGE_VERSION=$(jq -r '.version' package.json)
+
+          # Validate versions match (both without 'v' prefix)
+          if [[ "$PACKAGE_VERSION" != "$VERSION" ]]; then
+            echo "::error::Version mismatch after npm version!"
+            echo "::error::package.json: $PACKAGE_VERSION"
+            echo "::error::Expected: $VERSION"
+            exit 1
+          fi
+
+          # Validate no 'v' prefix in package.json
+          if [[ "$PACKAGE_VERSION" =~ ^v ]]; then
+            echo "::error::package.json version should not have 'v' prefix"
+            echo "::error::Found: $PACKAGE_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version verified: $PACKAGE_VERSION"
+          echo "✅ Git tag will be: v$PACKAGE_VERSION"
+          cd ../..
+
+          # Commit all changes (if any)
+          git add "${PACKAGE_DIR}/package.json"
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "::notice::No version changes to commit (already at v$VERSION)"
+          else
+            if [[ $UPDATED_PACKAGES -gt 0 ]]; then
+              git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION and update $UPDATED_PACKAGES dependent package(s) [skip ci]"
+            else
+              git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION [skip ci]"
+            fi
+            git push origin "$BRANCH_NAME"
+          fi
+
+      - name: Create GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.version }}
+          IS_PRERELEASE: ${{ steps.set_version.outputs.is_prerelease }}
+        run: |
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            gh release create "v${VERSION}" \
+              --title "Release v${VERSION}" \
+              --generate-notes \
+              --prerelease
+          else
+            gh release create "v${VERSION}" \
+              --title "Release v${VERSION}" \
+              --generate-notes
+          fi
+
+          # Get the release notes
+          RELEASE_NOTES=$(gh release view "v${VERSION}" --json body --jq '.body')
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  npm-publish:
+    runs-on: ubuntu-latest
+    name: Publish to NPM
+    needs: [create-release]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Derive package name
+        id: derive_package
+        env:
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+        run: |
+          # SAFE: All inputs validated in "Validate inputs" step with strict regex
+          # Derive package directory from npm package name
+          # @youdotcom-oss/mcp -> mcp
+          PACKAGE_NAME="${NPM_PACKAGE_NAME#@youdotcom-oss/}"
+
+          # Validate package name extraction
+          if [[ -z "$PACKAGE_NAME" ]] || [[ "$PACKAGE_NAME" == "$NPM_PACKAGE_NAME" ]]; then
+            echo "::error::Failed to extract package name from $NPM_PACKAGE_NAME"
+            echo "::error::Expected format: @youdotcom-oss/package-name"
+            exit 1
+          fi
+
+          # Validate package directory exists
+          if [[ ! -d "packages/${PACKAGE_NAME}" ]]; then
+            echo "::error::Package directory not found: packages/${PACKAGE_NAME}"
+            echo "::error::Extracted package name: $PACKAGE_NAME"
+            exit 1
+          fi
+
+          echo "package_name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build project
+        working-directory: packages/${{ steps.derive_package.outputs.package_name }}
+        run: bun run build
+
+      - name: Configure NPM and Publish
+        working-directory: packages/${{ steps.derive_package.outputs.package_name }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          IS_PRERELEASE: ${{ needs.create-release.outputs.is_prerelease }}
+          # Use npm environment variables for authentication (recommended for CI/CD)
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Verify authentication
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          npm whoami
+
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            echo "Publishing as next (prerelease)"
+            npm publish --access public --tag next
+          else
+            echo "Publishing as latest (stable)"
+            npm publish --access public
+          fi
+
+          # Clean up credentials file
+          rm -f ~/.npmrc

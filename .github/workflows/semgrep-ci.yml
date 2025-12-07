@@ -1,0 +1,23 @@
+name: Semgrep
+on:
+  workflow_dispatch: {}
+  # push:
+  #   branches: [dev, main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # random HH:MM to avoid a load spike on GitHub Actions at 00:00
+    - cron: '50 1 * * *'
+jobs:
+  semgrep:
+    name: semgrep/ci
+    runs-on: ydc-build-2xl
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    container:
+      image: semgrep/semgrep
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Semgrep CI Rules
+        run: semgrep ci

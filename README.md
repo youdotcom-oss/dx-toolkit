@@ -1,307 +1,270 @@
-# You.com MCP Server
+# You.com DX Toolkit
 
-The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/). Search current content, get up-to-date answers, and extract live web pages—whether in your IDE or deployed agentic workflows. Built on MCP to **work everywhere your agents do**—one integration, unlimited compatibility across IDEs, frameworks, and production systems. 
+**Open-source toolkit enabling developers to integrate You.com's AI capabilities into their workflows.**
 
-## Features
+This workspace contains packages for building, testing, and shipping agentic workflows:
 
-- **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
-- **AI-powered Express Agent**: Fast responses with optional real-time web search integration
-- **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
-- **Multiple transport protocols**: STDIO and Streamable HTTP support
-- **Bearer Token Authentication**: Secure API access in HTTP mode
-- **TypeScript support**: Full type safety with Zod schemas
-- **Advanced search parameters**: Site filtering, file type filtering, language filtering, exact terms, and exclude terms
+- **[@youdotcom-oss/mcp](./packages/mcp/)** - MCP Server providing web search, AI agents, and content extraction
+- **AI SDK Plugins** *(coming soon)* - Integrations for Vercel AI SDK, OpenAI SDK, Gemini SDK
+- **Evaluation Harness** *(coming soon)* - Tools for testing and evaluating agentic workflows
+- **Claude Code Skills** *(coming soon)* - RAG, context engineering, and workflow patterns for Claude Code
 
-## Getting started
+## Packages
 
-Get up and running with the You.com MCP Server in 4 quick steps:
+### [@youdotcom-oss/mcp](./packages/mcp/)
 
-### 1. Get your API key
+The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/).
 
-Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your You.com API key. Keep this key secure - you'll need it for configuration.
+**Features:**
+- Web and news search using You.com's Search API
+- AI-powered Express Agent for fast responses
+- Content extraction from web pages (markdown/HTML)
+- Multiple transport protocols (STDIO and HTTP)
+- Full TypeScript support with Zod schemas
 
-### 2. Choose your setup
+**[View full documentation →](./packages/mcp/README.md)**
 
-**Remote server (recommended)** - No installation, always up-to-date, just add the URL and API key
-- Use `https://api.you.com/mcp` with HTTP transport
-- Authentication via `Authorization: Bearer <your-key>` header
+### @youdotcom-oss/ai-sdk *(coming soon)*
 
-**NPM package** - Runs locally on your machine
-- Use `npx @youdotcom-oss/mcp` with STDIO transport
-- Authentication via `YDC_API_KEY` environment variable
-- Requires Bun or Node.js
+AI SDK for building custom integrations with You.com's APIs.
 
-### 3. Configure your client
+## Quick Start
 
-Choose your MCP client from the [detailed setup guides](#adding-to-your-mcp-client) below. Most clients use this basic structure:
+### For MCP Server Users
 
-**Remote server (recommended):**
-```json
-{
-  "mcpServers": {
-    "ydc-server": {
-      "type": "http",
-      "url": "https://api.you.com/mcp",
-      "headers": { "Authorization": "Bearer <you-api-key>" }
-    }
-  }
-}
-```
+If you want to use the You.com MCP Server with your AI agent (Claude, Cursor, etc.):
 
-**NPM package:**
-```json
-{
-  "mcpServers": {
-    "ydc-server": {
-      "command": "npx",
-      "args": ["@youdotcom-oss/mcp"],
-      "env": { "YDC_API_KEY": "<you-api-key>" }
-    }
-  }
-}
-```
+**👉 [See the MCP Server documentation](./packages/mcp/README.md)**
 
-**Configuration notes:**
-- Remote server recommended for most users (no installation, always up-to-date)
-- NPM package for local usage or self-hosting scenarios
-- HTTP transport for remote connections; STDIO transport for local packages
-- API key always required (header for HTTP, environment variable for STDIO)
+The MCP Server README contains:
+- Setup instructions for all MCP clients
+- Configuration examples
+- Available tools and usage
+- Troubleshooting guide
 
-### 4. Test your setup
+### For Contributors
 
-Ask your AI agent a simple query to verify everything works:
-- "Search the web for the latest news about artificial intelligence"
-- "What is the capital of France?" (with web search)
-- "Extract the content from https://example.com"
+If you want to contribute code or report issues:
 
-Your agent will automatically use the appropriate tool based on your natural language request.
+**Prerequisites:**
+- Bun >= 1.2.21: [Installation guide](https://bun.sh/docs/installation)
+- GitHub CLI (recommended): `brew install gh` (macOS) or [other platforms](https://github.com/cli/cli#installation)
 
-## Adding to your MCP client
-
-Detailed configuration instructions for specific MCP clients. See [Getting Started](#getting-started) above for a quick overview.
-
-<details>
-<summary><strong>Claude Code</strong></summary>
-
-Use the Claude Code CLI to add the You.com MCP server:
-
-**Quick setup:**
+**Development setup:**
 ```bash
-claude mcp add --transport http ydc-server https://api.you.com/mcp --header "Authorization: Bearer <your-api-key>"
+# Clone repository
+git clone git@github.com:youdotcom-oss/dx-toolkit.git
+cd dx-toolkit
+
+# Install dependencies
+bun install
+
+# Set up environment variables
+echo "export YDC_API_KEY=your-actual-api-key-here" > .env
+source .env
+
+# Authenticate with GitHub (if using gh CLI)
+gh auth login
+
+# Run MCP server in development
+bun run dev:mcp
+
+# Run all tests
+bun test
+
+# Run all quality checks
+bun run check
 ```
 
-For setup, follow the MCP installation [guide](https://code.claude.com/docs/en/mcp).
+For comprehensive development guidelines including code patterns, testing, git workflow, and troubleshooting, see [AGENTS.md](./AGENTS.md).
 
-</details>
+## Working with AI Agents on This Project
 
-<details>
-<summary><strong>Claude Desktop</strong></summary>
+### Using Claude Code or Other AI Assistants
 
-For setup, follow the MCP installation [guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
+This project is designed to work seamlessly with AI coding agents like Claude Code. We provide specialized context files to help AI agents understand our patterns and architecture:
 
-</details>
+**📋 CLAUDE.md** - Entry point that references AGENTS.md files
 
-<details>
-<summary><strong>Codex</strong></summary>
+**🛠️ AGENTS.md** - Comprehensive development guidelines including:
+  - Monorepo structure and architecture
+  - Code style patterns (arrow functions, Zod schemas, MCP-specific patterns)
+  - Testing patterns and anti-patterns
+  - Git workflow and commit conventions
+  - Troubleshooting guides
 
-For setup, follow the MCP installation [guide](https://github.com/openai/codex/blob/main/docs/config.md#streamable-http).
+**⚙️ .mcp.example.json** - MCP server configuration for AI agents
 
-</details>
+#### Recommended Workflow
 
-<details>
-<summary><strong>Cursor IDE</strong></summary>
+1. **Initial context**: Reference `@AGENTS.md` or `@CLAUDE.md` in your prompt
+2. **Understand architecture**: Ask agent to read relevant sections
+3. **Make changes**: Agent follows documented patterns automatically
+4. **Quality checks**: `bun run check` ensures code quality
+5. **Testing**: `bun test` validates changes
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=ydc-server&config=eyJ1cmwiOiJodHRwczovL2FwaS55b3UuY29tL21jcCIsImhlYWRlcnMiOnsiQXV0aG9yaXphdGlvbiI6IkJlYXJlciA8eW91LWFwaS1rZXk%2BIn19)
+#### Example Prompts
 
-For setup, follow the MCP installation [guide](https://cursor.com/docs/context/mcp#installing-mcp-servers); use the configuration template above ***without type field***.
+```
+"Following @AGENTS.md patterns, add a new MCP tool for X"
+"Review @packages/mcp/AGENTS.md and refactor Y"
+"Using patterns from @AGENTS.md, write tests for Z"
+```
 
-**Note:** To avoid conflicts, go to Settings > Agents tab and turn off Cursor's built-in web search tool.
+## GitHub Workflows
 
-</details>
+This project uses automated workflows for OSS contributions, releases, and deployments.
 
-<details>
-<summary><strong>Gemini CLI</strong></summary>
+### For Maintainers
 
-For setup, follow the MCP installation [guide](https://google-gemini.github.io/gemini-cli/docs/tools/mcp-server.html#how-to-set-up-your-mcp-server); use the configuration template above.
+**Syncing OSS Contributions**
+- Workflow: `.github/workflows/sync-from-oss-pr.yml`
+- Trigger: Manual via GitHub Actions UI
+- Purpose: Pull external OSS PR into private monorepo for review
+- Process: Creates `sync-oss-<package>-pr-<number>` branch and opens PR
 
-</details>
+**Releasing and Publishing**
+- Workflow: `.github/workflows/publish-mcp.yml`
+- Trigger: Manual via GitHub Actions UI or on release
+- Purpose: Update version, create GitHub release, sync to OSS, publish to npm
+- Auto-triggers: `close-oss-pr-after-release.yml`
 
-<details>
-<summary><strong>JetBrains IDEs</strong></summary>
+**Deployment**
+- Staging: `.github/workflows/deploy-staging.yml` (auto on push to main)
+- Production: `.github/workflows/deploy-prod.yml` (manual, multi-region)
+- Docker builds from package directories to AWS ECR
 
-For setup, follow the MCP installation [guide](https://www.jetbrains.com/help/ai-assistant/mcp.html#connect-to-an-mcp-server); use the configuration template above.
+For comprehensive workflow documentation, see [AGENTS.md](./AGENTS.md#monorepo-architecture).
 
-**Supported IDEs:** IntelliJ IDEA, PyCharm, WebStorm, etc. (requires AI Assistant enabled)
+## Monorepo Commands
 
-</details>
+This toolkit uses Bun workspaces. Commands can run at workspace-level (all packages) or package-level (specific package).
 
-<details>
-<summary><strong>LM Studio</strong></summary>
+### Workspace-Level Commands
 
-For setup, follow the MCP installation [guide](https://lmstudio.ai/docs/app/mcp); use the configuration template above ***without type field***.
+Run from repository root to affect all packages:
 
-</details>
-
-<details>
-<summary><strong>opencode</strong></summary>
-
-For setup, follow the MCP installation [guide](https://opencode.ai/docs/mcp-servers/#remote); use the configuration template above.
-
-</details>
-
-<details>
-<summary><strong>VS Code</strong></summary>
-
-Use the VS Code CLI to add the You.com MCP server:
-
-**Quick setup (command line):**
 ```bash
-code --add-mcp "{\"name\":\"ydc-server\",\"url\":\"https://api.you.com/mcp\",\"type\":\"http\",\"headers\":{\"Authorization\":\"Bearer <your-api-key>\"}}"
+bun install              # Install dependencies for all packages
+bun run build            # Build all packages
+bun test                 # Test all packages
+bun run check            # Run all quality checks (biome + types + package)
+bun run check:write      # Auto-fix all issues across all packages
 ```
 
-For setup, follow the MCP installation [guide](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_add-an-mcp-server); use the configuration template above.
+### Package-Specific Commands
 
-</details>
+**From Root** (run specific package commands):
 
-<details>
-<summary><strong>Windsurf</strong></summary>
+```bash
+# MCP Server
+bun run dev:mcp          # Start MCP server in STDIO mode
+bun run start:mcp        # Start MCP server in HTTP mode
+bun run test:mcp         # Test MCP server only
 
-For setup, follow the MCP installation [guide](https://docs.windsurf.com/windsurf/cascade/mcp#adding-a-new-mcp-plugin).
+# Future packages will follow same pattern:
+# bun run dev:<package>
+# bun run start:<package>
+# bun run test:<package>
+```
 
-</details>
+**From Package Directory** (standard commands all packages support):
 
-<details>
-<summary><strong>Zed Editor</strong></summary>
+```bash
+cd packages/<package-name>
 
-For setup, follow the MCP installation [guide](https://zed.dev/docs/ai/mcp#as-custom-servers); use the configuration template above ***without type field***.
+bun run dev              # Start package in development mode
+bun start                # Start package in production mode
+bun test                 # Run package tests
+bun run check            # Check package code quality
+bun run check:write      # Auto-fix package issues
+```
 
-</details>
+For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-specific-commands).
 
-## Available tools
+## Documentation
 
-This MCP server provides three tools that work seamlessly with your AI agent through natural language:
+- **[@youdotcom-oss/mcp API Reference](./packages/mcp/docs/API.md)** - Complete API documentation with parameters, examples, and response formats
+- **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide
+- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers
+- **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
 
-### you-search
-Comprehensive web and news search with advanced filtering capabilities. Perfect for finding current information, research articles, documentation, and news stories.
+## Directory Structure
 
-**When to use**: When you need to search the web for information, filter by specific sites/file types, or get the latest news on a topic.
+```
+dx-toolkit/
+├── packages/
+│   └── mcp/               # MCP Server package
+│       ├── src/           # Source code
+│       ├── bin/           # Compiled output
+│       ├── docs/          # API documentation
+│       ├── README.md      # User documentation
+│       ├── AGENTS.md      # Package dev guide
+│       └── package.json   # Package config
+├── .github/
+│   └── workflows/         # CI/CD workflows
+├── AGENTS.md              # Monorepo dev guide
+├── package.json           # Workspace root config
+└── README.md              # This file
+```
 
-### you-express
-Fast AI-powered agent that provides synthesized answers with optional real-time web search. Ideal for straightforward questions that benefit from AI interpretation.
+## Contributing
 
-**When to use**: When you want a direct answer to a question, with optional web search for up-to-date context and citations.
+Contributions are welcome! Each open source package includes its own contribution guidelines:
 
-### you-contents
-Extract full page content from URLs in markdown or HTML format. Useful for documentation analysis, content processing, and batch URL extraction.
+- **MCP Server**: See [packages/mcp/README.md](./packages/mcp/README.md) and [packages/mcp/CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)
+- Future packages will include their own documentation
 
-**When to use**: When you need to extract and analyze content from web pages, either for reading or processing in your workflow.
+For internal maintainers, see [AGENTS.md](./AGENTS.md) for comprehensive development details.
+
+## Testing
+
+```bash
+# Run all tests
+bun test
+
+# Test specific package
+bun run test:mcp         # MCP server only
+
+# Run tests with coverage
+bun test:coverage
+
+# Run tests in watch mode
+bun test:watch
+```
+
+Requires `YDC_API_KEY` environment variable for API tests.
+
+## Code Quality
+
+This project uses [Biome](https://biomejs.dev/) for code formatting and linting:
+
+```bash
+# Check all packages
+bun run check
+
+# Auto-fix all issues
+bun run check:write
+
+# Individual checks
+bun run check:biome       # Lint and format
+bun run check:types       # TypeScript
+bun run check:package     # package.json format
+```
+
+Git hooks automatically enforce code quality on commit.
+
+## License
+
+MIT - See [LICENSE](./LICENSE) for details
+
+## Support
+
+- **Documentation**: [MCP Server Docs](./packages/mcp/README.md)
+- **Issues**: [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Email**: support@you.com
+- **Web**: [You.com Support](https://you.com/support/contact-us)
 
 ---
 
-**Note**: Your MCP client automatically shows you all available parameters and their descriptions when you use these tools. Simply ask your AI agent in natural language what you want to do, and it will orchestrate the appropriate tool calls for you.
-
-## Use cases & examples
-
-Here are common scenarios showing when and how to use each tool with natural language queries:
-
-### Research & information gathering
-
-**Use you-search when:**
-- "Find recent research papers about quantum computing on arxiv.org"
-- "Search for TypeScript documentation about generics"
-- "Get the latest news about renewable energy from the past week"
-- "Find PDF files about machine learning algorithms"
-
-**Use you-express when:**
-- "What are the key differences between REST and GraphQL?"
-- "Explain how quantum entanglement works"
-- "What happened in the tech industry today?" (with web search enabled)
-- "Summarize the main features of the latest Python release"
-
-### Content extraction & analysis
-
-**Use you-contents when:**
-- "Extract the content from this blog post: https://example.com/article"
-- "Get the documentation from these three URLs in markdown format"
-- "Pull the HTML content from this page preserving the layout"
-- "Batch extract content from these 5 documentation pages"
-
-### Combined workflows
-
-Your AI agent can combine multiple tools in a single conversation:
-1. **Research + Extract**: "Search for the best TypeScript tutorials, then extract the content from the top 3 results"
-2. **Question + Deep Dive**: "What is WebAssembly? Then search for real-world examples and extract code samples"
-3. **News + Analysis**: "Find recent articles about AI regulation, then summarize the key points"
-
-### Pro tips
-
-- **Be specific**: Include domains, date ranges, or file types when searching
-- **Natural language**: You don't need to memorize parameters - just describe what you want
-- **Follow up**: Ask clarifying questions to refine results
-- **Combine tools**: Let your agent orchestrate multiple tool calls for complex workflows
-
-## Troubleshooting & support
-
-### Common issues
-
-**Server not connecting:**
-- Verify your API key is correct and properly formatted
-- Check that your MCP client configuration matches the template for your setup (remote vs local)
-- For HTTP mode: Ensure the Authorization header includes "Bearer " prefix
-- For STDIO mode: Verify the YDC_API_KEY environment variable is set
-
-**Tool not working:**
-- Check your MCP client logs for error messages
-- Verify your API key has the necessary permissions
-- For remote server: Ensure you can reach https://api.you.com/mcp-health
-- For local: Verify Bun or Node.js is installed and the package is properly set up
-
-**Authentication errors:**
-- Remote server uses Bearer token authentication in headers
-- Local STDIO mode uses YDC_API_KEY environment variable
-- Make sure you're using the correct authentication method for your setup
-
-### Error logs
-
-Error messages and detailed logs appear in your MCP client's log output. Check your client's documentation for how to access logs:
-- Claude Code: Check terminal output or logs
-- Claude Desktop: View logs in application menu
-- Cursor: Check MCP server logs in settings
-- VS Code: View Output panel for MCP server logs
-
-### Report an issue
-
-If you encounter a problem, you can report it via email or GitHub:
-
-**Email support:** support@you.com
-
-**Web support:** [You.com Support](https://you.com/support/contact-us)
-
-**GitHub Issues:** [Report bugs and feature requests](https://github.com/youdotcom-oss/youdotcom-mcp-server/issues)
-
-**Tip:** When errors occur, check your MCP client logs - they include a pre-filled mailto link with error details for easy reporting.
-
-## For contributors
-
-Interested in contributing to the You.com MCP Server? We'd love your help!
-
-Need technical details? Check [AGENTS.md](./AGENTS.md) for complete development setup, architecture overview, code patterns, and testing guidelines.
-
-1. Fork the repository
-2. Create a feature branch following naming conventions in [CONTRIBUTING.md](./CONTRIBUTING.md) 
-3. Follow the code style guidelines and use conventional commits
-4. Write tests for your changes (maintain >80% coverage)
-5. Run quality checks: `bun run check && bun test`
-6. Submit a pull request with a clear description
-
-We appreciate all contributions, whether it's:
-- Bug fixes
-- New features
-- Documentation improvements
-- Performance optimizations
-- Test coverage improvements
-
----
-
-**License**: MIT
-**Author**: You.com (https://you.com)
+**Built with ❤️ by [You.com](https://you.com)**
