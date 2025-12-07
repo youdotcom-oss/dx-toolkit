@@ -257,7 +257,7 @@ jobs:
           fi
 
           echo "✅ Version verified: $PACKAGE_VERSION"
-          echo "✅ Git tag will be: v$PACKAGE_VERSION"
+          echo "✅ Git tag will be: ${PACKAGE_NAME}@v$PACKAGE_VERSION"
           cd ../..
 
           # Commit all changes (if any)
@@ -265,7 +265,7 @@ jobs:
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
-            echo "::notice::No version changes to commit (already at v$VERSION)"
+            echo "::notice::No version changes to commit (already at ${PACKAGE_NAME}@v$VERSION)"
           else
             if [[ $UPDATED_PACKAGES -gt 0 ]]; then
               git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION and update $UPDATED_PACKAGES dependent package(s) [skip ci]"
@@ -280,21 +280,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.set_version.outputs.version }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
           IS_PRERELEASE: ${{ steps.set_version.outputs.is_prerelease }}
         run: |
+          # Derive package name for tag (e.g., @youdotcom-oss/mcp -> mcp)
+          PACKAGE_NAME="${NPM_PACKAGE_NAME#@youdotcom-oss/}"
+
+          # Use monorepo tag format: package@version
+          TAG="${PACKAGE_NAME}@v${VERSION}"
+          TITLE="${PACKAGE_NAME} v${VERSION}"
+
           if [[ "$IS_PRERELEASE" == "true" ]]; then
-            gh release create "v${VERSION}" \
-              --title "Release v${VERSION}" \
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
               --generate-notes \
               --prerelease
           else
-            gh release create "v${VERSION}" \
-              --title "Release v${VERSION}" \
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
               --generate-notes
           fi
 
           # Get the release notes
-          RELEASE_NOTES=$(gh release view "v${VERSION}" --json body --jq '.body')
+          RELEASE_NOTES=$(gh release view "${TAG}" --json body --jq '.body')
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
           echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
