@@ -15,20 +15,33 @@ on:
         description: "Next prerelease number (optional)"
         required: false
         type: string
+    outputs:
+      version:
+        description: "The published version"
+        value: ${{ jobs.update-version.outputs.version }}
+      is_prerelease:
+        description: "Whether this is a prerelease"
+        value: ${{ jobs.update-version.outputs.is_prerelease }}
+      package_name:
+        description: "The package name"
+        value: ${{ jobs.update-version.outputs.package_name }}
+      release_notes:
+        description: "The release notes"
+        value: ${{ jobs.create-release.outputs.release_notes }}
 
 env:
   REPO_NAME: "dx-toolkit"
 
 jobs:
-  create-release:
+  update-version:
     runs-on: ubuntu-latest
-    name: Create Release
+    name: Update Version
     permissions:
       contents: write
     outputs:
       version: ${{ steps.set_version.outputs.version }}
       is_prerelease: ${{ steps.set_version.outputs.is_prerelease }}
-      release_notes: ${{ steps.release.outputs.release_notes }}
+      package_name: ${{ steps.derive_package.outputs.package_name }}
     steps:
       - name: Validate inputs
         env:
@@ -155,12 +168,10 @@ jobs:
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
 
-      - name: Update package.json version and workspace dependencies
+      - name: Derive package name
+        id: derive_package
         env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.set_version.outputs.version }}
           NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
-          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           # SAFE: All inputs validated in "Validate inputs" step with strict regex
           # Derive package directory from npm package name
@@ -174,6 +185,16 @@ jobs:
             exit 1
           fi
 
+          echo "package_name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version and workspace dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.set_version.outputs.version }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          PACKAGE_NAME: ${{ steps.derive_package.outputs.package_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
           PACKAGE_DIR="packages/${PACKAGE_NAME}"
 
           # Validate package directory exists
@@ -275,42 +296,38 @@ jobs:
             git push origin "$BRANCH_NAME"
           fi
 
-      - name: Create GitHub Release
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.set_version.outputs.version }}
-          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
-          IS_PRERELEASE: ${{ steps.set_version.outputs.is_prerelease }}
-        run: |
-          # Derive package name for tag (e.g., @youdotcom-oss/mcp -> mcp)
-          PACKAGE_NAME="${NPM_PACKAGE_NAME#@youdotcom-oss/}"
+  build:
+    runs-on: ubuntu-latest
+    name: Build Package
+    needs: [update-version]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
-          # Use monorepo tag format: package@version
-          TAG="${PACKAGE_NAME}@v${VERSION}"
-          TITLE="${PACKAGE_NAME} v${VERSION}"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-          if [[ "$IS_PRERELEASE" == "true" ]]; then
-            gh release create "${TAG}" \
-              --title "${TITLE}" \
-              --generate-notes \
-              --prerelease
-          else
-            gh release create "${TAG}" \
-              --title "${TITLE}" \
-              --generate-notes
-          fi
+      - name: Install dependencies
+        run: bun install
 
-          # Get the release notes
-          RELEASE_NOTES=$(gh release view "${TAG}" --json body --jq '.body')
-          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Build project
+        working-directory: packages/${{ needs.update-version.outputs.package_name }}
+        run: bun run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: packages/${{ needs.update-version.outputs.package_name }}/bin/
+          retention-days: 1
 
   npm-publish:
     runs-on: ubuntu-latest
     name: Publish to NPM
-    needs: [create-release]
+    needs: [update-version, build]
     permissions:
       contents: read
       id-token: write
@@ -334,40 +351,16 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Derive package name
-        id: derive_package
-        env:
-          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
-        run: |
-          # SAFE: All inputs validated in "Validate inputs" step with strict regex
-          # Derive package directory from npm package name
-          # @youdotcom-oss/mcp -> mcp
-          PACKAGE_NAME="${NPM_PACKAGE_NAME#@youdotcom-oss/}"
-
-          # Validate package name extraction
-          if [[ -z "$PACKAGE_NAME" ]] || [[ "$PACKAGE_NAME" == "$NPM_PACKAGE_NAME" ]]; then
-            echo "::error::Failed to extract package name from $NPM_PACKAGE_NAME"
-            echo "::error::Expected format: @youdotcom-oss/package-name"
-            exit 1
-          fi
-
-          # Validate package directory exists
-          if [[ ! -d "packages/${PACKAGE_NAME}" ]]; then
-            echo "::error::Package directory not found: packages/${PACKAGE_NAME}"
-            echo "::error::Extracted package name: $PACKAGE_NAME"
-            exit 1
-          fi
-
-          echo "package_name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-
-      - name: Build project
-        working-directory: packages/${{ steps.derive_package.outputs.package_name }}
-        run: bun run build
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: packages/${{ needs.update-version.outputs.package_name }}/bin/
 
       - name: Publish to NPM (Trusted Publishing)
-        working-directory: packages/${{ steps.derive_package.outputs.package_name }}
+        working-directory: packages/${{ needs.update-version.outputs.package_name }}
         env:
-          IS_PRERELEASE: ${{ needs.create-release.outputs.is_prerelease }}
+          IS_PRERELEASE: ${{ needs.update-version.outputs.is_prerelease }}
         run: |
           # NPM trusted publishing uses OIDC token automatically
           # Provenance attestations are generated automatically (no --provenance flag needed)
@@ -380,3 +373,41 @@ jobs:
             echo "Publishing as latest (stable)"
             npm publish --access public
           fi
+
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    needs: [update-version, npm-publish]
+    permissions:
+      contents: write
+    outputs:
+      release_notes: ${{ steps.release.outputs.release_notes }}
+    steps:
+      - name: Create GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.update-version.outputs.version }}
+          PACKAGE_NAME: ${{ needs.update-version.outputs.package_name }}
+          IS_PRERELEASE: ${{ needs.update-version.outputs.is_prerelease }}
+        run: |
+          # Use monorepo tag format: package@version
+          TAG="${PACKAGE_NAME}@v${VERSION}"
+          TITLE="${PACKAGE_NAME} v${VERSION}"
+
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
+              --generate-notes \
+              --prerelease
+          else
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
+              --generate-notes
+          fi
+
+          # Get the release notes
+          RELEASE_NOTES=$(gh release view "${TAG}" --json body --jq '.body')
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
