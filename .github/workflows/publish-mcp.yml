@@ -48,7 +48,7 @@ jobs:
           VERSION: ${{ needs.publish.outputs.version }}
         run: |
           echo "⏳ Waiting for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
-          echo "Looking for release: mcp@v${VERSION}"
+          echo "Looking for release: v${VERSION}"
 
           max_attempts=3  # Check up to 3 times (20s, 40s, 60s)
           check_interval=20  # Check every 20 seconds
@@ -60,8 +60,8 @@ jobs:
             sleep $check_interval
 
             # Check if the release exists (uses Contents: read permission)
-            if gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/releases/tags/mcp@v${VERSION}" >/dev/null 2>&1; then
-              echo "✅ Version update completed - release mcp@v${VERSION} found on remote"
+            if gh api "repos/${{ secrets.DEPLOYMENT_REPO }}/releases/tags/v${VERSION}" >/dev/null 2>&1; then
+              echo "✅ Version update completed - release v${VERSION} found on remote"
               exit 0
             else
               echo "Release not found yet, continuing..."
@@ -69,7 +69,7 @@ jobs:
           done
 
           echo "⚠️ Version update did not complete after ${max_attempts} checks ($(($max_attempts * $check_interval))s total)"
-          echo "Release mcp@v${VERSION} was not found on ${{ secrets.DEPLOYMENT_REPO }}"
+          echo "Release v${VERSION} was not found on ${{ secrets.DEPLOYMENT_REPO }}"
           exit 1
 
       - name: Trigger production deployment via repository_dispatch
