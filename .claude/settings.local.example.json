@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:bun.sh)",
+      "WebFetch(domain:bun.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:biomejs.dev)",
+      "WebFetch(domain:modelcontextprotocol.io)",
+      "Bash(bash)",
+      "Bash(bun:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git diff:*)",
+      "Bash(git restore:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)",
+      "mcp__ydc-server__you-search",
+      "mcp__ydc-server__you-express",
+      "mcp__ydc-server__you-contents",
+      "mcp__linear-server__get_issue",
+      "mcp__linear-server__list_issues",
+      "mcp__linear-server__update_issue",
+      "mcp__linear-server__get_project",
+      "mcp__linear-server__list_projects",
+      "mcp__linear-server__list_teams",
+      "mcp__linear-server__get_team",
+      "mcp__linear-server__list_issue_statuses",
+      "mcp__linear-server__list_issue_labels"
+    ]
+  },
+  "enabledMcpjsonServers": ["ydc-server", "linear-server", "notion"],
+  "enableAllProjectMcpServers": true
+}
