@@ -10,15 +10,14 @@ on:
         description: "Next prerelease number (optional)"
         required: false
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   publish:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "@youdotcom-oss/mcp"
-      oss_repo: "youdotcom-oss/mcp-server"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
-    secrets:
-      RELEASE_ADMIN_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: ${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.MCP_NPM_TOKEN }}

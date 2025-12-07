@@ -7,10 +7,6 @@ on:
         description: "NPM package name (e.g., @youdotcom-oss/mcp)"
         required: true
         type: string
-      oss_repo:
-        description: "OSS repository (e.g., youdotcom-oss/mcp-server)"
-        required: true
-        type: string
       version:
         description: "Version to publish (e.g., 1.0.0)"
         required: true
@@ -19,13 +15,6 @@ on:
         description: "Next prerelease number (optional)"
         required: false
         type: string
-    secrets:
-      RELEASE_ADMIN_TOKEN:
-        required: true
-      YDC_OSS_PUBLISH_TOKEN:
-        required: true
-      NPM_TOKEN:
-        required: true
 
 env:
   REPO_NAME: "dx-toolkit"
@@ -149,7 +138,7 @@ jobs:
           echo "✅ Version format validated: $version"
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -159,7 +148,7 @@ jobs:
 
       - name: Configure Git
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           GIT_AUTHOR_NAME: ${{ github.actor }}
           GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
         run: |
@@ -168,7 +157,7 @@ jobs:
 
       - name: Update package.json version and workspace dependencies
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.set_version.outputs.version }}
           NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -289,7 +278,7 @@ jobs:
       - name: Create GitHub Release
         id: release
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.set_version.outputs.version }}
           IS_PRERELEASE: ${{ steps.set_version.outputs.is_prerelease }}
         run: |
@@ -316,6 +305,7 @@ jobs:
     needs: [create-release]
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -357,26 +347,18 @@ jobs:
         working-directory: packages/${{ steps.derive_package.outputs.package_name }}
         run: bun run build
 
-      - name: Configure NPM and Publish
+      - name: Publish to NPM (Trusted Publishing)
         working-directory: packages/${{ steps.derive_package.outputs.package_name }}
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           IS_PRERELEASE: ${{ needs.create-release.outputs.is_prerelease }}
-          # Use npm environment variables for authentication (recommended for CI/CD)
-          NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Verify authentication
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm whoami
+          # NPM trusted publishing uses OIDC token automatically
+          # No need to configure .npmrc or NPM_TOKEN
 
           if [[ "$IS_PRERELEASE" == "true" ]]; then
             echo "Publishing as next (prerelease)"
-            npm publish --access public --tag next
+            npm publish --provenance --access public --tag next
           else
             echo "Publishing as latest (stable)"
-            npm publish --access public
+            npm publish --provenance --access public
           fi
-
-          # Clean up credentials file
-          rm -f ~/.npmrc
