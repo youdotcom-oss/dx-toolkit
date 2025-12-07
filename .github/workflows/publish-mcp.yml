@@ -23,7 +23,7 @@ jobs:
       next: ${{ github.event.inputs.next }}
 
   deploy-production:
-    if: ${{ needs.publish.outputs.is_prerelease == 'false' }}
+    if: needs.publish.outputs.is_prerelease == 'false'
     needs: [publish]
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +36,7 @@ jobs:
             --field version=${{ needs.publish.outputs.version }}
 
   deploy-staging:
-    if: ${{ needs.publish.outputs.is_prerelease == 'true' }}
+    if: needs.publish.outputs.is_prerelease == 'true'
     needs: [publish]
     runs-on: ubuntu-latest
     steps:
