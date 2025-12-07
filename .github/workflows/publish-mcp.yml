@@ -31,7 +31,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh api repos/Su-Sea/youdotcom-mcp-server/dispatches \
+          gh api repos/${{ secrets.DEPLOYMENT_REPO }}/dispatches \
             --method POST \
             --field event_type="update-mcp-version" \
             --field client_payload[version]="${{ needs.publish.outputs.version }}"
@@ -41,11 +41,17 @@ jobs:
     needs: [publish, update-remote-version]
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for remote version update to complete
+        run: |
+          echo "⏳ Waiting 30 seconds for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
+          sleep 30
+          echo "✅ Proceeding with deployment"
+
       - name: Trigger production deployment via repository_dispatch
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
         run: |
-          gh api repos/Su-Sea/youdotcom-mcp-server/dispatches \
+          gh api repos/${{ secrets.DEPLOYMENT_REPO }}/dispatches \
             --method POST \
             --field event_type="deploy-mcp-production" \
             --field client_payload[version]="${{ needs.publish.outputs.version }}"
