@@ -344,11 +344,39 @@ This convention follows industry standards used by Node.js  and most major proje
   4. Commits all version updates together
   5. Creates GitHub release
   6. Publishes to npm
+  7. Triggers remote repository via `repository_dispatch` (for production deployments)
 - Dependency Updates: Automatically updates workspace dependencies
+- Deployment Architecture:
+  - **update-remote-version** job: Sends `update-mcp-version` event to deployment repository
+  - **deploy-production** job: Conditionally sends `deploy-mcp-production` event (only for stable releases)
+  - Uses `DEPLOYMENT_REPO` secret to specify target repository (e.g., `Su-Sea/youdotcom-mcp-server`)
+  - 30-second delay before production deployment to ensure version update completes
+  - Prereleases skip production deployment (`is_prerelease == 'true'`)
+- Required Secrets:
+  - `PUBLISH_TOKEN`: For git operations bypassing branch protection
+  - `RELEASE_ADMIN_TOKEN`: For triggering workflows on remote repository
+  - `DEPLOYMENT_REPO`: Repository to trigger (format: `owner/repo`)
 
 **`.github/workflows/_publish-package.yml`**:
 - Reusable workflow for publishing packages
 - Called by package-specific publish workflows
+- Uses NPM Trusted Publishing (OIDC) for authentication
+- Requires `PUBLISH_TOKEN` secret for git operations on protected branches
+
+**Remote Repository Requirements** (Deployment Target):
+
+The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events:
+
+1. **`update-version.yml`** - Listens for `update-mcp-version` event:
+   - Receives version in `client_payload.version`
+   - Updates package dependency to published version
+   - Commits changes to main branch
+   - Creates GitHub release with changelog
+
+2. **`deploy-prod.yml`** - Listens for `deploy-mcp-production` event:
+   - Receives version in `client_payload.version`
+   - Builds Docker image with version tag
+   - Deploys to production environment (multi-region)
 
 **`.github/workflows/ci.yml`**:
 - Runs lint and test checks to validate all packages
