@@ -23,9 +23,22 @@ jobs:
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
 
+  update-remote-version:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update version on remote repository
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+        run: |
+          gh workflow run update-version.yml \
+            --repo Su-Sea/youdotcom-mcp-server \
+            --ref main \
+            --field version=${{ needs.publish.outputs.version }}
+
   deploy-production:
     if: needs.publish.outputs.is_prerelease == 'false'
-    needs: [publish]
+    needs: [publish, update-remote-version]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger production deployment
@@ -34,18 +47,4 @@ jobs:
         run: |
           gh workflow run deploy-prod.yml \
             --repo Su-Sea/youdotcom-mcp-server \
-            --field version=${{ needs.publish.outputs.version }}
-
-  deploy-staging:
-    if: needs.publish.outputs.is_prerelease == 'true'
-    needs: [publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger staging deployment
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-        run: |
-          gh workflow run deploy-staging.yml \
-            --repo Su-Sea/youdotcom-mcp-server \
-            --ref staging \
-            --field version=${{ needs.publish.outputs.version }}
+            --ref main
