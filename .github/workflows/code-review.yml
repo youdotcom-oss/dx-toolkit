@@ -13,32 +13,34 @@ jobs:
       id-token: write
 
     steps:
+      - name: Check if internal contributor
+        id: check_internal
+        run: |
+          # Check if user is an org member
+          if gh api orgs/youdotcom-oss/members/${{ github.event.pull_request.user.login }} 2>/dev/null; then
+            echo "is_internal=true" >> $GITHUB_OUTPUT
+            echo "✓ User is a youdotcom-oss organization member"
+          else
+            echo "is_internal=false" >> $GITHUB_OUTPUT
+            echo "✗ User is not a youdotcom-oss organization member"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Skip if external contributor
-        if: |
-          github.event.pull_request.author_association != 'OWNER' &&
-          github.event.pull_request.author_association != 'MEMBER' &&
-          github.event.pull_request.author_association != 'COLLABORATOR' &&
-          github.event.pull_request.author_association != 'CONTRIBUTOR'
+        if: steps.check_internal.outputs.is_internal != 'true'
         run: |
           echo "Skipping code review for external contributor"
-          echo "Association: ${{ github.event.pull_request.author_association }}"
+          echo "User: ${{ github.event.pull_request.user.login }}"
           exit 0
 
       - uses: actions/checkout@v4
-        if: |
-          github.event.pull_request.author_association == 'OWNER' ||
-          github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR' ||
-          github.event.pull_request.author_association == 'CONTRIBUTOR'
+        if: steps.check_internal.outputs.is_internal == 'true'
         with:
           fetch-depth: 1
 
       - uses: anthropics/claude-code-action@v1
-        if: |
-          github.event.pull_request.author_association == 'OWNER' ||
-          github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR' ||
-          github.event.pull_request.author_association == 'CONTRIBUTOR'
+        if: steps.check_internal.outputs.is_internal == 'true'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           track_progress: true #
