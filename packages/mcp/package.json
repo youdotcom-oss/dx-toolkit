@@ -33,10 +33,7 @@
     "bin/stdio.js",
     "./src/**",
     "!./src/**/tests/*",
-    "!./src/**/*.spec.@(tsx|ts)",
-    "AGENTS.md",
-    "CONTRIBUTING.md",
-    "docs/API.md"
+    "!./src/**/*.spec.@(tsx|ts)"
   ],
   "publishConfig": {
     "access": "public"

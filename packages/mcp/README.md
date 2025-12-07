@@ -288,7 +288,7 @@ Interested in contributing to the You.com MCP Server? We'd love your help!
 Need technical details? Check [AGENTS.md](./AGENTS.md) for complete development setup, architecture overview, code patterns, and testing guidelines.
 
 1. Fork the repository
-2. Create a feature branch following naming conventions in [CONTRIBUTING.md](./CONTRIBUTING.md) 
+2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md) 
 3. Follow the code style guidelines and use conventional commits
 4. Write tests for your changes (maintain >80% coverage)
 5. Run quality checks: `bun run check && bun test`

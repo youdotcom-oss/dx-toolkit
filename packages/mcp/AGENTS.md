@@ -174,7 +174,7 @@ For detailed contribution guidelines, including:
 - Commit message conventions (Conventional Commits)
 - Code review process
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
+See [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
 ## Publishing
 
