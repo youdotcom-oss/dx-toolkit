@@ -43,8 +43,8 @@ jobs:
     steps:
       - name: Wait for remote version update to complete
         run: |
-          echo "⏳ Waiting 60 seconds for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
-          sleep 60
+          echo "⏳ Waiting 30 seconds for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
+          sleep 30
           echo "✅ Proceeding with deployment"
 
       - name: Trigger production deployment via repository_dispatch
