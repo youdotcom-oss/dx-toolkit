@@ -267,6 +267,20 @@ gh pr comment 33 --body "Your comment here"
 - `feature/*` - Feature branches
 - `fix/*` - Bug fix branches
 
+### Syncing Branches
+
+When syncing your local branch with remote changes, use fast-forward merge:
+
+```bash
+# Sync with remote changes (fast-forward merge)
+git pull --ff origin <branch-name>
+
+# Example
+git pull --ff origin fix/workflows
+```
+
+**Do NOT use `git pull --rebase`** - Use fast-forward merge (`--ff`) for cleaner history.
+
 ### Git Hooks
 
 Git hooks are automatically configured after `bun install`:
