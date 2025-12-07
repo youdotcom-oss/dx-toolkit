@@ -24,7 +24,7 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 
 **[View full documentation →](./packages/mcp/README.md)**
 
-### @youdotcom-oss/ai-sdk *(coming soon)*
+### @youdotcom-oss/ai-sdk-plugin *(coming soon)*
 
 AI SDK for building custom integrations with You.com's APIs.
 

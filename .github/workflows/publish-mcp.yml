@@ -46,4 +46,5 @@ jobs:
         run: |
           gh workflow run deploy-staging.yml \
             --repo Su-Sea/youdotcom-mcp-server \
+            --ref staging \
             --field version=${{ needs.publish.outputs.version }}
