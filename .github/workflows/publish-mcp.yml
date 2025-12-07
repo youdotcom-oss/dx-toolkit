@@ -10,15 +10,40 @@ on:
         description: "Next prerelease number (optional)"
         required: false
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   publish:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "@youdotcom-oss/mcp"
-      oss_repo: "youdotcom-oss/mcp-server"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
-    secrets:
-      RELEASE_ADMIN_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: ${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.MCP_NPM_TOKEN }}
+
+  deploy-production:
+    if: needs.publish.outputs.is_prerelease == 'false'
+    needs: [publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger production deployment
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+        run: |
+          gh workflow run deploy-prod.yml \
+            --repo Su-Sea/youdotcom-mcp-server \
+            --field version=${{ needs.publish.outputs.version }}
+
+  deploy-staging:
+    if: needs.publish.outputs.is_prerelease == 'true'
+    needs: [publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger staging deployment
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
+        run: |
+          gh workflow run deploy-staging.yml \
+            --repo Su-Sea/youdotcom-mcp-server \
+            --field version=${{ needs.publish.outputs.version }}
