@@ -17,7 +17,8 @@ permissions:
 jobs:
   publish:
     uses: ./.github/workflows/_publish-package.yml
-    secrets: inherit
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
     with:
       npm_package_name: "@youdotcom-oss/mcp"
       version: ${{ github.event.inputs.version }}
