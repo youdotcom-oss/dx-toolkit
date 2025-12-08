@@ -179,7 +179,7 @@ For detailed API documentation, see [docs/API.md](./docs/API.md).
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## Development
 
@@ -235,7 +235,7 @@ This package uses [Biome](https://biomejs.dev/) for automated formatting and lin
 
 ## Contributing
 
-For contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For contribution guidelines, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Publishing
 
@@ -244,74 +244,6 @@ This package is published to npm via \`.github/workflows/publish-{package-name}.
 **Version Format**: Exact versions only (no ^ or ~ prefixes)
 
 See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
-```
-
-**File: packages/{package-name}/CONTRIBUTING.md**
-```markdown
-# Contributing to {description}
-
-Thank you for your interest in contributing!
-
-## Code of Conduct
-
-This project adheres to professional open-source standards. Be respectful, constructive, and collaborative.
-
-## Getting Started
-
-### Prerequisites
-
-- Bun >= 1.2.21
-
-### Quick Setup
-
-\`\`\`bash
-git clone https://github.com/youdotcom-oss/dx-toolkit.git
-cd dx-toolkit/packages/{package-name}
-bun install
-bun run dev
-\`\`\`
-
-For detailed development setup, see [AGENTS.md](./AGENTS.md).
-
-## How to Contribute
-
-### Reporting Bugs
-
-**Before submitting**: Check [existing issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-
-**When reporting**, include:
-- Clear bug description
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment details
-
-### Suggesting Features
-
-Open an issue with:
-- Clear use case description
-- Why this benefits users
-- Example usage (if applicable)
-
-### Submitting Pull Requests
-
-1. Fork the repository
-2. Create feature branch: \`git checkout -b feature/my-feature\`
-3. Make changes with tests
-4. Run checks: \`bun run check\`
-5. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-6. Push and create PR
-
-## Development Workflow
-
-See [AGENTS.md](./AGENTS.md) for:
-- Code patterns
-- Testing guidelines
-- Architecture details
-
-## Getting Help
-
-- **Issues**: [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **Email**: support@you.com
 ```
 
 **File: packages/{package-name}/docs/API.md**
@@ -486,8 +418,7 @@ packages/{package-name}/
 ├── biome.json
 ├── .gitignore
 ├── README.md
-├── AGENTS.md
-└── CONTRIBUTING.md
+└── AGENTS.md
 \`\`\`
 
 ## Workflow Files Created

@@ -335,8 +335,9 @@ This convention follows industry standards used by Node.js  and most major proje
 
 ### Workflow Files
 
-**`.github/workflows/publish-mcp.yml`**:
+**`.github/workflows/publish-mcp.yml`** (MCP-specific workflow with deployment):
 - Triggered: Manual via `workflow_dispatch`
+- Note: This workflow includes remote deployment steps specific to the MCP package. Other packages use simpler publish workflows without deployment.
 - Actions:
   1. Updates package version in packages/mcp/package.json
   2. Scans all workspace packages for dependencies on @youdotcom-oss/mcp
@@ -361,15 +362,18 @@ This convention follows industry standards used by Node.js  and most major proje
   - `RELEASE_ADMIN_TOKEN`: For triggering workflows on remote repository
   - `DEPLOYMENT_REPO`: Repository to trigger (format: `owner/repo`)
 
-**`.github/workflows/_publish-package.yml`**:
-- Reusable workflow for publishing packages
-- Called by package-specific publish workflows
+**`.github/workflows/_publish-package.yml`** (Reusable workflow for all packages):
+- Reusable workflow for publishing packages to npm
+- Called by package-specific publish workflows (e.g., `publish-mcp.yml`)
+- Handles version updates, npm publishing, and GitHub releases
 - Uses NPM Trusted Publishing (OIDC) for authentication
 - Requires `PUBLISH_TOKEN` secret for git operations on protected branches
+- Note: Most packages only use this workflow. MCP adds deployment steps in its specific workflow.
 
-**Remote Repository Requirements** (Deployment Target):
+**Remote Repository Requirements** (MCP package deployment only):
 
-The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events:
+The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events.
+This is only used for the MCP package which requires remote deployment infrastructure:
 
 1. **`update-version.yml`** - Listens for `update-mcp-version` event:
    - Receives version in `client_payload.version`
@@ -409,17 +413,15 @@ Use the `/create-package` command to interactively create new packages:
 Ask your agent to read and follow the instructions in `.claude/commands/create-package.md`
 
 The command will guide you through:
-1. **Package configuration** - Name, type (library/CLI/server/dual-purpose), npm package name, OSS repo
-2. **Optional features** - Docker support, HTTP server, CLI binary
-3. **Metadata** - Description and keywords
-4. **Automatic setup**:
+1. **Package configuration** - Name, npm package name
+2. **Metadata** - Description and keywords
+3. **Automatic setup**:
    - Creates package directory structure
    - Generates all configuration files (package.json, tsconfig.json, biome.json, .gitignore)
    - Creates source files with templates
-   - Generates documentation (README.md, AGENTS.md, CONTRIBUTING.md)
+   - Generates documentation (README.md, AGENTS.md)
    - Creates publish workflow (`.github/workflows/publish-{package}.yml`)
-   - Updates sync and close workflows for OSS integration
-5. **Post-creation checklist** - Manual steps for OSS repo creation and GitHub secrets
+4. **Post-creation checklist** - Manual steps for testing the package
 
 **Manual Alternative** (if not using Claude Code):
 
@@ -545,14 +547,14 @@ ls -la bin/
 
 ### For External Contributors
 
-1. Fork the OSS repository (`youdotcom-oss/mcp-server`)
+1. Fork this repository (`youdotcom-oss/dx-toolkit`)
 2. Create feature branch and make changes
 3. Sign CLA when prompted by bot
-4. Open PR in OSS repository
+4. Open pull request with your changes
 5. Address feedback from maintainers
 6. After approval, maintainers will merge and include in next release
 
-See [CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md) for detailed guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## Bun Runtime
 
@@ -577,6 +579,5 @@ bun run build    # Build all packages
 ## Support
 
 - **Package Issues**: See package-specific AGENTS.md
-- **Monorepo Issues**: Create issue in private repo
-- **OSS Contributions**: See OSS repo issues
+- **Issues and Contributions**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - **Email**: support@you.com
