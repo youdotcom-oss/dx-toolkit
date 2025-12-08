@@ -1,0 +1,63 @@
+{
+  "name": "@youdotcom-oss/teams-mcp-client",
+  "version": "0.1.0",
+  "description": "Microsoft Teams integration library for You.com's MCP server",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/teams-mcp-client"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-mcp-client#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "microsoft-teams",
+    "mcp",
+    "teams-bot",
+    "web-search",
+    "ai-agent",
+    "model-context-protocol"
+  ],
+  "type": "module",
+  "main": "./src/utils.ts",
+  "exports": {
+    ".": "./src/utils.ts"
+  },
+  "files": [
+    "./src/**",
+    "!./src/**/tests/*",
+    "!./src/**/*.spec.@(tsx|ts)"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "bun run format && bun run lint:fix && bun run format:package",
+    "dev": "echo 'No dev server for library package'",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "format:package": "format-package --write",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:coverage:watch": "bun test --coverage --watch",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "@microsoft/teams.ai": "^2.0.4",
+    "@microsoft/teams.mcpclient": "^2.0.4",
+    "zod": "^4.1.13"
+  }
+}
