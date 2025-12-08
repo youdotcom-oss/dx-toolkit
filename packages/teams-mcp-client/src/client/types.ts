@@ -38,6 +38,62 @@ export interface McpPluginConfig {
 }
 
 /**
+ * Resolved configuration after merging with defaults
+ * All properties are required after validation
+ */
+export interface ResolvedMcpPluginConfig {
+  /**
+   * You.com API key
+   */
+  apiKey: string;
+
+  /**
+   * MCP server URL
+   */
+  mcpUrl: string;
+
+  /**
+   * Additional HTTP headers to include in requests
+   */
+  headers: Record<string, string>;
+
+  /**
+   * Request timeout in milliseconds
+   */
+  timeout: number;
+
+  /**
+   * Enable debug logging
+   */
+  debug: boolean;
+}
+
+/**
+ * Extended configuration with Teams AI compatibility fields
+ */
+export interface ExtendedMcpPluginConfig extends ResolvedMcpPluginConfig {
+  /**
+   * MCP server URL (same as mcpUrl, for Teams AI usePlugin)
+   */
+  url: string;
+
+  /**
+   * Request parameters for Teams AI
+   */
+  params: {
+    /**
+     * HTTP headers including Authorization
+     */
+    headers: Record<string, string>;
+
+    /**
+     * Request timeout in milliseconds
+     */
+    timeout: number;
+  };
+}
+
+/**
  * Result returned by createMcpPlugin()
  */
 export interface McpPluginResult {
@@ -47,7 +103,7 @@ export interface McpPluginResult {
   plugin: McpClientPlugin;
 
   /**
-   * Validated and merged configuration
+   * Validated and merged configuration with Teams AI compatibility fields
    */
-  config: McpPluginConfig;
+  config: ExtendedMcpPluginConfig;
 }

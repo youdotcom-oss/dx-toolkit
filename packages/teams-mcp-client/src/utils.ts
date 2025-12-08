@@ -5,7 +5,11 @@
 export { createMcpPlugin } from './client/create-mcp-plugin.ts';
 
 // TypeScript types and interfaces
-export type { McpPluginConfig, McpPluginResult } from './client/types.ts';
+export type {
+  ExtendedMcpPluginConfig,
+  McpPluginConfig,
+  McpPluginResult,
+} from './client/types.ts';
 // Configuration defaults (for advanced users)
 export {
   DEFAULT_DEBUG,
