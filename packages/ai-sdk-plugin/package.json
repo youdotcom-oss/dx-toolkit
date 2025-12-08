@@ -1,0 +1,74 @@
+{
+  "name": "@youdotcom-oss/ai-sdk-plugin",
+  "version": "0.1.0",
+  "description": "Vercel AI SDK plugin for You.com web search, AI agents, and content extraction via MCP",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/ai-sdk-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/ai-sdk-plugin#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "ai",
+    "sdk",
+    "plugin",
+    "you",
+    "search",
+    "mcp",
+    "vercel",
+    "model-context-protocol",
+    "ai-agents",
+    "web-search"
+  ],
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "./src/**",
+    "!./src/**/tests/*",
+    "!./src/**/*.spec.@(tsx|ts)"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "bun run format && bun run lint:fix && bun run format:package",
+    "dev": "echo 'No dev server for library package'",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "format:package": "format-package --write",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:coverage:watch": "bun test --coverage --watch",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "@ai-sdk/mcp": "^1.0.0-beta.30",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.1.13"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.0"
+  },
+  "devDependencies": {
+    "ai": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
