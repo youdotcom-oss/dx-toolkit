@@ -296,7 +296,6 @@ jobs:
       next: ${{ github.event.inputs.next }}
     secrets:
       PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.MCP_NPM_TOKEN }}
 ```
 
 **Why no separate repos?** All packages are published directly from the dx-toolkit monorepo to npm. This simplifies:
@@ -304,6 +303,11 @@ jobs:
 - Release coordination
 - Dependency updates
 - Documentation consistency
+
+**Authentication**: This monorepo uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) (OIDC) for npm authentication:
+- No npm tokens required - GitHub Actions authenticates automatically using OIDC
+- Automatic provenance generation for supply chain security
+- Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
 
 **Create the file**:
 
@@ -334,7 +338,6 @@ jobs:
       next: \${{ github.event.inputs.next }}
     secrets:
       PUBLISH_TOKEN: \${{ secrets.PUBLISH_TOKEN }}
-      NPM_TOKEN: \${{ secrets.MCP_NPM_TOKEN }}
 EOF
 
 # Verify the output

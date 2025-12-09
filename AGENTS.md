@@ -61,7 +61,7 @@ All packages must follow this naming rule:
 - **Code Quality**: Biome 2.3.8 (linter + formatter)
 - **Type Checking**: TypeScript 5.9.3
 - **Git Hooks**: lint-staged 16.2.7
-- **Version Control**: Git with bidirectional Git Subtree sync
+- **Version Control**: Git
 - **GitHub CLI**: `gh` for PR/issue management (recommended)
 
 ## Quick Start
