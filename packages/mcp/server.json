@@ -11,7 +11,7 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Bearer (token with your You.com API key)",
+          "description": "Bearer (You.com API key)",
           "isRequired": true,
           "isSecret": true
         }
@@ -29,7 +29,7 @@
       "environmentVariables": [
         {
           "name": "YDC_API_KEY",
-          "description": "Your You.com API key",
+          "description": "You.com API key",
           "isRequired": true,
           "isSecret": true,
           "format": "string"
