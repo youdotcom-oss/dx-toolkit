@@ -22,6 +22,8 @@ Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your
 
 ### 2. Choose your setup
 
+You can discover this server in the [Anthropic MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.youdotcom-oss/mcp`, or configure it manually:
+
 **Remote server (recommended)** - No installation, always up-to-date, just add the URL and API key
 - Use `https://api.you.com/mcp` with HTTP transport
 - Authentication via `Authorization: Bearer <your-key>` header

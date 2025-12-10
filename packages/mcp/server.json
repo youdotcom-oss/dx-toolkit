@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.youdotcom-oss/mcp",
+  "title": "You.com Web Access & AI",
+  "description": "Web search, AI agent, and content extraction via You.com APIs",
+  "version": "1.3.7",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.you.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer (You.com API key)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@youdotcom-oss/mcp",
+      "version": "1.3.7",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "YDC_API_KEY",
+          "description": "You.com API key",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit",
+    "source": "github"
+  }
+}

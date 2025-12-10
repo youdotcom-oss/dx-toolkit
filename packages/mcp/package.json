@@ -59,6 +59,7 @@
     "test:coverage:watch": "bun test --coverage --watch",
     "test:watch": "bun test --watch"
   },
+  "mcpName": "io.github.youdotcom-oss/mcp",
   "dependencies": {
     "zod": "^4.1.13",
     "@hono/mcp": "^0.2.0",
