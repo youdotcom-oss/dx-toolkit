@@ -24,45 +24,6 @@ jobs:
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
 
-  publish-to-official-registry:
-    if: needs.publish.outputs.is_prerelease == 'false'
-    needs: [publish, deploy-production]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
-      - name: Update server.json versions
-        env:
-          VERSION: ${{ needs.publish.outputs.version }}
-        run: |
-          cd packages/mcp
-          # Update both the top-level version and the packages[0].version
-          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > server.tmp && mv server.tmp server.json
-          echo "✅ Updated server.json versions to $VERSION"
-          echo "Top-level version: $(jq -r '.version' server.json)"
-          echo "Package version: $(jq -r '.packages[0].version' server.json)"
-
-      - name: Install mcp-publisher
-        run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
-          sudo mv mcp-publisher /usr/local/bin/
-
-      - name: Authenticate with MCP Registry
-        run: |
-          cd packages/mcp
-          mcp-publisher login github-oidc
-
-      - name: Publish to MCP Registry
-        run: |
-          cd packages/mcp
-          mcp-publisher publish
-
   update-remote-version:
     needs: [publish]
     runs-on: ubuntu-latest
@@ -119,3 +80,42 @@ jobs:
             --method POST \
             --field event_type="deploy-mcp-production" \
             --field client_payload[version]="${{ needs.publish.outputs.version }}"
+
+  publish-to-official-registry:
+    if: needs.publish.outputs.is_prerelease == 'false'
+    needs: [publish, deploy-production]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Update server.json versions
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          cd packages/mcp
+          # Update both the top-level version and the packages[0].version
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > server.tmp && mv server.tmp server.json
+          echo "✅ Updated server.json versions to $VERSION"
+          echo "Top-level version: $(jq -r '.version' server.json)"
+          echo "Package version: $(jq -r '.packages[0].version' server.json)"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
+      - name: Authenticate with MCP Registry
+        run: |
+          cd packages/mcp
+          mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: |
+          cd packages/mcp
+          mcp-publisher publish
