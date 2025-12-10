@@ -22,8 +22,8 @@ describe('fetchSearchResults', () => {
     expect(typeof result.metadata?.query).toBe('string');
 
     // Optional fields: only assert type if present
-    if (result.metadata?.request_uuid !== undefined) {
-      expect(typeof result.metadata.request_uuid).toBe('string');
+    if (result.metadata?.search_uuid !== undefined) {
+      expect(typeof result.metadata.search_uuid).toBe('string');
     }
   });
 
@@ -85,7 +85,7 @@ describe('formatSearchResults', () => {
         news: [],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -132,7 +132,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -182,7 +182,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
