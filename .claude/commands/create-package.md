@@ -54,37 +54,25 @@ Suggested: @youdotcom-oss/{package-name}
 - **Verify consistency**: Extract name after slash, must equal package name from Question 1
 - Verify not published: `npm view {name}` should return 404
 
-**Question 3: OSS Repository Name**
-```
-OSS repository name?
-
-Suggested: youdotcom-oss/{package-name}
-
-Note: You will need to manually create this repository later.
-```
-
-**Validation for Question 3**:
-- Check pattern: `^youdotcom-oss/[a-z]([a-z0-9-]*[a-z0-9])?$`
-
 ### Phase 2: Metadata
 
-**Question 4: Package Description**
+**Question 3: Package Description**
 ```
 One-line description for package.json? (max 200 characters)
 ```
 
-**Validation for Question 4**:
+**Validation for Question 3**:
 - Max 200 characters
 - Not empty
 
-**Question 5: Keywords**
+**Question 4: Keywords**
 ```
 Keywords for npm? (comma-separated, e.g., 'ai, sdk, plugin')
 
 Max 10 keywords.
 ```
 
-**Validation for Question 5**:
+**Validation for Question 4**:
 - Split by comma, trim whitespace
 - Max 10 keywords
 - Each keyword lowercase recommended
@@ -109,10 +97,6 @@ mkdir -p packages/{package-name}/docs
 **File: packages/{package-name}/.gitignore**
 - Copy from: `packages/mcp/.gitignore`
 
-**Directory: packages/{package-name}/.hooks/**
-- Copy from: `packages/mcp/.hooks/`
-- Includes git hooks: `commit-msg` and `pre-commit`
-
 **File: packages/{package-name}/tsconfig.json**
 - Copy from: `packages/mcp/tsconfig.json`
 
@@ -132,8 +116,6 @@ mkdir -p packages/{package-name}/docs
   - keywords: `{keywords-array}`
 - Keep minimal dependencies (typically just `zod` for validation)
 - Remove server-specific fields: no `bin` field needed
-
-**IMPORTANT**: All packages in this monorepo should point to the `dx-toolkit` repository, NOT to individual OSS repositories. The `directory` field indicates the package location within the monorepo.
 
 ### 3. Source Files
 
@@ -197,7 +179,7 @@ For detailed API documentation, see [docs/API.md](./docs/API.md).
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## Development
 
@@ -205,7 +187,7 @@ See [AGENTS.md](./AGENTS.md) for development setup, architecture, and patterns.
 
 ## License
 
-MIT - see [LICENSE](./LICENSE) for details.
+MIT - see [LICENSE](../../LICENSE) for details.
 ```
 
 **File: packages/{package-name}/AGENTS.md**
@@ -253,7 +235,7 @@ This package uses [Biome](https://biomejs.dev/) for automated formatting and lin
 
 ## Contributing
 
-For contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For contribution guidelines, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Publishing
 
@@ -262,74 +244,6 @@ This package is published to npm via \`.github/workflows/publish-{package-name}.
 **Version Format**: Exact versions only (no ^ or ~ prefixes)
 
 See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
-```
-
-**File: packages/{package-name}/CONTRIBUTING.md**
-```markdown
-# Contributing to {description}
-
-Thank you for your interest in contributing!
-
-## Code of Conduct
-
-This project adheres to professional open-source standards. Be respectful, constructive, and collaborative.
-
-## Getting Started
-
-### Prerequisites
-
-- Bun >= 1.2.21
-
-### Quick Setup
-
-\`\`\`bash
-git clone https://github.com/{oss-repo}.git
-cd {package-name}
-bun install
-bun run dev
-\`\`\`
-
-For detailed development setup, see [AGENTS.md](./AGENTS.md).
-
-## How to Contribute
-
-### Reporting Bugs
-
-**Before submitting**: Check [existing issues](https://github.com/{oss-repo}/issues)
-
-**When reporting**, include:
-- Clear bug description
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment details
-
-### Suggesting Features
-
-Open an issue with:
-- Clear use case description
-- Why this benefits users
-- Example usage (if applicable)
-
-### Submitting Pull Requests
-
-1. Fork the repository
-2. Create feature branch: \`git checkout -b feature/my-feature\`
-3. Make changes with tests
-4. Run checks: \`bun run check\`
-5. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-6. Push and create PR
-
-## Development Workflow
-
-See [AGENTS.md](./AGENTS.md) for:
-- Code patterns
-- Testing guidelines
-- Architecture details
-
-## Getting Help
-
-- **Issues**: [GitHub Issues](https://github.com/{oss-repo}/issues)
-- **Email**: support@you.com
 ```
 
 **File: packages/{package-name}/docs/API.md**
@@ -356,7 +270,7 @@ npm install {npm-package-name}
 **CRITICAL**:
 - Workflow name MUST be "Publish {package-name} Release"
 - Package directory is automatically derived from npm package name
-- No need to specify package_name parameter
+- No separate OSS repository needed - everything is published from dx-toolkit
 
 Create minimal caller workflow:
 
@@ -378,18 +292,22 @@ jobs:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "{npm-package-name}"
-      oss_repo: "{oss-repo}"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
     secrets:
-      RELEASE_ADMIN_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: ${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.MCP_NPM_TOKEN }}
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
 ```
 
-**Why no package_name?** The reusable workflow extracts it from `npm_package_name`:
-- `@youdotcom-oss/ai-sdk` → Directory: `packages/ai-sdk`
-- `@youdotcom-oss/eval` → Directory: `packages/eval`
+**Why no separate repos?** All packages are published directly from the dx-toolkit monorepo to npm. This simplifies:
+- Version management
+- Release coordination
+- Dependency updates
+- Documentation consistency
+
+**Authentication**: This monorepo uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) (OIDC) for npm authentication:
+- No npm tokens required - GitHub Actions authenticates automatically using OIDC
+- Automatic provenance generation for supply chain security
+- Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
 
 **Create the file**:
 
@@ -397,7 +315,6 @@ jobs:
 # Replace placeholders with actual values
 PACKAGE_NAME="{package-name}"
 NPM_PACKAGE="{npm-package-name}"
-OSS_REPO="{oss-repo}"
 
 cat > ".github/workflows/publish-${PACKAGE_NAME}.yml" << EOF
 name: Publish ${PACKAGE_NAME} Release
@@ -417,13 +334,10 @@ jobs:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "${NPM_PACKAGE}"
-      oss_repo: "${OSS_REPO}"
       version: \${{ github.event.inputs.version }}
       next: \${{ github.event.inputs.next }}
     secrets:
-      RELEASE_ADMIN_TOKEN: \${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: \${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: \${{ secrets.MCP_NPM_TOKEN }}
+      PUBLISH_TOKEN: \${{ secrets.PUBLISH_TOKEN }}
 EOF
 
 # Verify the output
@@ -448,60 +362,22 @@ Provide the user with this checklist:
 
 **Location**: packages/{package-name}/
 **NPM**: {npm-package-name}
-**OSS Repo**: {oss-repo}
+**Repository**: youdotcom-oss/dx-toolkit (monorepo)
 
 ---
 
 ## Next Steps (Manual)
 
-### 1. Create OSS Repository
-
-Create the OSS repository:
-1. Go to: https://github.com/organizations/youdotcom-oss/repositories/new
-2. Repository name: `{package-name}`
-3. Description: `{description}`
-4. **Public repository**
-5. **DO NOT** initialize with README (we'll sync from monorepo)
-6. Click "Create repository"
-
-### 2. Configure GitHub Secrets
-
-**Important**: This monorepo uses a **shared token** for all OSS operations.
-
-The existing `MCP_OSS_REMOTE_TOKEN` secret works for all packages. You do **NOT** need to create a new token.
-
-**Verification**:
-1. Check that `MCP_OSS_REMOTE_TOKEN` exists in: https://github.com/youdotcom-oss/dx-toolkit/settings/secrets/actions
-2. Ensure the token has these permissions:
-   - Read access to metadata
-   - Read and Write access to code (for all `youdotcom-oss/*` repos)
-
-**Only create a new token if**:
-- The existing token doesn't have access to your new OSS repo
-- Your organization requires per-package tokens (update workflows accordingly)
-
-### 3. Test Publish Workflow
-
-Test the publish workflow before going live:
-1. Go to: https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml
-2. Click "Run workflow"
-3. Enter version: `0.1.0-test-1`
-4. Optionally enter "next" number to create a pre-release
-5. Verify all jobs succeed:
-   - ✅ Create Release
-   - ✅ Sync to OSS Repository
-   - ✅ Publish to NPM (next tag)
-
-### 4. Implement Package Logic
+### 1. Implement Package Logic
 
 Now implement your package:
-1. Edit `packages/{package-name}/src/main.ts` - Add your public API
+1. Edit `packages/{package-name}/src/utils.ts` - Add your public API
 2. Create feature modules in `src/`
 3. Add tests in `tests/`
 4. Update `docs/API.md` with API documentation
 5. Run `bun run check` to verify code quality
 
-### 5. Test Publish Workflow
+### 2. Test Publish Workflow
 
 Before going live, test the publish workflow with a prerelease:
 
@@ -513,24 +389,21 @@ Before going live, test the publish workflow with a prerelease:
 4. Verify all workflow steps succeed:
    - ✅ Input validation passes
    - ✅ Version updated in package.json
-   - ✅ GitHub release created (private repo)
-   - ✅ Synced to OSS repository via git subtree
-   - ✅ GitHub release created (OSS repo)
+   - ✅ GitHub release created
    - ✅ Published to npm with `next` tag
 
 5. Verify prerelease:
    - npm: `npm view {npm-package-name}@next`
    - Should show version `0.1.0-next.1`
 
-### 6. First Stable Release
+### 3. First Stable Release
 
 When ready for first public release:
-1. Ensure OSS repository exists and is configured
-2. Push package code to main branch
-3. Trigger publish workflow with version `0.1.0`
-4. Verify npm package: https://www.npmjs.com/package/{npm-package-name}
-5. Verify GitHub release: https://github.com/{oss-repo}/releases
-6. Test installation: `bun add {npm-package-name}`
+1. Push package code to main branch
+2. Trigger publish workflow with version `0.1.0`
+3. Verify npm package: https://www.npmjs.com/package/{npm-package-name}
+4. Verify GitHub release: https://github.com/youdotcom-oss/dx-toolkit/releases
+5. Test installation: `bun add {npm-package-name}`
 
 ---
 
@@ -538,9 +411,6 @@ When ready for first public release:
 
 \`\`\`
 packages/{package-name}/
-├── .hooks/
-│   ├── commit-msg
-│   └── pre-commit
 ├── src/
 │   └── utils.ts
 ├── tests/
@@ -551,8 +421,7 @@ packages/{package-name}/
 ├── biome.json
 ├── .gitignore
 ├── README.md
-├── AGENTS.md
-└── CONTRIBUTING.md
+└── AGENTS.md
 \`\`\`
 
 ## Workflow Files Created
