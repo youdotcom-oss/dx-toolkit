@@ -113,26 +113,35 @@ This project is designed to work seamlessly with AI coding agents like Claude Co
 
 ## GitHub Workflows
 
-This project uses automated workflows for OSS contributions, releases, and deployments.
+This project uses automated workflows for code quality, releases, and deployments.
 
-### For Maintainers
+### Continuous Integration
 
-**Syncing OSS Contributions**
-- Workflow: `.github/workflows/sync-from-oss-pr.yml`
+**Code Quality Checks**
+- Workflow: `.github/workflows/ci.yml`
+- Trigger: Pull requests and pushes to main
+- Purpose: Validates code quality and tests for all packages
+- Runs: Biome linting, TypeScript type checking, and test suite
+
+**Code Review**
+- Internal: `.github/workflows/code-review.yml` (automatic on PR)
+- External: `.github/workflows/external-code-review.yml` (manual trigger)
+- Purpose: AI-powered code analysis and suggestions
+
+### Publishing and Deployment
+
+**Publishing Packages**
+- Workflow: `.github/workflows/publish-mcp.yml` (example for MCP package)
 - Trigger: Manual via GitHub Actions UI
-- Purpose: Pull external OSS PR into private monorepo for review
-- Process: Creates `sync-oss-<package>-pr-<number>` branch and opens PR
+- Purpose: Update version, create GitHub release, publish to npm
+- Process:
+  1. Updates package.json version
+  2. Updates workspace dependencies
+  3. Creates GitHub release
+  4. Publishes to npm
+  5. (MCP only) Triggers remote deployment via repository_dispatch
 
-**Releasing and Publishing**
-- Workflow: `.github/workflows/publish-mcp.yml`
-- Trigger: Manual via GitHub Actions UI or on release
-- Purpose: Update version, create GitHub release, sync to OSS, publish to npm
-- Auto-triggers: `close-oss-pr-after-release.yml`
-
-**Deployment**
-- Staging: `.github/workflows/deploy-staging.yml` (auto on push to main)
-- Production: `.github/workflows/deploy-prod.yml` (manual, multi-region)
-- Docker builds from package directories to AWS ECR
+**Note**: The MCP package includes additional deployment steps to trigger remote infrastructure updates. Other packages in this monorepo have simpler publish workflows without deployment.
 
 For comprehensive workflow documentation, see [AGENTS.md](./AGENTS.md#monorepo-architecture).
 

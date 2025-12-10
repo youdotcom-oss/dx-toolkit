@@ -18,6 +18,7 @@ packages/*/pnpm-lock.yaml
 
 
 # Environment variables
+.env*
 .env
 .env.*
 !.env.example
@@ -93,9 +94,6 @@ temp/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env*
-
 # API keys and secrets (extra safety)
 *.key
 secrets.json
@@ -107,3 +105,7 @@ config/secrets.json
 # Claude
 .claude/settings.local.json
 .mcp.json
+
+
+packages/*/.mcpregistry_registry_token
+packages/*/.mcpregistry_github_token

@@ -22,8 +22,8 @@ describe('fetchSearchResults', () => {
     expect(typeof result.metadata?.query).toBe('string');
 
     // Optional fields: only assert type if present
-    if (result.metadata?.request_uuid !== undefined) {
-      expect(typeof result.metadata.request_uuid).toBe('string');
+    if (result.metadata?.search_uuid !== undefined) {
+      expect(typeof result.metadata.search_uuid).toBe('string');
     }
   });
 
@@ -66,6 +66,52 @@ describe('fetchSearchResults', () => {
     expect(newsResult).toHaveProperty('description');
     expect(newsResult).toHaveProperty('page_age');
   });
+
+  test('handles livecrawl parameters', async () => {
+    const result = await fetchSearchResults({
+      searchQuery: {
+        query: 'python tutorial',
+        count: 2,
+        livecrawl: 'web',
+        livecrawl_formats: 'markdown',
+      },
+      getUserAgent,
+    });
+
+    expect(result.results.web?.length).toBeLessThanOrEqual(2);
+    // If livecrawl worked, results should have contents field
+    if (result.results.web?.[0]?.contents) {
+      expect(result.results.web[0].contents).toHaveProperty('markdown');
+      expect(typeof result.results.web[0].contents.markdown).toBe('string');
+    }
+  });
+
+  test('handles freshness date ranges', async () => {
+    const result = await fetchSearchResults({
+      searchQuery: {
+        query: 'AI news',
+        freshness: '2024-01-01to2024-12-31',
+        count: 3,
+      },
+      getUserAgent,
+    });
+
+    expect(result).toHaveProperty('results');
+    expect(result.metadata?.query).toContain('AI news');
+  });
+
+  test('handles count greater than 20', async () => {
+    const result = await fetchSearchResults({
+      searchQuery: {
+        query: 'machine learning',
+        count: 50,
+      },
+      getUserAgent,
+    });
+
+    expect(result.results.web?.length).toBeGreaterThan(0);
+    expect(result.results.web?.length).toBeLessThanOrEqual(50);
+  });
 });
 
 describe('formatSearchResults', () => {
@@ -85,7 +131,7 @@ describe('formatSearchResults', () => {
         news: [],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -132,7 +178,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -182,7 +228,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },

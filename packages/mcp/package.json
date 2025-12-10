@@ -1,7 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "1.3.7",
-  "mcpName": "io.github.youdotcom-oss/mcp",
+  "version": "1.3.8",
   "description": "You.com API Model Context Protocol Server",
   "license": "MIT",
   "engines": {
@@ -60,6 +59,7 @@
     "test:coverage:watch": "bun test --coverage --watch",
     "test:watch": "bun test --watch"
   },
+  "mcpName": "io.github.youdotcom-oss/mcp",
   "dependencies": {
     "zod": "^4.1.13",
     "@hono/mcp": "^0.2.0",

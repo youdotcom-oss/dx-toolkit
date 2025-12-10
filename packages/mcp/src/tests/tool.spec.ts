@@ -201,7 +201,7 @@ describe('registerSearchTool', () => {
       name: 'you-search',
       arguments: {
         query: 'documentation',
-        fileType: 'pdf',
+        filetype: 'pdf',
       },
     });
 
