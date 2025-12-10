@@ -193,8 +193,13 @@ This package is published to npm via the `.github/workflows/publish-mcp.yml` wor
    - Sends `update-mcp-version` event to deployment repository
    - For stable releases: Triggers `deploy-mcp-production` event after version update completes
    - Prereleases skip production deployment
+8. Publishes to Anthropic MCP Registry (stable releases only, MCP-specific)
+   - Automatically updates `server.json` versions to match published package
+   - Authenticates via GitHub OIDC (no manual credentials required)
+   - Runs only after successful production deployment
+   - Makes server discoverable at `io.github.youdotcom-oss/mcp`
 
-**Note**: Step 7 is specific to the MCP package which requires remote deployment infrastructure. Other packages in this monorepo have simpler publish workflows that only perform steps 1-6.
+**Note**: Steps 7-8 are specific to the MCP package which requires remote deployment infrastructure and registry presence. Other packages in this monorepo have simpler publish workflows that only perform steps 1-6.
 
 **Version Format**: Exact versions only (no `^` or `~` prefixes)
 
