@@ -177,7 +177,8 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       const mcpTimes: number[] = [];
 
       // Express API is slower due to AI processing, reduce iterations
-      const expressIterations = 5;
+      // With retry: 3 iterations × 3 attempts × ~7s = ~63s max (safer than 5 iterations)
+      const expressIterations = 3;
 
       for (let i = 0; i < expressIterations; i++) {
         // Raw API call (baseline)
@@ -291,10 +292,29 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   test.serial(
     'Memory overhead from MCP abstraction',
     async () => {
+      // Create dedicated client for memory test to avoid shared state issues
+      // (long-running tests may disconnect the shared client)
+      console.log('\n=== Memory Test: Creating dedicated client ===');
+      const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+      const transport = new StdioClientTransport({
+        command: 'npx',
+        args: [stdioPath],
+        env: {
+          YDC_API_KEY,
+        },
+      });
+
+      const memoryClient = new Client({
+        name: 'memory-test-client',
+        version: '0.0.1',
+      });
+
+      await memoryClient.connect(transport);
+
       // Baseline warmup: eliminate one-time allocations
-      console.log('\n=== Memory Test: Running baseline warmup ===');
+      console.log('Running baseline warmup...');
       for (let i = 0; i < 3; i++) {
-        await client.callTool({
+        await memoryClient.callTool({
           name: 'you-search',
           arguments: { query: 'warmup', count: 2 },
         });
@@ -309,7 +329,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       // Run operations with increased iterations for better statistical significance
       const memoryIterations = 15;
       for (let i = 0; i < memoryIterations; i++) {
-        await client.callTool({
+        await memoryClient.callTool({
           name: 'you-search',
           arguments: { query: `memory test ${i}`, count: 2 },
         });
@@ -330,6 +350,9 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       console.log(`Total growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
       console.log(`Per-operation growth: ${(perOpGrowth / 1024).toFixed(2)} KB`);
       console.log(`Growth pattern: ${perOpGrowth < 1024 ? 'Constant (good)' : 'Linear (check for leaks)'}`);
+
+      // Clean up dedicated client
+      await memoryClient.close();
 
       // Assert memory overhead threshold
       // MCP server maintains state, schemas, and buffers, so 400KB is reasonable

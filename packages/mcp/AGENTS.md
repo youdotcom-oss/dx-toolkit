@@ -428,6 +428,101 @@ expect(item).toBeDefined();
 expect(item).toHaveProperty("url"); // Fails with clear error if undefined
 ```
 
+### Shared Client Patterns
+
+**IMPORTANT: Long-running serial tests with retries can disconnect shared clients**
+
+#### Problem
+
+When using `test.serial()` with shared MCP client from `beforeAll`, long-running tests (especially with `retry` configuration) may cause:
+- Connection timeouts
+- Process cleanup by CI
+- "Not connected" errors in subsequent tests
+
+#### Solution: Use Dedicated Clients for Isolated Tests
+
+❌ **Shared Client** - Can disconnect after long-running tests:
+
+```ts
+let client: Client; // Shared across all tests
+
+beforeAll(async () => {
+  // ... setup
+  client = new Client({ name: 'test-client', version: '1.0.0' });
+  await client.connect(transport);
+});
+
+test.serial('long test with retries', async () => {
+  // Takes 53+ seconds with retries
+  await client.callTool(/* ... */);
+}, { timeout: 90_000, retry: 2 });
+
+test.serial('memory test', async () => {
+  // FAILS: client disconnected after previous test
+  await client.callTool(/* ... */); // Error: Not connected
+});
+```
+
+✅ **Dedicated Client** - Create fresh client for isolated tests:
+
+```ts
+test.serial('memory test', async () => {
+  // Create dedicated client for this test only
+  const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+  const transport = new StdioClientTransport({
+    command: 'npx',
+    args: [stdioPath],
+    env: { YDC_API_KEY },
+  });
+
+  const memoryClient = new Client({
+    name: 'memory-test-client',
+    version: '1.0.0',
+  });
+
+  await memoryClient.connect(transport);
+
+  // Run test operations
+  await memoryClient.callTool(/* ... */);
+
+  // Clean up
+  await memoryClient.close();
+}, { timeout: 15_000 });
+```
+
+#### When to Use Each Pattern
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| **Shared Client** | Quick tests (<30s each), no retry | Unit tests, basic integration tests |
+| **Dedicated Client** | Long tests (>30s), tests with retry, isolated state | Memory tests, performance tests, flaky API tests |
+
+#### Example: Processing Lag Test Suite
+
+See `src/tests/processing-lag.spec.ts` for complete example:
+- **Shared client**: Used for Search/Express/Contents lag tests
+- **Dedicated client**: Used for memory test to avoid connection issues
+
+### Test Retry Configuration
+
+All API-dependent tests use `{ retry: 2 }` for network resilience:
+
+```ts
+test('API test', async () => {
+  // Test implementation
+}, { retry: 2 }); // 3 total attempts (1 initial + 2 retries)
+```
+
+**Benefits**:
+- Handles transient network issues, rate limiting, intermittent failures
+- Tests pass if any of 3 attempts succeed
+- Low cost: only runs extra attempts on failure
+
+**Considerations**:
+- Total test time = iterations × max_attempts × time_per_iteration
+- Long tests with retry may disconnect shared clients (use dedicated client)
+- Example: 5 iterations × 3 attempts × 7s/call = 105s max
+
 ### Running Tests
 
 ```bash
