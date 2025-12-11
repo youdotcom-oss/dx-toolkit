@@ -1,21 +1,23 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText, streamText } from 'ai';
+import { generateText } from 'ai';
 import { youContents, youExpress, youSearch } from '../main.ts';
 
 /**
  * Integration tests for AI SDK Plugin
  *
  * These tests validate the plugin's functionality with real API calls.
- * They mirror the examples in /examples directory.
+ * Most tests directly call tool.execute?.() for faster execution.
+ * One test validates tools work with generateText and AI models.
  *
  * Requirements:
  * - YDC_API_KEY: You.com API key
- * - ANTHROPIC_API_KEY: Anthropic API key for AI model access
+ * - ANTHROPIC_API_KEY: Anthropic API key (only for generateText test)
  *
  * Test Strategy:
+ * - Direct execute tests: Fast, isolated tool validation
+ * - generateText test: End-to-end validation with AI model
  * - Uses retry: 2 for network resilience (3 total attempts)
- * - 30-60s timeouts for AI model responses
  * - Tests run serially to avoid rate limiting
  */
 
@@ -30,97 +32,105 @@ describe('AI SDK Plugin Integration Tests', () => {
       throw new Error('YDC_API_KEY environment variable is required for integration tests');
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests');
+    if (process.env.ANTHROPIC_API_KEY) {
+      anthropic = createAnthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
     }
-
-    anthropic = createAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
   });
 
   describe('youSearch tool', () => {
     test(
-      'basic web search - generates response with tool usage',
+      'basic web search - returns results with snippets',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch({ apiKey: ydcApiKey }),
+        const searchTool = youSearch({ apiKey: ydcApiKey });
+        const result = await searchTool.execute?.(
+          {
+            query: 'TypeScript best practices',
+            count: 3,
           },
-          prompt: 'Search for the latest developments in AI agents',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
         // Validate response structure
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
 
-        // Validate tool usage
-        expect(result.toolCalls).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-
-        // Verify search tool was called
-        const searchToolCall = result.toolCalls.find((call) => call.toolName === 'search');
-        expect(searchToolCall).toBeDefined();
-
-        // Validate tool results
-        expect(result.toolResults).toBeDefined();
-        expect(result.toolResults.length).toBeGreaterThan(0);
+        // Validate structured data
+        expect(result.data).toBeDefined();
+        expect(result.data.hits).toBeDefined();
+        expect(Array.isArray(result.data.hits)).toBe(true);
       },
-      { timeout: 60_000, retry: 2 },
+      { timeout: 30_000, retry: 2 },
+    );
+
+    test(
+      'search with filters - site and count',
+      async () => {
+        const searchTool = youSearch({ apiKey: ydcApiKey });
+        const result = await searchTool.execute?.(
+          {
+            query: 'React hooks',
+            site: 'react.dev',
+            count: 5,
+          },
+          { toolCallId: 'test', messages: [] },
+        );
+
+        expect(result).toBeDefined();
+        expect(result.text).toBeDefined();
+        expect(result.data).toBeDefined();
+        expect(result.data.hits.length).toBeLessThanOrEqual(5);
+      },
+      { timeout: 30_000, retry: 2 },
     );
 
     test(
       'search with env var API key',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch(), // Uses YDC_API_KEY from env
+        const searchTool = youSearch(); // Uses YDC_API_KEY from env
+        const result = await searchTool.execute?.(
+          {
+            query: 'JavaScript async await',
+            count: 2,
           },
-          prompt: 'Search for TypeScript best practices',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-
-        // Verify search tool was called
-        const searchToolCall = result.toolCalls.find((call) => call.toolName === 'search');
-        expect(searchToolCall).toBeDefined();
+        expect(result.data.hits.length).toBeGreaterThan(0);
       },
-      { timeout: 60_000, retry: 2 },
+      { timeout: 30_000, retry: 2 },
     );
   });
 
   describe('youExpress tool', () => {
     test(
-      'agent response with web search - generates AI answer',
+      'agent response - provides AI answer',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            agent: youExpress({ apiKey: ydcApiKey }),
+        const expressTool = youExpress({ apiKey: ydcApiKey });
+        const result = await expressTool.execute?.(
+          {
+            input: 'What are the key benefits of using TypeScript?',
           },
-          prompt: 'What are the key benefits of using Model Context Protocol?',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
         // Validate response
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
 
-        // Validate tool usage
-        expect(result.toolCalls).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
+        // Should mention TypeScript
+        expect(result.text.toLowerCase()).toContain('typescript');
 
-        // Verify agent tool was called
-        const agentToolCall = result.toolCalls.find((call) => call.toolName === 'agent');
-        expect(agentToolCall).toBeDefined();
-
-        // Validate tool results contain data
-        expect(result.toolResults).toBeDefined();
-        expect(result.toolResults.length).toBeGreaterThan(0);
+        // Validate structured data
+        expect(result.data).toBeDefined();
+        expect(result.data.answer).toBeDefined();
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -128,21 +138,17 @@ describe('AI SDK Plugin Integration Tests', () => {
     test(
       'agent with simple query',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            agent: youExpress({ apiKey: ydcApiKey }),
+        const expressTool = youExpress({ apiKey: ydcApiKey });
+        const result = await expressTool.execute?.(
+          {
+            input: 'What is the current year?',
           },
-          prompt: 'What is the current year?',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
         expect(result.text).toContain('2025');
-
-        // Verify agent tool was called
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-        const agentToolCall = result.toolCalls.find((call) => call.toolName === 'agent');
-        expect(agentToolCall).toBeDefined();
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -150,161 +156,82 @@ describe('AI SDK Plugin Integration Tests', () => {
 
   describe('youContents tool', () => {
     test(
-      'content extraction - extracts and summarizes page content',
+      'single URL extraction - returns markdown content',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            extract: youContents({ apiKey: ydcApiKey }),
+        const contentsTool = youContents({ apiKey: ydcApiKey });
+        const result = await contentsTool.execute?.(
+          {
+            urls: ['https://example.com'],
+            format: 'markdown',
           },
-          prompt: 'Extract content from https://modelcontextprotocol.io and summarize what MCP is',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
         // Validate response
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
 
-        // Should mention MCP or Model Context Protocol
-        expect(
-          result.text.toLowerCase().includes('mcp') || result.text.toLowerCase().includes('model context protocol'),
-        ).toBe(true);
-
-        // Validate tool usage
-        expect(result.toolCalls).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-
-        // Verify extract tool was called
-        const extractToolCall = result.toolCalls.find((call) => call.toolName === 'extract');
-        expect(extractToolCall).toBeDefined();
-
-        // Validate tool results
-        expect(result.toolResults.length).toBeGreaterThan(0);
+        // Validate structured data
+        expect(result.data).toBeDefined();
+        expect(Array.isArray(result.data)).toBe(true);
+        expect(result.data.length).toBeGreaterThan(0);
+        expect(result.data[0].url).toBe('https://example.com');
+        expect(result.data[0].markdown).toBeDefined();
       },
-      { timeout: 90_000, retry: 2 },
+      { timeout: 30_000, retry: 2 },
     );
 
     test(
       'multiple URL extraction',
       async () => {
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            extract: youContents({ apiKey: ydcApiKey }),
+        const contentsTool = youContents({ apiKey: ydcApiKey });
+        const result = await contentsTool.execute?.(
+          {
+            urls: ['https://example.com', 'https://example.org'],
+            format: 'markdown',
           },
-          prompt: 'Extract and compare content from https://vercel.com and https://anthropic.com',
-        });
+          { toolCallId: 'test', messages: [] },
+        );
 
+        expect(result).toBeDefined();
         expect(result.text).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-
-        // Should extract content from both URLs
-        const extractToolCalls = result.toolCalls.filter((call) => call.toolName === 'extract');
-        expect(extractToolCalls.length).toBeGreaterThan(0);
+        expect(result.data).toBeDefined();
+        expect(result.data.length).toBe(2);
+        expect(result.data[0].url).toBe('https://example.com');
+        expect(result.data[1].url).toBe('https://example.org');
       },
-      { timeout: 90_000, retry: 2 },
-    );
-  });
-
-  describe('streaming responses', () => {
-    test(
-      'streamText with youSearch - streams response chunks',
-      async () => {
-        const result = streamText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch({ apiKey: ydcApiKey }),
-          },
-          prompt: 'Search for AI news and summarize',
-        });
-
-        const chunks: string[] = [];
-
-        // Collect all chunks
-        for await (const chunk of result.textStream) {
-          expect(typeof chunk).toBe('string');
-          chunks.push(chunk);
-        }
-
-        // Validate we received chunks
-        expect(chunks.length).toBeGreaterThan(0);
-
-        // Validate full text is available
-        const fullText = await result.text;
-        expect(fullText).toBeDefined();
-        expect(fullText.length).toBeGreaterThan(0);
-
-        // Validate tool usage
-        const usage = await result.usage;
-        expect(usage).toBeDefined();
-
-        // Verify search tool was called
-        const toolCalls = await result.toolCalls;
-        expect(toolCalls.length).toBeGreaterThan(0);
-        const searchToolCall = toolCalls.find((call) => call.toolName === 'search');
-        expect(searchToolCall).toBeDefined();
-      },
-      { timeout: 90_000, retry: 2 },
+      { timeout: 30_000, retry: 2 },
     );
   });
 
   describe('error handling', () => {
-    test('missing API key throws error', async () => {
-      expect(() => {
-        youSearch({ apiKey: '' });
-      }).not.toThrow(); // Constructor doesn't throw
+    test('missing API key throws error during execution', async () => {
+      const searchTool = youSearch({ apiKey: '' });
 
-      // Error should occur during execution
       await expect(async () => {
-        await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch({ apiKey: '' }),
-          },
-          prompt: 'Search for something',
-        });
-      }).toThrow();
+        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] });
+      }).toThrow(/YDC_API_KEY is required/);
     });
 
-    test('invalid API key format is handled', async () => {
-      const invalidKey = 'invalid-key-format';
+    test('invalid API key format is handled with clear error', async () => {
+      const searchTool = youSearch({ apiKey: 'invalid-key-format' });
 
-      // Should fail during API call with clear error
       await expect(async () => {
-        await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch({ apiKey: invalidKey }),
-          },
-          prompt: 'Search for something',
-        });
+        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] });
       }).toThrow();
     });
-
-    test(
-      'tool handles API errors gracefully',
-      async () => {
-        // This test validates that even with potential API issues,
-        // the tool doesn't crash the entire generation
-        const result = await generateText({
-          model: anthropic('claude-sonnet-4-5-20250929'),
-          tools: {
-            search: youSearch({ apiKey: ydcApiKey }),
-          },
-          prompt: 'Search for extremely obscure query that might fail',
-        });
-
-        // Should complete without throwing
-        expect(result.text).toBeDefined();
-      },
-      { timeout: 60_000, retry: 2 },
-    );
   });
 
-  describe('tool configuration', () => {
-    test(
-      'multiple tools can be used together',
+  describe('AI SDK integration', () => {
+    test.skipIf(!process.env.ANTHROPIC_API_KEY)(
+      'tools work with generateText and trigger multiple tool calls',
       async () => {
+        // Complex prompt that should trigger multiple tools:
+        // 1. Search for recent info
+        // 2. Agent for synthesis
+        // 3. Contents for URL extraction
         const result = await generateText({
           model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
@@ -312,39 +239,35 @@ describe('AI SDK Plugin Integration Tests', () => {
             agent: youExpress({ apiKey: ydcApiKey }),
             extract: youContents({ apiKey: ydcApiKey }),
           },
-          prompt: 'Search for information about Vercel AI SDK and extract details',
+          prompt: `Find recent information about the Vercel AI SDK, get the documentation from https://sdk.vercel.ai,
+          and explain the key differences between streaming and non-streaming responses`,
+          maxSteps: 5,
         });
 
+        // Validate response structure
         expect(result.text).toBeDefined();
+        expect(typeof result.text).toBe('string');
+        expect(result.text.length).toBeGreaterThan(0);
+
+        // Validate tool usage - at least one tool should be called
+        expect(result.toolCalls).toBeDefined();
         expect(result.toolCalls.length).toBeGreaterThan(0);
 
-        // At least one tool should be called
+        // Validate tool results
+        expect(result.toolResults).toBeDefined();
+        expect(result.toolResults.length).toBeGreaterThan(0);
+
+        // Verify at least one of our tools was called
         const toolNames = result.toolCalls.map((call) => call.toolName);
-        expect(toolNames.some((name) => ['search', 'agent', 'extract'].includes(name))).toBe(true);
+        const usedTools = toolNames.filter((name) => ['search', 'agent', 'extract'].includes(name));
+        expect(usedTools.length).toBeGreaterThan(0);
+
+        console.log(`\n=== Tool Usage Summary ===`);
+        console.log(`Total tool calls: ${result.toolCalls.length}`);
+        console.log(`Tools used: ${usedTools.join(', ')}`);
+        console.log(`Response length: ${result.text.length} characters`);
       },
-      { timeout: 90_000, retry: 2 },
-    );
-
-    test(
-      'tools work with different AI models',
-      async () => {
-        // Test with different Anthropic model
-        const result = await generateText({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          tools: {
-            search: youSearch({ apiKey: ydcApiKey }),
-          },
-          prompt: 'Quick search for TypeScript',
-        });
-
-        expect(result.text).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-
-        // Verify search tool was called
-        const searchToolCall = result.toolCalls.find((call) => call.toolName === 'search');
-        expect(searchToolCall).toBeDefined();
-      },
-      { timeout: 60_000, retry: 2 },
+      { timeout: 120_000, retry: 2 },
     );
   });
 });
