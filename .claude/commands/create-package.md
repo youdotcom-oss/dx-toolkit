@@ -134,11 +134,46 @@ export const placeholder = 'Add your exports here';
 
 ### 4. Documentation Files
 
+#### Documentation Tone Guidelines
+
+**IMPORTANT**: The root `README.md` (monorepo level) is an exception and does not follow these guidelines. These tone guidelines apply to **package-level documentation only**.
+
+All packages maintain two distinct documentation files with different tones:
+- **README.md**: Encouraging, user-facing, consumption-focused
+- **AGENTS.md**: Directive, developer-facing, contribution-focused
+
+See root [AGENTS.md → Documentation Standards](../../AGENTS.md#documentation-standards) for complete guidelines.
+
+#### Tone-Specific Writing Rules
+
+**README.md (5 rules):**
+1. Use encouraging, accessible language - avoid technical jargon
+2. Second-person voice with active imperatives
+3. **Exactly 4 steps in "Getting started"**
+4. Natural language examples in quotes
+5. Progressive disclosure for complex details
+
+**AGENTS.md (5 rules):**
+1. Directive language with absolute constraints ("Always", "Never", "Must")
+2. Side-by-side code comparisons (✅/❌)
+3. Sequential workflow structure
+4. File path references with line numbers
+5. Symptom/solution troubleshooting format
+
+**API.md (5 rules):**
+1. Technical and precise tone
+2. Reference-style structure
+3. Complete runnable examples
+4. Full TypeScript signatures with arrow functions
+5. Cross-references to related exports
+
+---
+
 **File: packages/{package-name}/README.md**
 ```markdown
 # {description}
 
-[Brief overview of what the package does]
+Get up and running with {package-name} in 4 quick steps. [Brief value proposition focusing on benefits]
 
 ## Features
 
@@ -148,11 +183,9 @@ export const placeholder = 'Add your exports here';
 
 ## Getting started
 
-### Prerequisites
+### 1. Installation
 
-- Bun >= 1.2.21 (or Node.js >= 18)
-
-### Installation
+Choose your package manager:
 
 \`\`\`bash
 # NPM
@@ -165,17 +198,42 @@ bun add {npm-package-name}
 yarn add {npm-package-name}
 \`\`\`
 
-### Quick example
+### 2. Quick setup
 
 \`\`\`typescript
 import { placeholder } from '{npm-package-name}';
 
-// Add usage example here
+// Your first example - keep it simple and immediate value
 \`\`\`
+
+### 3. Configure (if needed)
+
+[Add configuration steps if applicable, or skip if no configuration needed]
+
+### 4. Test your setup
+
+Try this simple example:
+"[Natural language example showing what users can do]"
+
+## Use cases & examples
+
+### Common scenarios
+
+**When to use [feature]:**
+- "Example query in natural language"
+- "Another example showing user intent"
 
 ## Documentation
 
 For detailed API documentation, see [docs/API.md](./docs/API.md).
+
+## Troubleshooting
+
+**Issue**: [Common problem users might face]
+
+**Solution**:
+- Step 1 to resolve
+- Step 2 to verify
 
 ## Contributing
 
@@ -189,6 +247,8 @@ See [AGENTS.md](./AGENTS.md) for development setup, architecture, and patterns.
 
 MIT - see [LICENSE](../../LICENSE) for details.
 ```
+
+---
 
 **File: packages/{package-name}/AGENTS.md**
 ```markdown
@@ -231,7 +291,19 @@ bun run check:write      # Auto-fix all issues
 
 This package uses [Biome](https://biomejs.dev/) for automated formatting and linting.
 
-[Add package-specific coding patterns here]
+### Package-Specific Patterns
+
+**Arrow Functions**: Always use arrow functions for declarations
+
+\`\`\`ts
+// ✅ Preferred
+export const fetchData = async (params: Params) => { ... };
+
+// ❌ Avoid
+export async function fetchData(params: Params) { ... }
+\`\`\`
+
+**[Add more package-specific coding patterns here]**
 
 ## Contributing
 
@@ -244,13 +316,30 @@ This package is published to npm via \`.github/workflows/publish-{package-name}.
 **Version Format**: Exact versions only (no ^ or ~ prefixes)
 
 See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
+
+## Troubleshooting
+
+### Common Issues
+
+#### Symptom: [Specific problem developers might encounter]
+
+**Solution**:
+
+\`\`\`bash
+# Fix command with explanation
+command --option value
+\`\`\`
+
+[Add more troubleshooting sections as needed]
 ```
+
+---
 
 **File: packages/{package-name}/docs/API.md**
 ```markdown
 # {description} - API Documentation
 
-[Add API documentation here]
+Complete API reference for {npm-package-name}.
 
 ## Installation
 
@@ -258,10 +347,63 @@ See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
 npm install {npm-package-name}
 \`\`\`
 
-## Usage
+## Core Exports
 
-[Add usage examples]
+### `functionName`
+
+\`\`\`typescript
+export const functionName = (params: ParamsType) => ReturnType
+\`\`\`
+
+**Description**: [What this function does]
+
+**Parameters**:
+- \`param1\` (Type): Description
+- \`param2\` (Type): Description
+
+**Returns**: Type - Description
+
+**Example**:
+\`\`\`typescript
+import { functionName } from '{npm-package-name}';
+
+const result = functionName({ param1: 'value' });
+\`\`\`
+
+[Add more API documentation as needed]
 ```
+
+#### Quick Tone Check
+
+Use these indicators to verify correct tone:
+
+**README.md indicators:**
+- ✅ "Get up and running in 4 steps"
+- ✅ "No installation required"
+- ✅ "Your agent will automatically..."
+- ✅ "Just describe what you want"
+- ❌ "Implementation requires..."
+- ❌ "The system executes..."
+- ❌ "Configure the following parameters..."
+
+**AGENTS.md indicators:**
+- ✅ "Always use arrow functions"
+- ✅ "NEVER bypass git hooks"
+- ✅ "All exports must be used"
+- ✅ "Check pattern: \`^[a-z]+$\`"
+- ❌ "We recommend arrow functions"
+- ❌ "Consider keeping hooks enabled"
+- ❌ "Try to avoid unused exports"
+
+#### Common Creation Mistakes
+
+1. **Tone bleed** - Don't mix README's encouraging tone with AGENTS' directive tone
+2. **Placeholder retention** - Replace all \`{placeholders}\` with actual values
+3. **Structure deviation** - Maintain exact template structure
+4. **Jargon in README** - Keep technical details in AGENTS.md
+5. **Missing validation** - Always apply checklist before completion
+
+**Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
 
 ### 5. Create Publish Workflow
 

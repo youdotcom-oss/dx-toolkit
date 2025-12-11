@@ -494,6 +494,98 @@ For package-specific development details, see each package's AGENTS.md:
   - Testing guidelines
   - Architecture diagrams
 
+### Documentation Standards
+
+**IMPORTANT EXCEPTION**: The root `README.md` (at monorepo level) is an exception to these guidelines. It serves as a project overview and does not follow the package consumption tone. These guidelines apply to **package-level documentation only** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
+
+All packages maintain two distinct documentation files with specific tone requirements:
+
+#### README.md - User-Facing Documentation
+
+**Audience**: End users (developers integrating the package)
+
+**Tone Characteristics**:
+- Encouraging and accessible - "Get up and running in 4 quick steps"
+- Task-focused and solution-oriented - "No installation, always up-to-date"
+- Second-person voice - Use "you", "your" consistently
+- Active imperatives - "Choose your setup", "Test your installation"
+
+**Content Requirements**:
+- Maximum 4 steps in "Getting started" section
+- Natural language examples in quotes
+- Progressive disclosure with collapsible sections
+- Problem-solution format for troubleshooting
+- Emphasize immediate value and ease of use
+
+**Language Patterns**:
+| ✅ Do | ❌ Don't |
+|-------|----------|
+| "Get up and running in 3 quick steps" | "Installation procedure requires..." |
+| "No installation required" | "This package is hosted remotely" |
+| "Your agent will automatically..." | "The system executes..." |
+| "Just describe what you want" | "Invoke the tool with parameters" |
+
+#### AGENTS.md - Developer Documentation
+
+**Audience**: Developers, contributors, AI coding agents
+
+**Tone Characteristics**:
+- Directive and technical - "Always use arrow functions for declarations"
+- Absolute constraints - "NEVER bypass git hooks"
+- Imperative explanatory - Side-by-side code examples
+- Enforcement language - "All exports must be actively used"
+
+**Content Requirements**:
+- Clear audience disclaimer at top
+- Sequential workflow structure (setup → code → develop → deploy)
+- Side-by-side code comparisons (✅/❌)
+- File path references with line numbers
+- Symptom/solution format for troubleshooting
+- Architecture diagrams where relevant
+
+**Language Patterns**:
+| ✅ Do | ❌ Don't |
+|-------|----------|
+| "Always use arrow functions" | "We recommend arrow functions" |
+| "NEVER bypass git hooks" | "Consider keeping hooks enabled" |
+| "All exports must be used" | "Try to avoid unused exports" |
+| "Check pattern: `^[a-z]+$`" | "Names should be lowercase" |
+
+#### Quick Reference Comparison
+
+| Aspect | README.md | AGENTS.md |
+|--------|-----------|-----------|
+| **Audience** | End users (integrators) | Developers (contributors) |
+| **Tone** | Encouraging, accessible | Directive, technical |
+| **Voice** | Active, second-person | Imperative, explanatory |
+| **Examples** | Natural language queries | Code patterns with ✅/❌ |
+| **Structure** | Progressive disclosure | Sequential workflows |
+| **Language** | "Works everywhere", "just", "simply" | "Always", "never", "must" |
+
+#### Validation Checklist
+
+Before publishing package documentation:
+
+**README.md:**
+- [ ] Has 4-step "Getting started" section
+- [ ] Uses encouraging language ("quick", "easy", "just")
+- [ ] Provides natural language examples
+- [ ] Uses collapsible sections for detailed config
+- [ ] Includes simple test queries
+- [ ] Emphasizes immediate value
+- [ ] Uses second-person voice throughout
+- [ ] Avoids technical jargon in main flow
+
+**AGENTS.md:**
+- [ ] Starts with clear audience disclaimer
+- [ ] Uses directive language (always/never)
+- [ ] Includes file path references
+- [ ] Provides side-by-side code examples (✅/❌)
+- [ ] Contains architecture diagrams where relevant
+- [ ] Uses symptom/solution format for troubleshooting
+- [ ] Specifies exact patterns with regex/commands
+- [ ] Cross-references to line numbers where appropriate
+
 ## Troubleshooting
 
 ### Workspace Issues
