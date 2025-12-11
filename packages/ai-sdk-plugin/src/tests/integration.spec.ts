@@ -21,6 +21,16 @@ import { youContents, youExpress, youSearch } from '../main.ts';
  * - Tests run serially to avoid rate limiting
  */
 
+/**
+ * Type helper to narrow execute result to non-async type
+ */
+const getExecuteResult = <T extends { text: string; data: any }>(result: T | AsyncIterable<T> | undefined): T => {
+  if (!result || typeof result === 'symbol' || Symbol.asyncIterator in Object(result)) {
+    throw new Error('Invalid result type');
+  }
+  return result as T;
+};
+
 describe('AI SDK Plugin Integration Tests', () => {
   let ydcApiKey: string;
   let anthropic: ReturnType<typeof createAnthropic>;
@@ -44,7 +54,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'basic web search - returns results with snippets',
       async () => {
         const searchTool = youSearch({ apiKey: ydcApiKey });
-        const result = await searchTool.execute?.(
+        const executeResult = await searchTool.execute?.(
           {
             query: 'TypeScript best practices',
             count: 3,
@@ -53,7 +63,7 @@ describe('AI SDK Plugin Integration Tests', () => {
         );
 
         // Validate response structure
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
@@ -70,7 +80,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'search with filters - site and count',
       async () => {
         const searchTool = youSearch({ apiKey: ydcApiKey });
-        const result = await searchTool.execute?.(
+        const executeResult = await searchTool.execute?.(
           {
             query: 'React hooks',
             site: 'react.dev',
@@ -79,7 +89,7 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(result.data).toBeDefined();
         expect(result.data.hits.length).toBeLessThanOrEqual(5);
@@ -91,7 +101,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'search with env var API key',
       async () => {
         const searchTool = youSearch(); // Uses YDC_API_KEY from env
-        const result = await searchTool.execute?.(
+        const executeResult = await searchTool.execute?.(
           {
             query: 'JavaScript async await',
             count: 2,
@@ -99,7 +109,7 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(result.data.hits.length).toBeGreaterThan(0);
       },
@@ -112,7 +122,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'agent response - provides AI answer',
       async () => {
         const expressTool = youExpress({ apiKey: ydcApiKey });
-        const result = await expressTool.execute?.(
+        const executeResult = await expressTool.execute?.(
           {
             input: 'What are the key benefits of using TypeScript?',
           },
@@ -120,7 +130,7 @@ describe('AI SDK Plugin Integration Tests', () => {
         );
 
         // Validate response
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
@@ -139,14 +149,14 @@ describe('AI SDK Plugin Integration Tests', () => {
       'agent with simple query',
       async () => {
         const expressTool = youExpress({ apiKey: ydcApiKey });
-        const result = await expressTool.execute?.(
+        const executeResult = await expressTool.execute?.(
           {
             input: 'What is the current year?',
           },
           { toolCallId: 'test', messages: [] },
         );
 
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(result.text).toContain('2025');
       },
@@ -159,16 +169,16 @@ describe('AI SDK Plugin Integration Tests', () => {
       'single URL extraction - returns markdown content',
       async () => {
         const contentsTool = youContents({ apiKey: ydcApiKey });
-        const result = await contentsTool.execute?.(
+        const executeResult = await contentsTool.execute?.(
           {
-            urls: ['https://example.com'],
+            urls: ['https://documentation.you.com/developer-resources/mcp-server'],
             format: 'markdown',
           },
           { toolCallId: 'test', messages: [] },
         );
 
         // Validate response
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(typeof result.text).toBe('string');
         expect(result.text.length).toBeGreaterThan(0);
@@ -177,8 +187,8 @@ describe('AI SDK Plugin Integration Tests', () => {
         expect(result.data).toBeDefined();
         expect(Array.isArray(result.data)).toBe(true);
         expect(result.data.length).toBeGreaterThan(0);
-        expect(result.data[0].url).toBe('https://example.com');
-        expect(result.data[0].markdown).toBeDefined();
+        expect(result.data[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
+        expect(result.data[0]?.markdown).toBeDefined();
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -187,20 +197,23 @@ describe('AI SDK Plugin Integration Tests', () => {
       'multiple URL extraction',
       async () => {
         const contentsTool = youContents({ apiKey: ydcApiKey });
-        const result = await contentsTool.execute?.(
+        const executeResult = await contentsTool.execute?.(
           {
-            urls: ['https://example.com', 'https://example.org'],
+            urls: [
+              'https://documentation.you.com/developer-resources/mcp-server',
+              'https://documentation.you.com/developer-resources/python-sdk',
+            ],
             format: 'markdown',
           },
           { toolCallId: 'test', messages: [] },
         );
 
-        expect(result).toBeDefined();
+        const result = getExecuteResult(executeResult);
         expect(result.text).toBeDefined();
         expect(result.data).toBeDefined();
         expect(result.data.length).toBe(2);
-        expect(result.data[0].url).toBe('https://example.com');
-        expect(result.data[1].url).toBe('https://example.org');
+        expect(result.data[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
+        expect(result.data[1]?.url).toBe('https://documentation.you.com/developer-resources/python-sdk');
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -241,7 +254,7 @@ describe('AI SDK Plugin Integration Tests', () => {
           },
           prompt: `Find recent information about the Vercel AI SDK, get the documentation from https://sdk.vercel.ai,
           and explain the key differences between streaming and non-streaming responses`,
-          maxSteps: 5,
+          // Note: maxSteps removed due to type incompatibility with current AI SDK version
         });
 
         // Validate response structure

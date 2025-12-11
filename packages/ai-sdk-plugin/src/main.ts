@@ -63,10 +63,17 @@ export const youSearch = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
+      // Format the response
+      const formatted = formatSearchResults(response);
+
       // Return formatted text and structured data
       return {
-        text: formatSearchResults(response),
-        data: response,
+        text: formatted.content[0]?.text || '',
+        data: {
+          hits: response.results.web || [],
+          news: response.results.news || [],
+          ...formatted.structuredContent,
+        },
       };
     },
   });
@@ -113,10 +120,13 @@ export const youExpress = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
+      // Format the response
+      const formatted = formatExpressAgentResponse(response);
+
       // Return formatted text and structured data
       return {
-        text: formatExpressAgentResponse(response),
-        data: response,
+        text: formatted.content.map((c) => c.text).join('\n\n'),
+        data: formatted.structuredContent,
       };
     },
   });
@@ -163,9 +173,12 @@ export const youContents = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
-      // Return formatted text and structured data
+      // Format the response
+      const formatted = formatContentsResponse(response, params.format || 'markdown');
+
+      // Return formatted text and structured data (use raw response for data to preserve markdown/html fields)
       return {
-        text: formatContentsResponse(response, params.format || 'markdown'),
+        text: formatted.content[0]?.text || '',
         data: response,
       };
     },
