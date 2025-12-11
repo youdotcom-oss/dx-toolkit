@@ -1,0 +1,297 @@
+# Performance Testing Philosophy
+
+This document describes the methodology and philosophy behind performance testing across all packages in the dx-toolkit monorepo.
+
+## Overview
+
+Processing lag tests measure the overhead introduced by our abstraction layers compared to raw You.com API calls. The goal is to quantify what processing lag our code adds while wrapping APIs.
+
+**Important**: We cannot improve the You.com API performance itself. These tests measure **our code's overhead**, not the underlying API speed.
+
+## Core Metrics
+
+### Processing Lag (Absolute Time)
+**Definition**: The absolute time difference between raw API calls and our abstraction layer.
+
+- **Measured in**: milliseconds (ms)
+- **Formula**: `Abstraction time - Raw API time`
+- **Example**: If raw API takes 500ms and our wrapper takes 535ms, processing lag is 35ms
+- **Interpretation**:
+  - Negative values mean our code is faster (caching, optimizations)
+  - Positive values mean our code adds overhead (validation, transformation)
+
+### Overhead Percentage (Relative Time)
+**Definition**: The relative overhead as a percentage of raw API time.
+
+- **Measured in**: percentage (%)
+- **Formula**: `(Processing lag / Raw API time) × 100`
+- **Example**: 35ms lag on 500ms raw API = 7% overhead
+- **Interpretation**:
+  - Fast APIs (50-100ms) will show high % overhead due to fixed costs
+  - Slow APIs (500ms+) will show low % overhead
+  - Absolute lag (ms) is often more meaningful than relative %
+
+### Memory Overhead (Heap Growth)
+**Definition**: The heap memory growth from our abstraction layer.
+
+- **Measured in**: kilobytes (KB)
+- **Method**: Compare heap size before and after operations with forced GC
+- **Includes**: Memory for data transformation, validation, schemas, buffers
+- **Interpretation**: Sustained memory usage, not temporary allocations
+
+## Methodology
+
+### 1. Warmup Phase
+**Purpose**: Eliminate cold start effects before measurements.
+
+**Actions**:
+- Run each operation once before measuring
+- Ensures JIT compilation is complete
+- Loads all modules into memory
+- Initializes connection pools
+
+**Why**: First-run operations are 2-10x slower due to:
+- JIT compilation
+- Module loading
+- DNS resolution
+- TLS handshake establishment
+
+### 2. Measurement Phase
+**Purpose**: Collect statistically reliable timing data.
+
+**Process**:
+```typescript
+for (let i = 0; i < iterations; i++) {
+  // Raw API call (baseline)
+  const rawStart = performance.now();
+  await rawApiCall();
+  const rawTime = performance.now() - rawStart;
+
+  // Abstraction layer call (with overhead)
+  const wrapperStart = performance.now();
+  await wrapperCall();
+  const wrapperTime = performance.now() - wrapperStart;
+}
+
+// Calculate averages
+const avgRaw = average(rawTimes);
+const avgWrapper = average(wrapperTimes);
+const processingLag = avgWrapper - avgRaw;
+```
+
+**Iterations**:
+- **Fast operations** (< 200ms): 10 iterations
+- **Slow operations** (> 500ms): 5 iterations
+- **Reason**: More iterations smooth out network variability
+
+**Timing Tool**: `performance.now()` provides microsecond precision
+
+### 3. Memory Measurement
+**Purpose**: Track sustained heap growth from abstraction overhead.
+
+**Process**:
+```typescript
+// Force GC and wait for stabilization
+Bun.gc(true);
+await new Promise(resolve => setTimeout(resolve, 100));
+
+const heapBefore = heapStats().heapSize;
+
+// Run operations
+for (let i = 0; i < iterations; i++) {
+  await operation();
+}
+
+// Force GC again
+Bun.gc(true);
+await new Promise(resolve => setTimeout(resolve, 100));
+
+const heapAfter = heapStats().heapSize;
+const heapGrowth = heapAfter - heapBefore;
+```
+
+**Why Force GC**: Ensures we measure sustained memory, not temporary allocations.
+
+## Interpreting Results
+
+### Good Results
+```
+Processing lag: 15ms
+Overhead: 3%
+Memory: 50KB
+```
+✅ Minimal overhead, efficient implementation
+
+### Acceptable Results
+```
+Processing lag: 80ms
+Overhead: 40%
+Memory: 350KB
+```
+✅ Within thresholds, acceptable for complex abstractions
+
+### Warning Signs
+```
+Processing lag: 150ms
+Overhead: 75%
+Memory: 500KB
+```
+⚠️ Investigate potential optimizations
+
+### Critical Issues
+```
+Processing lag: 500ms
+Overhead: 200%
+Memory: 2MB
+```
+🚨 Significant overhead requiring immediate investigation
+
+## Threshold Setting Guidelines
+
+Each package should set thresholds based on its architecture:
+
+### Consider Your Architecture
+- **Thin wrappers**: 10-30ms lag, 5-15% overhead, 50-150KB memory
+- **SDK integrations**: 30-80ms lag, 15-35% overhead, 150-300KB memory
+- **MCP servers**: 50-100ms lag, 25-50% overhead, 300-400KB memory
+- **Complex frameworks**: 100-200ms lag, 50-100% overhead, 400-600KB memory
+
+### Fixed vs Proportional Overhead
+- **Fixed overhead**: Serialization, validation, setup (same regardless of data size)
+- **Proportional overhead**: Data transformation, parsing (grows with data size)
+- **Note**: Fixed overhead shows high % on fast operations
+
+### Perception Thresholds
+- **Imperceptible**: < 50ms
+- **Perceivable**: 50-150ms
+- **Noticeable**: 150-300ms
+- **Annoying**: > 300ms
+
+Aim for thresholds that keep total lag below perception thresholds.
+
+## Common Troubleshooting
+
+### High Processing Lag
+
+**Symptoms**: Consistently exceeds threshold by 2x or more
+
+**Common Causes**:
+- Unnecessary data transformations
+- Redundant validation passes
+- Inefficient serialization
+- Synchronous blocking operations
+- N+1 query patterns
+
+**Debug Approach**:
+```bash
+# Profile with CPU profiler
+bun --cpu-prof test src/tests/processing-lag.spec.ts
+
+# Identify hotspots in generated .cpuprofile file
+```
+
+### High Memory Overhead
+
+**Symptoms**: Heap growth exceeds threshold
+
+**Common Causes**:
+- Large schema objects not being reused
+- Response data not being garbage collected
+- Caching without bounds
+- Circular references preventing GC
+- Memory leaks in event listeners
+
+**Debug Approach**:
+```bash
+# Profile with heap profiler
+bun --heap-prof test src/tests/processing-lag.spec.ts
+
+# Analyze .heapprofile for large objects
+```
+
+### Inconsistent Results
+
+**Symptoms**: Large variance between test runs (±50% or more)
+
+**Common Causes**:
+- Network variability (use stable connection)
+- System load (close other applications)
+- Insufficient iterations (increase iteration count)
+- Skipped warmup phase
+- Background processes interfering
+
+**Solutions**:
+- Run tests on stable network without VPN
+- Close resource-intensive applications
+- Increase iterations (10 → 20 or 5 → 10)
+- Verify warmup phase executes
+- Run multiple times and compare results
+
+### Test Timeouts
+
+**Symptoms**: Tests fail with timeout errors
+
+**Common Causes**:
+- AI processing APIs (Express agent)
+- Rate limiting from too many requests
+- Network latency spikes
+- Insufficient timeout configuration
+
+**Solutions**:
+```typescript
+test.serial('Slow operation', async () => {
+  // test body
+}, { timeout: 60000 }); // 60s timeout
+```
+
+## When to Add Performance Tests
+
+Add processing lag tests to packages that:
+
+✅ **Wrap You.com APIs** - Quantify abstraction overhead
+✅ **Provide SDK interfaces** - Track integration costs
+✅ **Transform data** - Measure transformation overhead
+✅ **Add middleware layers** - Quantify middleware costs
+
+Skip processing lag tests for packages that:
+
+❌ **Pure utilities** - No API wrapping
+❌ **CLI tools** - User interaction dominates timing
+❌ **Documentation** - No runtime code
+❌ **Configuration** - Static data only
+
+## Best Practices
+
+### Test Design
+- Always include warmup phase
+- Use serial execution for consistency (`test.serial()`)
+- Run multiple iterations to smooth variance
+- Measure both time and memory
+- Add delays between iterations for rate limiting
+
+### Threshold Setting
+- Start conservative, adjust based on empirical data
+- Document rationale for each threshold
+- Review thresholds quarterly
+- Update when architecture changes significantly
+
+### Maintenance
+- Run tests in CI on every PR
+- Alert on threshold violations
+- Review failures as optimization opportunities
+- Keep tests updated with API changes
+
+### Documentation
+- Document package-specific thresholds in package's PERFORMANCE.md
+- Explain what overhead sources are expected
+- Link to root performance philosophy (this document)
+- Include troubleshooting for package-specific issues
+
+## Further Reading
+
+For package-specific performance documentation, see:
+- [MCP Server Performance](../packages/mcp/docs/PERFORMANCE.md)
+
+For general development guidelines, see:
+- [Contributing Guide](../CONTRIBUTING.md)
+- [Development Guide](../AGENTS.md)

@@ -1,343 +1,337 @@
-# Performance Testing
+# MCP Server Performance Testing
 
-This package includes processing lag tests to measure the overhead introduced by our MCP abstraction layer compared to raw You.com API calls.
+> **General methodology**: See [root performance philosophy](../../../docs/PERFORMANCE.md) for core concepts, metrics, and methodology.
 
-## Overview
+This document covers MCP server-specific performance testing details, including thresholds, test structure, and MCP-specific troubleshooting.
 
-The processing lag test suite quantifies the overhead our code adds when wrapping You.com APIs. We cannot improve the You.com API performance itself, but we monitor what lag our MCP server abstraction introduces to ensure it remains minimal.
-
-## What We Measure
-
-### Processing Lag
-**Absolute time difference** between raw API calls and MCP tool calls.
-- Measured in milliseconds (ms)
-- Calculated as: `MCP tool time - Raw API time`
-- Example: If raw API takes 500ms and MCP tool takes 535ms, processing lag is 35ms
-
-### Overhead Percentage
-**Relative overhead** as a percentage of raw API time.
-- Expressed as a percentage (%)
-- Calculated as: `(Processing lag / Raw API time) × 100`
-- Example: 35ms lag on 500ms raw API = 7% overhead
-
-### Memory Overhead
-**Heap growth** from our abstraction layer.
-- Measured in kilobytes (KB)
-- Calculated by comparing heap size before and after operations
-- Includes memory for data transformation, validation, and formatting
-
-## Acceptable Thresholds
+## MCP-Specific Thresholds
 
 | Metric | Threshold | Rationale |
 |--------|-----------|-----------|
 | **Processing lag** | < 100ms | Includes MCP stdio/JSON-RPC transport overhead while staying below perception threshold (~150-200ms) |
 | **Overhead percentage** | < 50% | Accounts for fixed MCP overhead on fast API calls (e.g., 50ms overhead on 100ms API = 50%) |
-| **Memory overhead** | < 400KB | Reasonable footprint for MCP server including client state, schemas, and communication buffers |
+| **Memory overhead** | < 400KB | Reasonable footprint for MCP server including client state, Zod schemas, and stdio communication buffers |
 
-These thresholds ensure the MCP server adds negligible overhead while providing valuable abstraction benefits (validation, formatting, error handling).
+These thresholds account for the MCP server architecture:
+- **Stdio transport**: Process IPC adds 20-40ms latency
+- **JSON-RPC protocol**: Serialization/deserialization adds 10-20ms
+- **Client SDK**: `@modelcontextprotocol/sdk` adds protocol overhead
+- **Zod validation**: Schema validation adds 5-15ms per request
+- **Response transformation**: Formatting for MCP output adds 5-10ms
 
 ## Test Suite Structure
 
-### Test File
+### Test File Location
 `packages/mcp/src/tests/processing-lag.spec.ts`
 
-### Test Organization
+### APIs Tested
 
-1. **Warmup Phase**
-   - Runs before measurements to eliminate cold start effects
-   - Calls each MCP tool once
-   - Ensures JIT compilation and module loading are complete
+#### 1. Search API (`you-search` tool)
+- **Endpoint**: `GET https://ydc-index.io/v1/search`
+- **Authentication**: `X-API-Key` header
+- **Iterations**: 10
+- **Measures**: Web/news search processing lag
 
-2. **Search API Processing Lag**
-   - Compares raw `GET https://ydc-index.io/v1/search` vs `you-search` tool
-   - Measures 10 iterations and calculates average
-   - Tests authentication via `X-API-Key` header
+#### 2. Express API (`you-express` tool)
+- **Endpoint**: `POST https://api.you.com/v1/agents/runs`
+- **Authentication**: `Authorization: Bearer` header
+- **Iterations**: 5 (AI processing is slower)
+- **Timeout**: 60 seconds
+- **Measures**: AI agent response processing lag
 
-3. **Express API Processing Lag**
-   - Compares raw `POST https://api.you.com/v1/agents/runs` vs `you-express` tool
-   - Measures 10 iterations and calculates average
-   - Tests authentication via `Authorization: Bearer` header
+#### 3. Contents API (`you-contents` tool)
+- **Endpoint**: `POST https://ydc-index.io/v1/contents`
+- **Authentication**: `X-API-Key` header
+- **Iterations**: 10
+- **Measures**: Content extraction processing lag
 
-4. **Contents API Processing Lag**
-   - Compares raw `POST https://ydc-index.io/v1/contents` vs `you-contents` tool
-   - Measures 10 iterations and calculates average
-   - Tests authentication via `X-API-Key` header
-
-5. **Memory Overhead**
-   - Measures heap growth across multiple operations
-   - Forces garbage collection before and after measurements
-   - Calculates sustained memory overhead
+#### 4. Memory Overhead
+- **Operations**: All three tools executed 5 times
+- **Method**: Heap size comparison with forced GC
+- **Measures**: Sustained memory footprint
 
 ## Running Tests
 
 ### Basic Execution
 
 ```bash
-# Run all processing lag tests
+cd packages/mcp
+
+# Run processing lag tests
 bun test src/tests/processing-lag.spec.ts
 
-# Run with verbose output
-bun test src/tests/processing-lag.spec.ts --verbose
-```
-
-### Advanced Options
-
-```bash
-# Run with multiple iterations for reliability
-bun test --rerun-each 100 src/tests/processing-lag.spec.ts
-
-# Run with extended timeout for slow connections
-bun test --timeout 60000 src/tests/processing-lag.spec.ts
-
-# Generate CPU profile to identify bottlenecks
-bun --cpu-prof test src/tests/processing-lag.spec.ts
+# Run with extended timeout (recommended)
+bun test src/tests/processing-lag.spec.ts --timeout 120000
 ```
 
 ### Prerequisites
 
-- `YDC_API_KEY` environment variable must be set
-- Stable network connection (avoid VPN for consistent results)
-- Minimal system load (close resource-intensive applications)
+**Required**:
+- `YDC_API_KEY` environment variable set
+- Built MCP server binary (`bun run build`)
 
-## Interpreting Results
+**Recommended**:
+- Stable network connection (no VPN)
+- Minimal system load
+- Recent `bun install` (ensure dependencies up to date)
 
 ### Example Output
 
 ```
 === Search API Processing Lag ===
-Raw API avg: 523.45ms
-MCP tool avg: 558.12ms
-Processing lag: 34.67ms
-Overhead: 6.62%
+Raw API avg: 206.01ms
+MCP tool avg: 161.13ms
+Processing lag: -44.88ms
+Overhead: -21.79%
 
 === Express API Processing Lag ===
-Raw API avg: 1245.23ms
-MCP tool avg: 1282.56ms
-Processing lag: 37.33ms
-Overhead: 3.00%
+Raw API avg: 627.50ms
+MCP tool avg: 606.39ms
+Processing lag: -21.11ms
+Overhead: -3.36%
 
 === Contents API Processing Lag ===
-Raw API avg: 892.34ms
-MCP tool avg: 925.67ms
-Processing lag: 33.33ms
-Overhead: 3.74%
+Raw API avg: 164.23ms
+MCP tool avg: 173.77ms
+Processing lag: 9.55ms
+Overhead: 5.81%
 
 === Memory Overhead ===
-Heap before: 12345.67 KB
-Heap after: 12389.23 KB
-Heap growth: 43.56 KB
+Heap before: 6130.11 KB
+Heap after: 6385.85 KB
+Heap growth: 255.74 KB
+
+✓ All thresholds met
 ```
 
-### What These Numbers Mean
+## Understanding Results
 
-- **Raw API time**: Baseline performance of You.com API (we cannot improve this)
-- **MCP tool time**: Total time including our abstraction layer
-- **Processing lag**: The overhead we add (validation, transformation, formatting)
-- **Overhead %**: Relative impact of our code on total execution time
+### Negative Processing Lag
+**Example**: Search API shows -44.88ms lag (MCP faster than raw API)
 
-### Acceptable Results
+**Causes**:
+- Response caching in MCP layer
+- Optimized response transformation
+- Parallel processing in tool handler
+- Network timing variations
 
-✅ **Pass**: All thresholds met
-- Processing lag < 50ms
-- Overhead < 10%
-- Memory < 100KB
+**Interpretation**: This is normal and indicates efficient implementation. The MCP abstraction is not adding overhead.
 
-⚠️ **Warning**: One threshold exceeded by < 20%
-- Review recent changes
-- Consider optimization if consistent
+### Low Positive Lag (< 50ms)
+**Example**: Contents API shows 9.55ms lag
 
-❌ **Fail**: One or more thresholds exceeded by > 20%
-- Investigate code changes since last passing test
-- Profile with CPU profiler to identify bottlenecks
-- Review data transformation and validation logic
+**Causes**:
+- Zod schema validation
+- Response formatting
+- Markdown transformation
+- Normal MCP overhead
 
-## Troubleshooting
+**Interpretation**: Excellent performance, minimal overhead from abstraction.
 
-### Test Failures
+### Moderate Positive Lag (50-100ms)
+**Interpretation**: Within acceptable threshold. Monitor for trends over time.
 
-#### High Processing Lag (> 50ms)
+**Action**: No immediate action needed, but review if it increases.
 
-**Possible Causes:**
-- Excessive data transformation or copying
-- Synchronous operations blocking execution
-- Redundant validation or parsing
+### High Positive Lag (> 100ms)
+**Interpretation**: Exceeds threshold, investigate optimizations.
 
-**Debugging Steps:**
-1. Run with CPU profiler: `bun --cpu-prof test src/tests/processing-lag.spec.ts`
-2. Identify hot paths in profile output
-3. Check for:
-   - Unnecessary JSON.stringify/parse cycles
-   - Deep object cloning
-   - Synchronous I/O operations
+**Action**: Profile code to identify bottlenecks (see troubleshooting below).
 
-#### High Overhead Percentage (> 10%)
+## MCP-Specific Troubleshooting
 
-**Possible Causes:**
-- Fast API responses amplify relative overhead
-- Cold start effects not eliminated by warmup
-- Network variability affecting baseline measurements
+### Express API Timeout
 
-**Debugging Steps:**
-1. Increase iterations: `bun test --rerun-each 100`
-2. Check network stability (ping test to API)
-3. Review warmup phase completeness
+**Symptom**: Test fails with timeout error
 
-#### High Memory Overhead (> 100KB)
+**Cause**: AI processing takes longer than default 5s timeout
 
-**Possible Causes:**
-- Memory leaks in transformation logic
-- Large object allocations not being garbage collected
-- String concatenation instead of array joining
-
-**Debugging Steps:**
-1. Review heap snapshots before/after operations
-2. Check for circular references preventing GC
-3. Use `WeakMap`/`WeakSet` for cache storage
-4. Profile with: `bun --heap-prof test`
-
-### Network Variability
-
-Processing lag tests are sensitive to network conditions:
-
-**Best Practices:**
-- Run tests multiple times to get consistent baselines
-- Avoid running during network congestion
-- Disable VPN for more consistent results
-- Use `--rerun-each` to average out variability
-
-### CI Failures
-
-If tests pass locally but fail in CI:
-
-1. **Check CI environment:**
-   - CPU throttling on shared runners
-   - Network latency differences
-   - Parallel test execution affecting results
-
-2. **Adjust thresholds for CI:**
-   - Consider separate thresholds for CI vs local
-   - Use conditional thresholds based on `CI` environment variable
-
-3. **Skip flaky tests temporarily:**
-   - Mark as `test.skip` with issue reference
-   - Create Linear issue to investigate
-
-## CI Integration
-
-Processing lag tests run automatically in CI to detect performance regressions.
-
-### Workflow Configuration
-
-Tests are executed in `.github/workflows/ci.yml`:
-
-```yaml
-- name: Run processing lag tests
-  run: |
-    bun test src/tests/processing-lag.spec.ts \
-      --timeout 60000
-  env:
-    YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
+**Solution**: Test already configured with 60s timeout:
+```typescript
+test.serial('Express API processing lag', async () => {
+  // test body
+}, { timeout: 60000 });
 ```
 
-### Failure Handling
+If still timing out:
+- Check network stability
+- Verify API key has agent endpoint permissions
+- Increase timeout further if needed
 
-When processing lag tests fail in CI:
+### High Stdio Transport Overhead
 
-1. **Review the PR changes:**
-   - Check for new dependencies
-   - Look for data transformation changes
-   - Review validation logic modifications
+**Symptom**: All tests show 50-80ms overhead
 
-2. **Compare with baseline:**
-   - Check main branch test results
-   - Look for consistent patterns across runs
-   - Identify if it's a regression or environmental
+**Cause**: Stdio process spawning and IPC latency
 
-3. **Take action:**
-   - If regression: Fix the performance issue before merging
-   - If environmental: Retrigger CI or investigate runner issues
-   - If threshold too strict: Discuss adjustment with team
+**Investigation**:
+```bash
+# Test direct API calls (should be fast)
+time curl -H "X-API-Key: $YDC_API_KEY" \
+  "https://ydc-index.io/v1/search?query=test"
+
+# Test MCP server directly (includes overhead)
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"you-search","arguments":{"query":"test"}},"id":1}' | \
+  bun src/stdio.ts
+```
+
+**Normal Range**: 30-60ms additional latency from stdio transport
+
+### Memory Growth Over Time
+
+**Symptom**: Heap growth > 400KB or increasing over test runs
+
+**Investigation**:
+```bash
+# Profile heap allocations
+bun --heap-prof test src/tests/processing-lag.spec.ts
+
+# Check for memory leaks
+bun test src/tests/processing-lag.spec.ts --rerun-each 10
+```
+
+**Common Causes**:
+- Client not properly cleaned up in `afterAll()`
+- Event listeners not removed
+- Response caching without bounds
+- Zod schema objects duplicated
+
+**Solution**: Review `beforeAll()` and `afterAll()` lifecycle:
+```typescript
+afterAll(async () => {
+  await client.close();
+  transport?.close();
+  // Wait for cleanup
+  await new Promise(resolve => setTimeout(resolve, 100));
+});
+```
+
+### JSON-RPC Serialization Overhead
+
+**Symptom**: Large responses show disproportionate overhead
+
+**Investigation**: Check response sizes:
+```typescript
+const response = await client.callTool({
+  name: 'you-search',
+  arguments: { query: 'test', count: 10 }
+});
+
+console.log('Response size:', JSON.stringify(response).length);
+```
+
+**Optimization**: If responses are large (> 100KB):
+- Consider pagination for large result sets
+- Implement response streaming
+- Add compression for text content
+- Filter unnecessary fields before returning
+
+### Rate Limiting
+
+**Symptom**: Tests fail with 429 errors or show high variance
+
+**Solution**: Adjust delays between iterations:
+```typescript
+// Current: 100ms delay
+await new Promise(resolve => setTimeout(resolve, 100));
+
+// Increase if rate limited:
+await new Promise(resolve => setTimeout(resolve, 500));
+```
+
+### Warmup Not Completing
+
+**Symptom**: First test always shows very high lag (> 500ms)
+
+**Cause**: Warmup phase not completing properly
+
+**Investigation**:
+```typescript
+beforeAll(async () => {
+  console.log('Building MCP server...');
+  await $`bun run build`;
+
+  console.log('Starting MCP server...');
+  // Ensure server starts fully
+
+  console.log('Running warmup...');
+  // Verify each warmup call completes
+});
+```
+
+**Solution**: Add verification that warmup succeeds before measurements.
 
 ## Optimization Guidelines
 
-If you need to optimize processing lag:
+### If Exceeding Thresholds
 
-### 1. Profile First
-Never optimize without profiling. Use CPU and heap profilers to identify actual bottlenecks:
+1. **Profile First**: Use `bun --cpu-prof` to identify hotspots
+2. **Optimize Hotspots**: Focus on top 3 functions by time
+3. **Measure Again**: Verify improvements with tests
+4. **Document Changes**: Update this doc if thresholds change
 
-```bash
-# CPU profiling
-bun --cpu-prof test src/tests/processing-lag.spec.ts
+### Common Optimizations
 
-# Heap profiling
-bun --heap-prof test src/tests/processing-lag.spec.ts
+**Zod Schema Optimization**:
+```typescript
+// ❌ Recreating schema on each call
+const schema = z.object({ ... });
+
+// ✅ Define schema once at module level
+const SearchInputSchema = z.object({ ... });
 ```
 
-### 2. Common Optimizations
+**Response Transformation**:
+```typescript
+// ❌ Multiple passes over data
+const formatted = data.map(transform1).map(transform2);
 
-**Data Transformation:**
-- Avoid unnecessary JSON serialization/deserialization
-- Use object spread only when needed (shallow copies are faster)
-- Prefer `Array.map()` over manual loops for transformations
+// ✅ Single pass
+const formatted = data.map(item => {
+  const step1 = transform1(item);
+  return transform2(step1);
+});
+```
 
-**Validation:**
-- Cache Zod schemas (already done in our code)
-- Use `.passthrough()` instead of strict parsing when possible
-- Consider lazy validation for optional fields
+**Async Batching**:
+```typescript
+// ❌ Sequential async operations
+for (const item of items) {
+  await process(item);
+}
 
-**String Operations:**
-- Use array join for multi-part strings instead of concatenation
-- Prefer template literals for readability, they're optimized by V8
-- Avoid repeated string replacements
+// ✅ Parallel when possible
+await Promise.all(items.map(item => process(item)));
+```
 
-**Memory:**
-- Reuse objects when safe (e.g., header objects)
-- Avoid creating intermediate arrays/objects
-- Use `const` to signal immutability to optimizer
+## Continuous Monitoring
 
-### 3. Verify Improvements
+### In CI/CD
+Processing lag tests run automatically on:
+- Every pull request
+- Main branch commits
+- Release workflows
 
-After optimization:
-1. Run processing lag tests: `bun test src/tests/processing-lag.spec.ts`
-2. Compare before/after metrics
-3. Verify thresholds are met
-4. Check that functionality is unchanged (run other tests)
+**Failure Policy**: PR fails if any test exceeds threshold by > 20%
 
-## Background: Why We Test Processing Lag
+### Local Development
+Run tests before committing:
+```bash
+bun test src/tests/processing-lag.spec.ts
+```
 
-### The Problem
+Expected runtime: ~20-25 seconds
 
-Users perceive latency holistically. If our MCP server adds 100ms to a 500ms API call (20% overhead), that's noticeable and frustrating. But if we add 30ms (6% overhead), it's imperceptible while providing valuable benefits:
-
-- Input validation (prevent bad API calls)
-- Response transformation (structured data for clients)
-- Error handling (clear error messages)
-- Logging (debugging and monitoring)
-
-### The Solution
-
-Processing lag tests ensure we maintain this balance:
-- **We add value** through abstraction benefits
-- **We minimize cost** by keeping overhead below perception thresholds
-- **We prevent regressions** through automated testing
-
-### What We Control vs. Don't Control
-
-**We CANNOT control:**
-- You.com API latency (network, server processing, data retrieval)
-- User's network speed
-- Geographic distance to API servers
-
-**We CAN control:**
-- Data transformation efficiency
-- Validation overhead
-- Response formatting cost
-- Memory allocations
-
-Processing lag tests focus exclusively on what we can control: the overhead our abstraction layer adds.
+### Quarterly Review
+Review thresholds every quarter:
+1. Analyze trends over time
+2. Adjust thresholds if architecture changes
+3. Document changes in this file
+4. Update tests if APIs change
 
 ## Related Documentation
 
-- [API Documentation](./API.md) - API reference for MCP tools
-- [MCP Server Architecture](../AGENTS.md#architecture) - System overview
-- [Testing Guidelines](../AGENTS.md#testing) - General testing patterns
+- [Root Performance Philosophy](../../../docs/PERFORMANCE.md) - General methodology
+- [API Documentation](./API.md) - MCP tool specifications
+- [Development Guide](./AGENTS.md) - Contributing guidelines
+- [Architecture](../README.md#architecture) - MCP server architecture

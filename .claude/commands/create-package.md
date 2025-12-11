@@ -451,6 +451,8 @@ Use these indicators to verify correct tone:
 
 **ONLY create these files if user answered "Yes" to Question 5.**
 
+**Important Note**: The root-level `docs/PERFORMANCE.md` already exists with general performance testing philosophy and methodology. Package-specific documentation should reference it and add package-specific details only.
+
 **File: packages/{package-name}/tests/processing-lag.spec.ts**
 
 This template is designed for packages that wrap You.com APIs. Customize the API endpoints, methods, and thresholds based on your package's specific needs.
@@ -610,47 +612,139 @@ After creating this file, you must:
 
 **File: packages/{package-name}/docs/PERFORMANCE.md**
 
+This document should reference the root performance philosophy and provide package-specific details.
+
 ```markdown
-# Performance Testing
+# {Package Name} Performance Testing
 
-This package includes processing lag tests to measure the overhead introduced by our abstraction layer compared to raw You.com API calls.
+> **General methodology**: See [root performance philosophy](../../../docs/PERFORMANCE.md) for core concepts, metrics, and methodology.
 
-## What We Measure
+This document covers {package-name}-specific performance testing details, including thresholds, test structure, and package-specific troubleshooting.
 
-- **Processing lag**: Absolute time difference between raw API calls and our package methods
-- **Overhead percentage**: Relative overhead as a percentage of raw API time
-- **Memory overhead**: Heap growth from our abstraction layer
+## Package-Specific Thresholds
 
-## Acceptable Thresholds
+| Metric | Threshold | Rationale |
+|--------|-----------|-----------|
+| **Processing lag** | < 50ms | TODO: Explain why this threshold for your package architecture |
+| **Overhead percentage** | < 10% | TODO: Explain acceptable overhead for your package |
+| **Memory overhead** | < 300KB | TODO: Explain memory requirements for your package |
 
-- Processing lag: < 50ms
-- Overhead: < 10%
-- Memory: < 300KB (adjust based on package complexity)
+**Architecture considerations** (customize for your package):
+- List key overhead sources (e.g., validation, transformation, protocol overhead)
+- Explain why your thresholds differ from defaults (if they do)
+- Document any package-specific performance characteristics
+
+## Test Suite Structure
+
+### Test File Location
+`packages/{package-name}/tests/processing-lag.spec.ts`
+
+### APIs Tested
+
+#### API 1: {API Name}
+- **Endpoint**: `{METHOD} https://api.you.com/v1/{endpoint}`
+- **Authentication**: `{X-API-Key or Bearer}` header
+- **Iterations**: {number}
+- **Measures**: {what aspect of processing lag}
+
+TODO: Add more APIs if your package wraps multiple endpoints
 
 ## Running Tests
 
+### Basic Execution
+
 ```bash
+cd packages/{package-name}
+
 # Run processing lag tests
 bun test tests/processing-lag.spec.ts
 
-# Run with multiple iterations for reliability
-bun test --rerun-each 100 tests/processing-lag.spec.ts
+# Run with extended timeout if needed
+bun test tests/processing-lag.spec.ts --timeout 60000
 ```
 
-## Interpreting Results
+### Prerequisites
 
-These tests measure **what lag our code adds**, not the You.com API performance itself. We cannot improve API latency, but we ensure our abstraction layer introduces minimal overhead.
+**Required**:
+- `YDC_API_KEY` environment variable set
+- TODO: List any package-specific prerequisites
 
-If tests fail:
-1. Review recent code changes that may have added overhead
-2. Check for unnecessary data transformations or copies
-3. Profile with `bun --cpu-prof test tests/processing-lag.spec.ts`
-4. Consider optimizing hot paths identified in profiling
+**Recommended**:
+- Stable network connection (no VPN)
+- Minimal system load
+- Recent `bun install`
 
-## CI Integration
+### Example Output
 
-Processing lag tests run automatically in CI to detect performance regressions.
 ```
+=== {API Name} Processing Lag ===
+Raw API avg: XXXms
+Package avg: XXXms
+Processing lag: XXms
+Overhead: X.XX%
+
+=== Memory Overhead ===
+Heap before: XXXX KB
+Heap after: XXXX KB
+Heap growth: XXX KB
+
+✓ All thresholds met
+```
+
+## Understanding Results
+
+### Negative Processing Lag
+TODO: Explain if/why your package might show negative lag
+
+### Low Positive Lag (< threshold)
+TODO: Explain what's normal for your package
+
+### High Positive Lag (> threshold)
+TODO: Explain when to investigate
+
+## Package-Specific Troubleshooting
+
+### Common Issue 1
+**Symptom**: TODO: Describe symptom
+
+**Cause**: TODO: Explain cause
+
+**Solution**: TODO: Provide solution
+
+TODO: Add more troubleshooting sections as needed
+
+## Optimization Guidelines
+
+TODO: Add package-specific optimization tips
+
+## Continuous Monitoring
+
+### In CI/CD
+Processing lag tests run automatically on:
+- Every pull request
+- Main branch commits
+- Release workflows
+
+### Local Development
+Run tests before committing:
+```bash
+bun test tests/processing-lag.spec.ts
+```
+
+## Related Documentation
+
+- [Root Performance Philosophy](../../../docs/PERFORMANCE.md) - General methodology
+- [Package README](../README.md) - Package overview
+- [Development Guide](../AGENTS.md) - Contributing guidelines
+```
+
+**Customization Required**:
+1. Replace all `{placeholder}` values with actual package information
+2. Fill in all `TODO:` sections with package-specific details
+3. Adjust thresholds based on your package's architecture
+4. Add package-specific troubleshooting sections
+5. Include optimization tips relevant to your package
+6. Remove sections that don't apply to your package
 
 ### 6. Create Publish Workflow
 
