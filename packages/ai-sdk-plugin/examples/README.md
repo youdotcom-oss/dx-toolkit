@@ -1,25 +1,19 @@
 # Examples
 
-This directory contains usage examples for `@youdotcom-oss/ai-sdk-plugin`.
+Usage examples for `@youdotcom-oss/ai-sdk-plugin`.
 
-## Prerequisites
+## Setup
 
-1. Install dependencies:
-   \`\`\`bash
-   bun install
-   \`\`\`
+Get your API keys from [You.com](https://you.com/platform/api-keys) and [Anthropic](https://console.anthropic.com/settings/keys), then:
 
-2. Set your You.com API key:
-   \`\`\`bash
-   export YDC_API_KEY=your-key-here
-   \`\`\`
+```bash
+cp .env.example .env
+# Edit .env and add your keys
+source .env
+bun install
+```
 
-3. Start the MCP server:
-   \`\`\`bash
-   bun --cwd packages/mcp start
-   \`\`\`
-
-## Running Examples
+## Run Examples
 
 \`\`\`bash
 # Basic web search
@@ -38,40 +32,24 @@ bun examples/content-extraction.ts
 bun examples/error-handling.ts
 \`\`\`
 
-## Examples Overview
+## What's Included
 
-### basic-search.ts
-Simple web search example using `generateText()` with `you-search` tool.
+**basic-search.ts** - Search the web for current information using `youSearch`
 
-### streaming-text.ts
-Demonstrates streaming responses with `streamText()` for real-time output.
+**agent-response.ts** - Fast AI agent responses with `youExpress`
 
-### agent-response.ts
-Uses `you-express` tool for fast AI agent responses with optional web search.
+**content-extraction.ts** - Extract web page content using `youContents`
 
-### content-extraction.ts
-Shows how to extract and process web page content using `you-contents` tool.
+**streaming-text.ts** - Real-time streaming responses with `streamText()`
 
-### error-handling.ts
-Comprehensive error handling example with helpful error messages and solutions.
+**error-handling.ts** - Graceful error handling patterns
 
-## Tips
+## About These Examples
 
-- Set `maxSteps` higher (5-10) for complex multi-tool tasks
-- Use `you-search` for comprehensive web search
-- Use `you-express` for quick AI answers with web context
-- Use `you-contents` to extract full page content
-- Always call `close()` to clean up MCP client connection
+These examples serve as both living documentation and test scenarios. The integration tests in `../src/tests/integration.spec.ts` validate that these examples work correctly with real API calls.
 
-## Troubleshooting
+## Choose Your Tool
 
-**Error: API key required**
-- Set `YDC_API_KEY` environment variable
-
-**Error: Failed to create MCP client**
-- Ensure MCP server is running on `http://localhost:4000/mcp`
-- Check server health: `curl http://localhost:4000/mcp-health`
-
-**Error: Failed to fetch tools**
-- Verify API key is valid
-- Check MCP server logs for errors
+- **youSearch** - Current web search results with snippets and news
+- **youExpress** - Quick AI answers powered by web search
+- **youContents** - Full page content extraction in markdown/HTML
