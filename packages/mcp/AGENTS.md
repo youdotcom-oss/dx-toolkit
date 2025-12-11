@@ -176,6 +176,72 @@ For detailed contribution guidelines, including:
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
+### Maintaining Documentation
+
+Some documentation files require regular maintenance as the codebase evolves.
+
+#### PERFORMANCE.md Maintenance
+
+**File**: `docs/PERFORMANCE.md`
+**Type**: Living document (requires updates)
+**Owner**: Package maintainers
+
+**When to Update**:
+
+1. **Threshold Changes** - Update when performance thresholds are adjusted
+   - Document rationale for changes
+   - Update both threshold table and related text
+   - Example: Increasing memory threshold from 400KB to 500KB
+
+2. **Architecture Changes** - Update when MCP server architecture changes
+   - Add/remove overhead sources
+   - Update latency estimates (e.g., "stdio transport: 20-40ms")
+   - Revise optimization patterns
+
+3. **New APIs Added** - Update when new MCP tools are added
+   - Add new API section under "APIs Tested"
+   - Document authentication method
+   - Specify iteration count and timeout
+
+4. **Troubleshooting Updates** - Add new issues as they're discovered
+   - Document symptoms, causes, solutions
+   - Include investigation commands
+   - Link to related issues/PRs
+
+5. **Quarterly Reviews** - Review every 3 months
+   - Analyze threshold trends from CI results
+   - Verify thresholds still realistic
+   - Update examples with recent metrics
+   - Document in commit: `docs(mcp): quarterly performance review Q1 2025`
+
+**Update Process**:
+
+```bash
+# 1. Update PERFORMANCE.md
+vim docs/PERFORMANCE.md
+
+# 2. Run performance tests to verify examples
+bun test src/tests/processing-lag.spec.ts
+
+# 3. Update test thresholds if needed
+vim src/tests/processing-lag.spec.ts
+
+# 4. Commit changes
+git commit -m "docs(mcp): update performance thresholds and troubleshooting"
+```
+
+**Review Checklist**:
+- [ ] Thresholds match test file constants
+- [ ] Examples use recent test output
+- [ ] API list matches actual MCP tools
+- [ ] Troubleshooting sections accurate
+- [ ] Related docs updated (root PERFORMANCE.md if methodology changes)
+
+**Related Files**:
+- `src/tests/processing-lag.spec.ts` - Test thresholds must match
+- `../../docs/PERFORMANCE.md` - Root philosophy (update if methodology changes)
+- `README.md` - Performance claims should align with metrics
+
 ## Publishing
 
 ### Release Process
