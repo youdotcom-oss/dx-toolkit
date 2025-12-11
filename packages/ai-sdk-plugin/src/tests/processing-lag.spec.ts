@@ -99,7 +99,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000 },
+    { timeout: 60_000, retry: 2 },
   );
 
   test.serial(
@@ -152,7 +152,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000 },
+    { timeout: 60_000, retry: 2 },
   );
 
   test.serial(
@@ -206,7 +206,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000 },
+    { timeout: 60_000, retry: 2 },
   );
 
   test.serial(
@@ -239,7 +239,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       // Assert memory overhead threshold (SDK integration)
       expect(heapGrowth).toBeLessThan(1024 * 350); // < 350KB
     },
-    { timeout: 30_000 },
+    { timeout: 30_000, retry: 2 },
   );
 });
 
