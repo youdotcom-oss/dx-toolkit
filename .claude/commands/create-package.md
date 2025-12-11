@@ -99,6 +99,26 @@ Answer "No" if your package doesn't directly wrap APIs (e.g., utility libraries,
 - Must be either "Yes" or "No" (case-insensitive)
 - Store as boolean for conditional file creation
 
+**Question 6: User-Agent Prefix (only if Question 5 = "Yes")**
+```
+What is the User-Agent prefix for this package?
+
+This will be used in API requests with the format: {prefix}/{version} (You.com; {client})
+
+Examples:
+- "MCP" for MCP server packages
+- "AI-SDK" for AI SDK plugins
+- "EVAL" for evaluation harnesses
+- "CLI" for CLI tools
+
+The prefix should be short (2-10 characters) and uppercase.
+```
+
+**Validation for Question 6**:
+- Only ask if processing lag tests enabled
+- Pattern: `^[A-Z][A-Z0-9-]{1,9}$` (2-10 uppercase chars, can include hyphens)
+- Examples: "MCP", "AI-SDK", "EVAL", "CLI"
+
 ## File Creation Sequence
 
 After ALL questions answered and validated, create files in this order:
@@ -438,6 +458,7 @@ This template is designed for packages that wrap You.com APIs. Customize the API
 ```typescript
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { heapStats } from 'bun:jsc';
+import packageJson from '../../package.json' with { type: 'json' };
 // Import your package methods here
 // import { yourPackageMethod } from '../src/your-module.ts';
 
@@ -462,6 +483,9 @@ import { heapStats } from 'bun:jsc';
 // API Constants - UPDATE THESE for your package
 const API_ENDPOINT = 'https://api.you.com/v1/your-endpoint'; // Replace with actual endpoint
 const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
+
+// User-Agent format: {USER_AGENT_PREFIX}/{version} (You.com; {client})
+const USER_AGENT = `{USER_AGENT_PREFIX}/${packageJson.version} (You.com; {package-name}-test)`;
 
 beforeAll(async () => {
   console.log('\n=== Warming up ===');
@@ -491,7 +515,7 @@ describe('Processing Lag: Package vs Raw API Calls', () => {
           // Use appropriate auth header for your API
           'X-API-Key': YDC_API_KEY, // or 'Authorization': `Bearer ${YDC_API_KEY}`
           'Content-Type': 'application/json',
-          'User-Agent': 'processing-lag-test/1.0',
+          'User-Agent': USER_AGENT,
         },
         body: JSON.stringify({
           // Add your API request body here
@@ -575,12 +599,14 @@ describe('Processing Lag Summary', () => {
 **Customization Instructions:**
 
 After creating this file, you must:
-1. Replace `API_ENDPOINT` with your actual You.com API endpoint
-2. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
-3. Replace `yourPackageMethod` with your actual package method calls
-4. Update request parameters to match your API requirements
-5. Adjust thresholds if needed (default: 50ms lag, 10% overhead, 300KB memory)
-6. Add multiple test cases if your package wraps multiple APIs
+1. Replace `{USER_AGENT_PREFIX}` with the user agent prefix from Question 6 (e.g., "MCP", "AI-SDK")
+2. Replace `{package-name}` in USER_AGENT with your actual package name
+3. Replace `API_ENDPOINT` with your actual You.com API endpoint
+4. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
+5. Replace `yourPackageMethod` with your actual package method calls
+6. Update request parameters to match your API requirements
+7. Adjust thresholds if needed (default: 50ms lag, 10% overhead, 300KB memory)
+8. Add multiple test cases if your package wraps multiple APIs
 
 **File: packages/{package-name}/docs/PERFORMANCE.md**
 

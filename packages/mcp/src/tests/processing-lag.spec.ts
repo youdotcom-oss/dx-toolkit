@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { $ } from 'bun';
+import packageJson from '../../package.json' with { type: 'json' };
 
 /**
  * Processing Lag Test Suite
@@ -31,6 +32,9 @@ const EXPRESS_API_URL = 'https://api.you.com/v1/agents/runs';
 const CONTENTS_API_URL = 'https://ydc-index.io/v1/contents';
 
 const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
+
+// User-Agent matching MCP server format: MCP/{version} (You.com; {client})
+const USER_AGENT = `MCP/${packageJson.version} (You.com; processing-lag-test)`;
 
 beforeAll(async () => {
   console.log('\n=== Warming up: Building and starting MCP server ===');
@@ -94,7 +98,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
         method: 'GET',
         headers: {
           'X-API-Key': YDC_API_KEY,
-          'User-Agent': 'processing-lag-test/1.0',
+          'User-Agent': USER_AGENT,
         },
       });
       rawTimes.push(performance.now() - rawStart);
@@ -148,7 +152,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
             Authorization: `Bearer ${YDC_API_KEY}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
-            'User-Agent': 'processing-lag-test/1.0',
+            'User-Agent': USER_AGENT,
           },
           body: JSON.stringify({
             agent: 'express',
@@ -202,7 +206,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
         headers: {
           'X-API-Key': YDC_API_KEY,
           'Content-Type': 'application/json',
-          'User-Agent': 'processing-lag-test/1.0',
+          'User-Agent': USER_AGENT,
         },
         body: JSON.stringify({
           urls: ['https://documentation.you.com/developer-resources/mcp-server'],
