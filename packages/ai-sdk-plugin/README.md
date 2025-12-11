@@ -13,13 +13,15 @@ Integrate You.com's web search, AI agents, and content extraction capabilities i
 
 ## Getting started
 
-### Prerequisites
+Get up and running with You.com AI SDK plugin in 4 quick steps. No complex configuration needed - just install, start the server, and search!
 
-- Bun >= 1.2.21 (or Node.js >= 18)
-- You.com API key from [you.com/platform/api-keys](https://you.com/platform/api-keys)
-- MCP server running (see [MCP Server Setup](#mcp-server-setup))
+### 1. Get your API key
 
-### Installation
+Sign up at [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your free API key.
+
+### 2. Install the package
+
+Choose your preferred package manager:
 
 \`\`\`bash
 # NPM
@@ -32,7 +34,36 @@ bun add @youdotcom-oss/ai-sdk-plugin ai
 yarn add @youdotcom-oss/ai-sdk-plugin ai
 \`\`\`
 
-### Quick example
+### 3. Start the MCP server
+
+This plugin connects to an MCP server. Choose your setup:
+
+**Quick start (recommended):**
+
+\`\`\`bash
+# Install and start MCP server globally
+bun add -g @youdotcom-oss/mcp
+YDC_API_KEY=your-key-here bun start @youdotcom-oss/mcp
+\`\`\`
+
+<details>
+<summary>Or run from source</summary>
+
+\`\`\`bash
+# Clone repository
+git clone https://github.com/youdotcom-oss/dx-toolkit.git
+cd dx-toolkit
+
+# Start MCP server
+YDC_API_KEY=your-key-here bun --cwd packages/mcp start
+\`\`\`
+</details>
+
+The server runs on `http://localhost:4000/mcp` by default.
+
+### 4. Test your setup
+
+Try this simple search example:
 
 \`\`\`typescript
 import { createYouMCPClient } from '@youdotcom-oss/ai-sdk-plugin';
@@ -55,33 +86,6 @@ try {
   await close();
 }
 \`\`\`
-
-## MCP Server Setup
-
-This plugin requires a running MCP server. You have two options:
-
-### Option 1: Use published MCP server (Recommended)
-
-\`\`\`bash
-# Install MCP server globally
-bun add -g @youdotcom-oss/mcp
-
-# Start server
-YDC_API_KEY=your-key-here bun start @youdotcom-oss/mcp
-\`\`\`
-
-### Option 2: Run from source
-
-\`\`\`bash
-# Clone dx-toolkit
-git clone https://github.com/youdotcom-oss/dx-toolkit.git
-cd dx-toolkit
-
-# Start MCP server
-bun --cwd packages/mcp start
-\`\`\`
-
-The server runs on `http://localhost:4000/mcp` by default.
 
 ## Configuration
 
@@ -117,7 +121,7 @@ See the `examples/` directory for more usage examples:
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## Development
 

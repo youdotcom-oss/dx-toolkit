@@ -117,6 +117,67 @@ mkdir -p packages/{package-name}/docs
 - Keep minimal dependencies (typically just `zod` for validation)
 - Remove server-specific fields: no `bin` field needed
 
+#### Understanding Monorepo Package Dependencies
+
+**When to add @youdotcom-oss/{package} as a dependency:**
+
+✅ **Use as dependency when:**
+- You need to import schemas, types, or utilities from another package
+- You're building on top of another package's functionality
+- The package exports reusable code via `src/utils.ts`
+- Example: A CLI tool that validates API requests using `@youdotcom-oss/mcp` schemas
+
+✅ **Example - Using MCP schemas:**
+```json
+{
+  "dependencies": {
+    "@youdotcom-oss/mcp": "1.3.7",
+    "zod": "^4.1.13"
+  }
+}
+```
+
+```typescript
+// Your package imports schemas from MCP package
+import { SearchQuerySchema } from '@youdotcom-oss/mcp';
+
+const query = SearchQuerySchema.parse({ query: 'test' });
+```
+
+❌ **Do NOT use as dependency when:**
+- You're building a client that connects to a server package via network
+- The other package is a runtime service (HTTP server, MCP server, binary)
+- You only need to communicate with the package, not import its code
+- Example: `ai-sdk-plugin` connects to MCP server via HTTP (no import needed)
+
+❌ **Example - MCP client (no dependency needed):**
+```json
+{
+  "dependencies": {
+    "@ai-sdk/mcp": "^1.0.0-beta.30",
+    "zod": "^4.1.13"
+  }
+}
+```
+
+```typescript
+// ai-sdk-plugin connects to MCP server via HTTP
+// It does NOT import from @youdotcom-oss/mcp
+const mcpClient = await createMCPClient({
+  transport: { type: 'http', url: 'http://localhost:4000/mcp' }
+});
+```
+
+**Current packages and their exports:**
+- `@youdotcom-oss/mcp` - Exports API schemas, utilities, and formatting helpers
+  - ✅ Import when: You need Search/Express/Contents schemas or API utilities
+  - ❌ Don't import when: You're connecting as a client via HTTP/STDIO transport
+
+**Decision flowchart:**
+1. Does your package need to import code from another package? → YES: Add as dependency
+2. Does your package connect to another package as a client? → NO: Don't add as dependency
+3. Are you uncertain? → Check if the package exports utilities in `src/utils.ts`
+
 ### 3. Source Files
 
 **File: packages/{package-name}/src/utils.ts**
