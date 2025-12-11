@@ -136,9 +136,6 @@ mkdir -p packages/{package-name}/docs
 
 ### 2. Configuration Files
 
-**File: packages/{package-name}/.gitignore**
-- Copy from: `packages/mcp/.gitignore`
-
 **File: packages/{package-name}/tsconfig.json**
 - Copy from: `packages/mcp/tsconfig.json`
 

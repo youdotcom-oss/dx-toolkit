@@ -4,22 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "New version tag (e.g., 0.1.0)"
+        description: "New version tag (e.g., 1.0.0)"
         required: true
       next:
         description: "Next prerelease number (optional)"
         required: false
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   publish:
     uses: ./.github/workflows/_publish-package.yml
-    secrets:
-      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
     with:
       npm_package_name: "@youdotcom-oss/teams-mcp-client"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
