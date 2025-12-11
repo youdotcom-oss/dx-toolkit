@@ -1,5 +1,5 @@
 import { heapStats } from 'bun:jsc';
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { $ } from 'bun';
@@ -23,8 +23,6 @@ import { CONTENTS_API_URL, EXPRESS_API_URL, SEARCH_API_URL } from '../shared/api
  * - < 50% relative overhead (allows for fast APIs where MCP overhead is fixed)
  * - < 400KB memory overhead (MCP server maintains state, schemas, buffers)
  */
-
-let client: Client;
 
 const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
 
@@ -52,7 +50,7 @@ const calculateStats = (times: number[]) => {
 
 beforeAll(
   async () => {
-    console.log('\n=== Warming up: Building and starting MCP server ===');
+    console.log('\n=== Building MCP server ===');
 
     // Build MCP server with error handling
     const buildResult = await $`bun run build`.quiet();
@@ -60,55 +58,17 @@ beforeAll(
       throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
     }
 
-    // Resolve stdio path (Bun.resolveSync throws if file not found)
-    let stdioPath: string;
+    // Verify stdio path exists
     try {
-      stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+      Bun.resolveSync('../../bin/stdio', import.meta.dir);
     } catch (_err) {
       throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
     }
 
-    const transport = new StdioClientTransport({
-      command: 'npx',
-      args: [stdioPath],
-      env: {
-        YDC_API_KEY,
-      },
-    });
-
-    client = new Client({
-      name: 'processing-lag-test-client',
-      version: '0.0.1',
-    });
-
-    await client.connect(transport);
-
-    // Warmup: run each tool once to eliminate cold start effects
-    console.log('Running warmup calls to eliminate cold start effects...');
-
-    await client.callTool({
-      name: 'you-search',
-      arguments: { query: 'warmup', count: 1 },
-    });
-
-    await client.callTool({
-      name: 'you-express',
-      arguments: { input: 'warmup' },
-    });
-
-    await client.callTool({
-      name: 'you-contents',
-      arguments: { urls: ['https://example.com'], format: 'markdown' },
-    });
-
-    console.log('Warmup complete. Starting measurements...\n');
+    console.log('Build complete. Each test will create its own dedicated client.\n');
   },
-  { timeout: 30_000 },
-); // 30s timeout for build + server startup + 3 warmup API calls
-
-afterAll(async () => {
-  await client.close();
-});
+  { timeout: 15_000 },
+); // 15s timeout for build only
 
 describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   const iterations = 10;
@@ -116,6 +76,23 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   test.serial(
     'Search API processing lag',
     async () => {
+      // Create dedicated client for this test
+      const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+      const transport = new StdioClientTransport({
+        command: 'npx',
+        args: [stdioPath],
+        env: {
+          YDC_API_KEY,
+        },
+      });
+
+      const client = new Client({
+        name: 'search-test-client',
+        version: '0.0.1',
+      });
+
+      await client.connect(transport);
+
       const rawTimes: number[] = [];
       const mcpTimes: number[] = [];
 
@@ -162,6 +139,9 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
+      // Clean up dedicated client
+      await client.close();
+
       // Assert processing lag thresholds (adjusted for MCP overhead)
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
       expect(overheadPercent).toBeLessThan(50); // < 50% relative overhead
@@ -172,6 +152,23 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   test.serial(
     'Express API processing lag',
     async () => {
+      // Create dedicated client for this test
+      const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+      const transport = new StdioClientTransport({
+        command: 'npx',
+        args: [stdioPath],
+        env: {
+          YDC_API_KEY,
+        },
+      });
+
+      const client = new Client({
+        name: 'express-test-client',
+        version: '0.0.1',
+      });
+
+      await client.connect(transport);
+
       const rawTimes: number[] = [];
       const mcpTimes: number[] = [];
 
@@ -224,6 +221,9 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
+      // Clean up dedicated client
+      await client.close();
+
       // Assert processing lag thresholds (adjusted for MCP overhead)
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
       expect(overheadPercent).toBeLessThan(50); // < 50% relative overhead
@@ -234,6 +234,23 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   test.serial(
     'Contents API processing lag',
     async () => {
+      // Create dedicated client for this test
+      const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+      const transport = new StdioClientTransport({
+        command: 'npx',
+        args: [stdioPath],
+        env: {
+          YDC_API_KEY,
+        },
+      });
+
+      const client = new Client({
+        name: 'contents-test-client',
+        version: '0.0.1',
+      });
+
+      await client.connect(transport);
+
       const rawTimes: number[] = [];
       const mcpTimes: number[] = [];
 
@@ -280,6 +297,9 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       console.log(`MCP tool avg: ${mcpStats.avg.toFixed(2)}ms (${mcpStats.outliers} outliers removed)`);
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
+
+      // Clean up dedicated client
+      await client.close();
 
       // Assert processing lag thresholds (adjusted for MCP overhead)
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
