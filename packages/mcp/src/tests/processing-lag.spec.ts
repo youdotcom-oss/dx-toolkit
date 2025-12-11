@@ -48,27 +48,24 @@ const calculateStats = (times: number[]) => {
   };
 };
 
-beforeAll(
-  async () => {
-    console.log('\n=== Building MCP server ===');
+beforeAll(async () => {
+  console.log('\n=== Building MCP server ===');
 
-    // Build MCP server with error handling
-    const buildResult = await $`bun run build`.quiet();
-    if (buildResult.exitCode !== 0) {
-      throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
-    }
+  // Build MCP server with error handling
+  const buildResult = await $`bun run build`.quiet();
+  if (buildResult.exitCode !== 0) {
+    throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
+  }
 
-    // Verify stdio path exists
-    try {
-      Bun.resolveSync('../../bin/stdio', import.meta.dir);
-    } catch (_err) {
-      throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
-    }
+  // Verify stdio path exists
+  try {
+    Bun.resolveSync('../../bin/stdio', import.meta.dir);
+  } catch (_err) {
+    throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
+  }
 
-    console.log('Build complete. Each test will create its own dedicated client.\n');
-  },
-  { timeout: 15_000 },
-); // 15s timeout for build only
+  console.log('Build complete. Each test will create its own dedicated client.\n');
+}); // 15s timeout for build only
 
 describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   const iterations = 10;
@@ -146,7 +143,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
       expect(overheadPercent).toBeLessThan(50); // < 50% relative overhead
     },
-    { retry: 2 },
+    { timeout: 90_000, retry: 2 },
   ); // Retry up to 2 times for network/API variability
 
   test.serial(
@@ -305,7 +302,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
       expect(overheadPercent).toBeLessThan(50); // < 50% relative overhead
     },
-    { retry: 2 },
+    { timeout: 90_000, retry: 2 },
   ); // Retry up to 2 times for network/API variability
 
   test.serial(
