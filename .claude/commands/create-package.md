@@ -77,6 +77,48 @@ Max 10 keywords.
 - Max 10 keywords
 - Each keyword lowercase recommended
 
+### Phase 3: Optional Features
+
+**Question 5: Processing Lag Tests**
+```
+Does this package need processing lag tests?
+
+These tests measure the processing overhead introduced by your code compared to raw API calls.
+
+Context:
+- We can't improve the You.com API performance itself
+- But we need to quantify what lag our abstraction layer adds
+- Tests compare: raw fetch/curl vs your package methods
+- Useful for: MCP tools, SDK wrappers, API client libraries
+
+Answer "Yes" if your package wraps You.com APIs and you need to track overhead.
+Answer "No" if your package doesn't directly wrap APIs (e.g., utility libraries, CLI tools).
+```
+
+**Validation for Question 5**:
+- Must be either "Yes" or "No" (case-insensitive)
+- Store as boolean for conditional file creation
+
+**Question 6: User-Agent Prefix (only if Question 5 = "Yes")**
+```
+What is the User-Agent prefix for this package?
+
+This will be used in API requests with the format: {prefix}/{version} (You.com; {client})
+
+Examples:
+- "MCP" for MCP server packages
+- "AI-SDK" for AI SDK plugins
+- "EVAL" for evaluation harnesses
+- "CLI" for CLI tools
+
+The prefix should be short (2-10 characters) and uppercase.
+```
+
+**Validation for Question 6**:
+- Only ask if processing lag tests enabled
+- Pattern: `^[A-Z][A-Z0-9-]{1,9}$` (2-10 uppercase chars, can include hyphens)
+- Examples: "MCP", "AI-SDK", "EVAL", "CLI"
+
 ## File Creation Sequence
 
 After ALL questions answered and validated, create files in this order:
@@ -466,7 +508,346 @@ Use these indicators to verify correct tone:
 
 **Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
 
-### 5. Create Publish Workflow
+### 5. Processing Lag Tests (Optional)
+
+**ONLY create these files if user answered "Yes" to Question 5.**
+
+**Important Note**: The root-level `docs/PERFORMANCE.md` already exists with general performance testing philosophy and methodology. Package-specific documentation should reference it and add package-specific details only.
+
+**File: packages/{package-name}/tests/processing-lag.spec.ts**
+
+This template is designed for packages that wrap You.com APIs. Customize the API endpoints, methods, and thresholds based on your package's specific needs.
+
+```typescript
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { heapStats } from 'bun:jsc';
+import packageJson from '../../package.json' with { type: 'json' };
+// Import your package methods here
+// import { yourPackageMethod } from '../src/your-module.ts';
+
+/**
+ * Processing Lag Test Suite
+ *
+ * Measures the overhead introduced by our abstraction layer compared to raw API calls.
+ * We can't improve the You.com API performance itself, but we need to quantify what
+ * processing lag our code adds.
+ *
+ * Metrics:
+ * - Processing lag (absolute time difference)
+ * - Overhead percentage (relative overhead)
+ * - Memory overhead (heap growth)
+ *
+ * Thresholds:
+ * - < 50ms absolute processing lag
+ * - < 10% relative overhead
+ * - < 300KB memory overhead (adjust based on your package's needs)
+ */
+
+// API Constants - UPDATE THESE for your package
+const API_ENDPOINT = 'https://api.you.com/v1/your-endpoint'; // Replace with actual endpoint
+const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
+
+// User-Agent format: {USER_AGENT_PREFIX}/{version} (You.com; {client})
+const USER_AGENT = `{USER_AGENT_PREFIX}/${packageJson.version} (You.com; {package-name}-test)`;
+
+beforeAll(async () => {
+  console.log('\n=== Warming up ===');
+
+  // Warmup: run your package method once to eliminate cold start effects
+  console.log('Running warmup call to eliminate cold start effects...');
+
+  // TODO: Replace with your package method
+  // await yourPackageMethod({ /* test params */ });
+
+  console.log('Warmup complete. Starting measurements...\n');
+});
+
+describe('Processing Lag: Package vs Raw API Calls', () => {
+  const iterations = 10;
+
+  test.serial('API processing lag', async () => {
+    const rawTimes: number[] = [];
+    const packageTimes: number[] = [];
+
+    for (let i = 0; i < iterations; i++) {
+      // Raw API call (baseline) - UPDATE THIS based on your API
+      const rawStart = performance.now();
+      await fetch(API_ENDPOINT, {
+        method: 'POST', // or 'GET' depending on your API
+        headers: {
+          // Use appropriate auth header for your API
+          'X-API-Key': YDC_API_KEY, // or 'Authorization': `Bearer ${YDC_API_KEY}`
+          'Content-Type': 'application/json',
+          'User-Agent': USER_AGENT,
+        },
+        body: JSON.stringify({
+          // Add your API request body here
+          // Example: { query: 'test' }
+        }),
+      });
+      rawTimes.push(performance.now() - rawStart);
+
+      // Your package method (with abstraction overhead) - UPDATE THIS
+      const packageStart = performance.now();
+      // TODO: Replace with your actual package method call
+      // await yourPackageMethod({ /* test params */ });
+      packageTimes.push(performance.now() - packageStart);
+
+      // Small delay between iterations to avoid rate limiting
+      await Bun.sleep(100);
+    }
+
+    const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
+    const avgPackage = packageTimes.reduce((a, b) => a + b) / iterations;
+    const processingLag = avgPackage - avgRaw;
+    const overheadPercent = (processingLag / avgRaw) * 100;
+
+    console.log('\n=== API Processing Lag ===');
+    console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
+    console.log(`Package avg: ${avgPackage.toFixed(2)}ms`);
+    console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
+    console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
+
+    // Assert processing lag thresholds
+    expect(processingLag).toBeLessThan(50); // < 50ms absolute lag
+    expect(overheadPercent).toBeLessThan(10); // < 10% relative overhead
+  });
+
+  test.serial('Memory overhead from package abstraction', async () => {
+    // Force GC before measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const beforeHeap = heapStats();
+
+    // Run multiple operations to measure sustained memory overhead
+    for (let i = 0; i < 5; i++) {
+      // TODO: Replace with your package method
+      // await yourPackageMethod({ /* test params */ });
+    }
+
+    // Force GC after measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const afterHeap = heapStats();
+
+    const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
+    console.log('\n=== Memory Overhead ===');
+    console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+
+    // Assert memory overhead threshold
+    // Adjust threshold based on your package's complexity
+    expect(heapGrowth).toBeLessThan(1024 * 300); // < 300KB
+  });
+});
+
+describe('Processing Lag Summary', () => {
+  test('displays threshold information', () => {
+    console.log('\n=== Processing Lag Thresholds ===');
+    console.log('Absolute lag: < 50ms');
+    console.log('Relative overhead: < 10%');
+    console.log('Memory overhead: < 300KB');
+    console.log('\nNote: These tests measure the overhead introduced by our');
+    console.log('abstraction layer compared to raw API calls. We cannot improve');
+    console.log('the You.com API performance itself, but we monitor what lag');
+    console.log('our code adds to ensure it remains minimal.');
+    expect(true).toBe(true);
+  });
+});
+```
+
+**Customization Instructions:**
+
+After creating this file, you must:
+
+**IMPORTANT - Before running tests:**
+
+1. **Search for all TODOs** - There are 3 TODO comments that MUST be replaced:
+   ```bash
+   grep -n "TODO:" packages/{package-name}/tests/processing-lag.spec.ts
+   ```
+   Expected locations: ~498 (warmup), ~531 (measurement), ~565 (memory test)
+
+2. **Search for all placeholders** - Find all template variables that need replacement:
+   ```bash
+   grep -n "{" packages/{package-name}/tests/processing-lag.spec.ts | grep -v "import"
+   ```
+   Expected locations:
+   - Line ~488: `{USER_AGENT_PREFIX}` in USER_AGENT constant
+   - Line ~488: `{package-name}` in USER_AGENT comment
+
+3. **Verify no TODOs remain** before committing:
+   ```bash
+   grep "TODO:" packages/{package-name}/tests/processing-lag.spec.ts && echo "❌ TODOs found!" || echo "✅ No TODOs"
+   ```
+
+**Then customize:**
+1. Replace `{USER_AGENT_PREFIX}` with the user agent prefix from Question 6 (e.g., "MCP", "AI-SDK")
+2. Replace `{package-name}` in USER_AGENT with your actual package name
+3. Replace `API_ENDPOINT` with your actual You.com API endpoint
+4. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
+5. Replace all `yourPackageMethod` calls with your actual package method calls (3 locations)
+6. Update request parameters to match your API requirements
+7. Adjust thresholds based on package type:
+
+   | Package Type | Lag | Overhead | Memory | When to Use |
+   |--------------|-----|----------|--------|-------------|
+   | **Thin library** | 50ms | 10% | 300KB | Direct API wrappers with minimal transformation |
+   | **SDK integration** | 80ms | 35% | 350KB | Moderate validation and data transformation |
+   | **MCP server** | 100ms | 50% | 400KB | Includes stdio/JSON-RPC transport overhead |
+   | **Complex framework** | 150ms | 75% | 500KB | Multiple abstraction layers, state management |
+
+   **Default (template)**: Uses thin library thresholds (50ms/10%/300KB)
+
+   **Adjust if your package has**:
+   - Process spawning → Use MCP server thresholds
+   - Multiple transformation layers → Use SDK integration thresholds
+   - Heavy state management → Use complex framework thresholds
+
+   See [root PERFORMANCE.md](../../../docs/PERFORMANCE.md#threshold-setting-guidelines) for detailed rationale.
+8. Remove all TODO comments once complete
+9. Add multiple test cases if your package wraps multiple APIs
+
+**File: packages/{package-name}/docs/PERFORMANCE.md**
+
+This document should reference the root performance philosophy and provide package-specific details.
+
+```markdown
+# {Package Name} Performance Testing
+
+> **General methodology**: See [root performance philosophy](../../../docs/PERFORMANCE.md) for core concepts, metrics, and methodology.
+
+This document covers {package-name}-specific performance testing details, including thresholds, test structure, and package-specific troubleshooting.
+
+## Package-Specific Thresholds
+
+| Metric | Threshold | Rationale |
+|--------|-----------|-----------|
+| **Processing lag** | < 50ms | TODO: Explain why this threshold for your package architecture |
+| **Overhead percentage** | < 10% | TODO: Explain acceptable overhead for your package |
+| **Memory overhead** | < 300KB | TODO: Explain memory requirements for your package |
+
+**Architecture considerations** (customize for your package):
+- List key overhead sources (e.g., validation, transformation, protocol overhead)
+- Explain why your thresholds differ from defaults (if they do)
+- Document any package-specific performance characteristics
+
+## Test Suite Structure
+
+### Test File Location
+`packages/{package-name}/tests/processing-lag.spec.ts`
+
+### APIs Tested
+
+#### API 1: {API Name}
+- **Endpoint**: `{METHOD} https://api.you.com/v1/{endpoint}`
+- **Authentication**: `{X-API-Key or Bearer}` header
+- **Iterations**: {number}
+- **Measures**: {what aspect of processing lag}
+
+TODO: Add more APIs if your package wraps multiple endpoints
+
+## Running Tests
+
+### Basic Execution
+
+```bash
+cd packages/{package-name}
+
+# Run processing lag tests
+bun test tests/processing-lag.spec.ts
+
+# Run with extended timeout if needed
+bun test tests/processing-lag.spec.ts --timeout 60000
+```
+
+### Prerequisites
+
+**Required**:
+- `YDC_API_KEY` environment variable set
+- TODO: List any package-specific prerequisites
+
+**Recommended**:
+- Stable network connection (no VPN)
+- Minimal system load
+- Recent `bun install`
+
+### Example Output
+
+```
+=== {API Name} Processing Lag ===
+Raw API avg: XXXms
+Package avg: XXXms
+Processing lag: XXms
+Overhead: X.XX%
+
+=== Memory Overhead ===
+Heap before: XXXX KB
+Heap after: XXXX KB
+Heap growth: XXX KB
+
+✓ All thresholds met
+```
+
+## Understanding Results
+
+### Negative Processing Lag
+TODO: Explain if/why your package might show negative lag
+
+### Low Positive Lag (< threshold)
+TODO: Explain what's normal for your package
+
+### High Positive Lag (> threshold)
+TODO: Explain when to investigate
+
+## Package-Specific Troubleshooting
+
+### Common Issue 1
+**Symptom**: TODO: Describe symptom
+
+**Cause**: TODO: Explain cause
+
+**Solution**: TODO: Provide solution
+
+TODO: Add more troubleshooting sections as needed
+
+## Optimization Guidelines
+
+TODO: Add package-specific optimization tips
+
+## Continuous Monitoring
+
+### In CI/CD
+Processing lag tests run automatically on:
+- Every pull request
+- Main branch commits
+- Release workflows
+
+### Local Development
+Run tests before committing:
+```bash
+bun test tests/processing-lag.spec.ts
+```
+
+## Related Documentation
+
+- [Root Performance Philosophy](../../../docs/PERFORMANCE.md) - General methodology
+- [Package README](../README.md) - Package overview
+- [Development Guide](../AGENTS.md) - Contributing guidelines
+```
+
+**Customization Required**:
+1. Replace all `{placeholder}` values with actual package information
+2. Fill in all `TODO:` sections with package-specific details
+3. Adjust thresholds based on your package's architecture
+4. Add package-specific troubleshooting sections
+5. Include optimization tips relevant to your package
+6. Remove sections that don't apply to your package
+
+### 6. Create Publish Workflow
 
 **File: .github/workflows/publish-{package-name}.yml**
 

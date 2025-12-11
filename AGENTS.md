@@ -229,12 +229,68 @@ export const fetchData = async (params: Params) => { ... };
 export async function fetchData(params: Params) { ... }
 ```
 
+**Numeric Separators**: Use underscores for large numbers (improves readability)
+
+```ts
+// ✅ Preferred
+const timeout = 90_000; // 90 seconds
+const maxSize = 1_000_000; // 1 million
+const largeNumber = 1_234_567_890;
+
+// ❌ Avoid
+const timeout = 90000;
+const maxSize = 1000000;
+const largeNumber = 1234567890;
+```
+
 **No Unused Exports**: All exports must be actively used
 
 ```bash
 # Before adding exports, verify usage:
 grep -r "ExportName" packages/
 ```
+
+**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
+
+```ts
+// ✅ Preferred - Bun native APIs
+import { $ } from 'bun';
+import { heapStats } from 'bun:jsc';
+
+// Path resolution (throws if not found - perfect for validation)
+const path = Bun.resolveSync('./file.js', import.meta.dir);
+
+// Shell commands
+await $`ls -la`;
+const output = await $`echo hello`.text();
+
+// Sleep
+await Bun.sleep(100);
+
+// Garbage collection
+Bun.gc(true);
+
+// ❌ Avoid - Node.js APIs when Bun alternative exists
+import { existsSync } from 'node:fs';
+import { exec } from 'node:child_process';
+const path = require.resolve('./file.js');
+await new Promise(resolve => setTimeout(resolve, 100));
+```
+
+**Why prefer Bun APIs?**
+- Better performance (native implementation)
+- Better TypeScript integration
+- More predictable behavior in Bun runtime
+- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
+
+**When Node.js APIs are acceptable:**
+- No Bun equivalent exists
+- Compatibility with Node.js runtime required
+- Third-party package dependency requires it
+
+**Resources:**
+- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
+- [Bun Shell](https://bun.sh/docs/runtime/shell)
 
 ## Git Workflow
 

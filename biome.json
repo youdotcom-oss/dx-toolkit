@@ -57,7 +57,14 @@
   },
   "overrides": [
     {
-      "includes": ["packages/**/*.spec.ts", "packages/**/*.test.ts", "packages/**/tests/**/*.ts"],
+      "includes": [
+        "packages/**/*.spec.ts",
+        "packages/**/*.test.ts",
+        "packages/**/tests/**/*.ts",
+        "src/tests/**/*.ts",
+        "*.spec.ts",
+        "*.test.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
