@@ -601,14 +601,33 @@ describe('Processing Lag Summary', () => {
 **Customization Instructions:**
 
 After creating this file, you must:
+
+**FIRST: Search for all placeholders**
+```bash
+# Find all TODO comments and placeholders that need replacement
+grep -n "TODO:" packages/{package-name}/tests/processing-lag.spec.ts
+grep -n "{" packages/{package-name}/tests/processing-lag.spec.ts | grep -v "import"
+```
+
+You will find placeholders at approximately:
+- Line ~488: `{USER_AGENT_PREFIX}` in USER_AGENT constant
+- Line ~498: `yourPackageMethod` in warmup  (TODO)
+- Line ~531: `yourPackageMethod` in measurement (TODO)
+- Line ~565: `yourPackageMethod` in measurement (TODO)
+
+**Then customize:**
 1. Replace `{USER_AGENT_PREFIX}` with the user agent prefix from Question 6 (e.g., "MCP", "AI-SDK")
 2. Replace `{package-name}` in USER_AGENT with your actual package name
 3. Replace `API_ENDPOINT` with your actual You.com API endpoint
 4. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
-5. Replace `yourPackageMethod` with your actual package method calls
+5. Replace all `yourPackageMethod` calls with your actual package method calls (3 locations)
 6. Update request parameters to match your API requirements
-7. Adjust thresholds if needed (default: 50ms lag, 10% overhead, 300KB memory)
-8. Add multiple test cases if your package wraps multiple APIs
+7. Adjust thresholds based on package type (see root PERFORMANCE.md):
+   - Thin library: 50ms lag, 10% overhead, 300KB memory
+   - SDK integration: 80ms lag, 35% overhead, 350KB memory
+   - MCP server: 100ms lag, 50% overhead, 400KB memory
+8. Remove all TODO comments once complete
+9. Add multiple test cases if your package wraps multiple APIs
 
 **File: packages/{package-name}/docs/PERFORMANCE.md**
 

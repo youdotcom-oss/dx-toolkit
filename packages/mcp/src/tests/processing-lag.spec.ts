@@ -36,13 +36,51 @@ const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
 // User-Agent matching MCP server format: MCP/{version} (You.com; {client})
 const USER_AGENT = `MCP/${packageJson.version} (You.com; processing-lag-test)`;
 
+/**
+ * Calculate statistics and remove outliers (> 2 standard deviations)
+ * Improves test reliability by filtering network anomalies
+ */
+const calculateStats = (times: number[]) => {
+  const avg = times.reduce((a, b) => a + b) / times.length;
+  const stdDev = Math.sqrt(
+    times.reduce((sum, time) => sum + Math.pow(time - avg, 2), 0) / times.length
+  );
+
+  // Remove outliers (> 2 standard deviations from mean)
+  const filtered = times.filter((t) => Math.abs(t - avg) <= 2 * stdDev);
+
+  return {
+    avg: filtered.length > 0 ? filtered.reduce((a, b) => a + b) / filtered.length : avg,
+    stdDev,
+    outliers: times.length - filtered.length,
+    filtered,
+  };
+};
+
 beforeAll(async () => {
   console.log('\n=== Warming up: Building and starting MCP server ===');
-  await $`bun run build`;
+
+  // Build MCP server with error handling
+  const buildResult = await $`bun run build`.quiet();
+  if (buildResult.exitCode !== 0) {
+    throw new Error(
+      `Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`
+    );
+  }
+
+  // Resolve stdio path (Bun.resolveSync throws if file not found)
+  let stdioPath: string;
+  try {
+    stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+  } catch (_err) {
+    throw new Error(
+      `stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`
+    );
+  }
 
   const transport = new StdioClientTransport({
     command: 'npx',
-    args: [Bun.resolveSync('../../bin/stdio', import.meta.dir)],
+    args: [stdioPath],
     env: {
       YDC_API_KEY,
     },
@@ -118,14 +156,15 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       await Bun.sleep(100);
     }
 
-    const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
-    const avgMcp = mcpTimes.reduce((a, b) => a + b) / iterations;
-    const processingLag = avgMcp - avgRaw;
-    const overheadPercent = (processingLag / avgRaw) * 100;
+    // Calculate statistics with outlier detection
+    const rawStats = calculateStats(rawTimes);
+    const mcpStats = calculateStats(mcpTimes);
+    const processingLag = mcpStats.avg - rawStats.avg;
+    const overheadPercent = (processingLag / rawStats.avg) * 100;
 
     console.log('\n=== Search API Processing Lag ===');
-    console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-    console.log(`MCP tool avg: ${avgMcp.toFixed(2)}ms`);
+    console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+    console.log(`MCP tool avg: ${mcpStats.avg.toFixed(2)}ms (${mcpStats.outliers} outliers removed)`);
     console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
     console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -176,14 +215,15 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
         await Bun.sleep(500);
       }
 
-      const avgRaw = rawTimes.reduce((a, b) => a + b) / expressIterations;
-      const avgMcp = mcpTimes.reduce((a, b) => a + b) / expressIterations;
-      const processingLag = avgMcp - avgRaw;
-      const overheadPercent = (processingLag / avgRaw) * 100;
+      // Calculate statistics with outlier detection
+      const rawStats = calculateStats(rawTimes);
+      const mcpStats = calculateStats(mcpTimes);
+      const processingLag = mcpStats.avg - rawStats.avg;
+      const overheadPercent = (processingLag / rawStats.avg) * 100;
 
       console.log('\n=== Express API Processing Lag ===');
-      console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-      console.log(`MCP tool avg: ${avgMcp.toFixed(2)}ms`);
+      console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+      console.log(`MCP tool avg: ${mcpStats.avg.toFixed(2)}ms (${mcpStats.outliers} outliers removed)`);
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -191,8 +231,8 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(100); // < 100ms absolute lag
       expect(overheadPercent).toBeLessThan(50); // < 50% relative overhead
     },
-    { timeout: 60000 },
-  ); // 60 second timeout for Express API (AI processing is slow)
+    { timeout: 90_000 },
+  ); // 90 second timeout for Express API (AI processing + CI latency)
 
   test.serial('Contents API processing lag', async () => {
     const rawTimes: number[] = [];
@@ -230,14 +270,15 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
       await Bun.sleep(100);
     }
 
-    const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
-    const avgMcp = mcpTimes.reduce((a, b) => a + b) / iterations;
-    const processingLag = avgMcp - avgRaw;
-    const overheadPercent = (processingLag / avgRaw) * 100;
+    // Calculate statistics with outlier detection
+    const rawStats = calculateStats(rawTimes);
+    const mcpStats = calculateStats(mcpTimes);
+    const processingLag = mcpStats.avg - rawStats.avg;
+    const overheadPercent = (processingLag / rawStats.avg) * 100;
 
     console.log('\n=== Contents API Processing Lag ===');
-    console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-    console.log(`MCP tool avg: ${avgMcp.toFixed(2)}ms`);
+    console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+    console.log(`MCP tool avg: ${mcpStats.avg.toFixed(2)}ms (${mcpStats.outliers} outliers removed)`);
     console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
     console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -247,31 +288,47 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
   });
 
   test.serial('Memory overhead from MCP abstraction', async () => {
-    // Force GC before measurement
+    // Baseline warmup: eliminate one-time allocations
+    console.log('\n=== Memory Test: Running baseline warmup ===');
+    for (let i = 0; i < 3; i++) {
+      await client.callTool({
+        name: 'you-search',
+        arguments: { query: 'warmup', count: 2 },
+      });
+    }
+
+    // Force GC and stabilize
     Bun.gc(true);
-    await Bun.sleep(100); // Let GC complete
+    await Bun.sleep(100);
 
     const beforeHeap = heapStats();
 
-    // Run multiple operations to measure sustained memory overhead
-    for (let i = 0; i < 5; i++) {
+    // Run operations with increased iterations for better statistical significance
+    const memoryIterations = 15;
+    for (let i = 0; i < memoryIterations; i++) {
       await client.callTool({
         name: 'you-search',
-        arguments: { query: 'test query', count: 2 },
+        arguments: { query: `memory test ${i}`, count: 2 },
       });
     }
 
     // Force GC after measurement
     Bun.gc(true);
-    await Bun.sleep(100); // Let GC complete
+    await Bun.sleep(100);
 
     const afterHeap = heapStats();
 
     const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
+    const perOpGrowth = heapGrowth / memoryIterations;
+
     console.log('\n=== Memory Overhead ===');
     console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
     console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
-    console.log(`Heap growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+    console.log(`Total growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+    console.log(`Per-operation growth: ${(perOpGrowth / 1024).toFixed(2)} KB`);
+    console.log(
+      `Growth pattern: ${perOpGrowth < 1024 ? 'Constant (good)' : 'Linear (check for leaks)'}`
+    );
 
     // Assert memory overhead threshold
     // MCP server maintains state, schemas, and buffers, so 400KB is reasonable

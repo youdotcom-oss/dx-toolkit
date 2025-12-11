@@ -107,15 +107,27 @@ Heap growth: 255.74 KB
 ## Understanding Results
 
 ### Negative Processing Lag
-**Example**: Search API shows -44.88ms lag (MCP faster than raw API)
+**Example**: Search API shows -29.63ms lag (MCP faster than raw API)
 
-**Causes**:
-- Response caching in MCP layer
-- Optimized response transformation
-- Parallel processing in tool handler
-- Network timing variations
+**What it means**: Sometimes MCP tools are faster than raw API calls, resulting in negative lag values.
 
-**Interpretation**: This is normal and indicates efficient implementation. The MCP abstraction is not adding overhead.
+**Common causes**:
+- **Network variability**: Small sample sizes (5-10 iterations) can show variance
+- **Optimizations**: Response caching, connection pooling, or parallel processing offsetting overhead
+- **Statistical noise**: Within margin of error for timing measurements
+- **MCP efficiencies**: Optimized response transformation or reduced network roundtrips
+
+**Is this a problem?** No! Negative lag indicates the MCP abstraction is not adding measurable overhead.
+
+**What to focus on**:
+- **Trend across multiple runs** rather than individual measurements
+- **Outlier detection** helps filter network anomalies
+- **Consistent positive lag > 100ms** is when investigation is needed
+
+**Important**: Negative lag doesn't mean MCP magically makes APIs faster. It reflects that:
+1. MCP overhead (stdio, JSON-RPC, validation) is minimal
+2. Any overhead is within measurement noise
+3. Test variance from network conditions
 
 ### Low Positive Lag (< 50ms)
 **Example**: Contents API shows 9.55ms lag

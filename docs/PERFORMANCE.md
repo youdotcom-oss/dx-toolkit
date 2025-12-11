@@ -148,13 +148,54 @@ Memory: 2MB
 
 ## Threshold Setting Guidelines
 
-Each package should set thresholds based on its architecture:
+Each package should set thresholds based on its architecture. Different package types have different overhead characteristics:
 
-### Consider Your Architecture
-- **Thin wrappers**: 10-30ms lag, 5-15% overhead, 50-150KB memory
-- **SDK integrations**: 30-80ms lag, 15-35% overhead, 150-300KB memory
-- **MCP servers**: 50-100ms lag, 25-50% overhead, 300-400KB memory
-- **Complex frameworks**: 100-200ms lag, 50-100% overhead, 400-600KB memory
+### Threshold Guidelines by Package Type
+
+| Package Type | Lag Threshold | Overhead Threshold | Memory Threshold | Rationale |
+|--------------|---------------|-------------------|------------------|-----------|
+| **Thin library wrappers** | < 50ms | < 10% | < 300KB | Minimal transformation, no transport overhead |
+| **SDK integrations** | < 80ms | < 35% | < 350KB | Moderate data transformation and validation |
+| **MCP servers** | < 100ms | < 50% | < 400KB | Includes stdio/JSON-RPC transport + protocol overhead |
+| **Complex frameworks** | < 150ms | < 75% | < 500KB | Multiple abstraction layers, state management |
+
+### Why MCP Servers Have Higher Thresholds
+
+MCP servers (like `@youdotcom-oss/mcp`) have higher thresholds (100ms/50%/400KB) compared to library packages (50ms/10%/300KB) because of architectural differences:
+
+**MCP Server Overhead Sources**:
+- **Stdio transport**: Process IPC adds 20-40ms latency
+- **JSON-RPC protocol**: Serialization/deserialization adds 10-20ms
+- **Client SDK**: `@modelcontextprotocol/sdk` protocol overhead
+- **Process spawning**: Each test spawns MCP server as subprocess
+- **State management**: Client state, connection pools, schemas
+
+**Library Package Overhead Sources**:
+- **Data transformation**: Converting between formats
+- **Validation**: Zod schema validation (5-15ms)
+- **Error handling**: Try/catch and error formatting
+
+**Example Comparison**:
+```typescript
+// Library wrapper (50ms threshold)
+export const callApi = async (params) => {
+  // Just validation + fetch + transform
+  const validated = schema.parse(params);  // 5ms
+  const response = await fetch(url, validated);  // API time (not counted)
+  return transform(response);  // 10ms
+  // Total overhead: ~15ms
+};
+
+// MCP server (100ms threshold)
+const result = await client.callTool({ name: 'api', arguments: params });
+// Overhead includes:
+// - Stdio IPC: 30ms
+// - JSON-RPC: 15ms
+// - Validation: 5ms
+// - Transform: 10ms
+// - Client SDK: 20ms
+// Total overhead: ~80ms
+```
 
 ### Fixed vs Proportional Overhead
 - **Fixed overhead**: Serialization, validation, setup (same regardless of data size)
