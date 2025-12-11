@@ -188,7 +188,7 @@ See root [AGENTS.md → Documentation Standards](../../AGENTS.md#documentation-s
 **README.md (5 rules):**
 1. Use encouraging, accessible language - avoid technical jargon
 2. Second-person voice with active imperatives
-3. **Exactly 4 steps in "Getting started"**
+3. **Maximum 4 steps in "Getting started"**
 4. Natural language examples in quotes
 5. Progressive disclosure for complex details
 

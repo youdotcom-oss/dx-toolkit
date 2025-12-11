@@ -1,6 +1,6 @@
 # Microsoft Teams integration library for You.com's MCP server
 
-TypeScript helper library that enables Microsoft Teams bots to seamlessly connect to You.com's Model Context Protocol (MCP) server for real-time web search, AI-powered answers, and content extraction capabilities.
+Get your Teams bot connected to You.com's AI-powered search, answers, and content extraction in just 3 quick steps. No hosting required—just add one package and start building smarter bots.
 
 ## Features
 
@@ -20,13 +20,9 @@ Your Teams bot will have access to these You.com MCP tools:
 
 ## Getting started
 
-### Prerequisites
+### 1. Installation
 
-- Bun >= 1.2.21 (or Node.js >= 18)
-- You.com API key from [you.com/platform/api-keys](https://you.com/platform/api-keys)
-- Microsoft Teams bot project using Teams AI Library
-
-### Installation
+Choose your package manager:
 
 ```bash
 # NPM
@@ -39,7 +35,11 @@ bun add @youdotcom-oss/teams-mcp-client
 yarn add @youdotcom-oss/teams-mcp-client
 ```
 
-### Quick example
+**Prerequisites**: You'll need Bun >= 1.2.21 (or Node.js >= 18), a You.com API key from [you.com/platform/api-keys](https://you.com/platform/api-keys), and a Microsoft Teams bot project using Teams AI Library.
+
+### 2. Quick setup
+
+Create your MCP plugin and connect it to your Teams bot:
 
 ```typescript
 import { ChatPrompt } from '@microsoft/teams.ai';
@@ -57,13 +57,92 @@ const prompt = new ChatPrompt({
 }, [plugin]);
 
 prompt.usePlugin('mcpClient', config);
+```
 
-// Now your bot can use you-search, you-express, you-contents tools
+### 3. Test your setup
+
+Try asking your bot:
+"What are the latest updates about Claude AI?"
+
+Your bot will automatically use the You.com MCP server to search the web and provide a comprehensive answer with real-time information.
+
+## Use cases & examples
+
+### Common scenarios
+
+**When you need web search:**
+- "What's the weather forecast for this weekend?"
+- "Show me the latest tech news"
+- "Search for Python tutorials for beginners"
+
+**When you need AI-powered answers:**
+- "Explain how OAuth 2.0 works"
+- "What are the best practices for REST API design?"
+- "Compare TypeScript and JavaScript"
+
+**When you need content extraction:**
+- "Summarize this article: https://example.com/post"
+- "Extract the main content from this URL"
+- "Get the text content from this web page"
+
+### Basic search bot
+
+```typescript
+import { Application } from '@microsoft/teams.ai';
+import { createMcpPlugin } from '@youdotcom-oss/teams-mcp-client';
+
+const { plugin, config } = createMcpPlugin({
+  apiKey: process.env.YDC_API_KEY,
+});
+
+const app = new Application({
+  ai: {
+    planner: {
+      instructions: 'You are a helpful search assistant. Use web search to answer questions.',
+      model: yourModel,
+      plugins: [plugin],
+    }
+  }
+});
+
+// Your bot can now use you-search, you-express, and you-contents tools
+```
+
+### Custom timeout and headers
+
+Need more time for complex requests? Just configure the timeout:
+
+```typescript
+const { plugin, config } = createMcpPlugin({
+  apiKey: process.env.YDC_API_KEY,
+  timeout: 60000, // 60 seconds
+  headers: {
+    'X-Request-ID': 'custom-request-id',
+  },
+});
+```
+
+### Debug mode
+
+Want to see what's happening under the hood? Enable debug mode:
+
+```typescript
+const { plugin, config } = createMcpPlugin({
+  apiKey: process.env.YDC_API_KEY,
+  debug: true,
+});
+
+// You'll see helpful logs:
+// [teams-mcp-client] Plugin created successfully
+// [teams-mcp-client] MCP Server URL: https://api.you.com/mcp
+// [teams-mcp-client] Timeout: 30000
 ```
 
 ## Configuration
 
 ### Using environment variable
+
+The simplest way to configure is with an environment variable:
 
 ```typescript
 // Set YDC_API_KEY environment variable
@@ -74,6 +153,8 @@ const { plugin, config } = createMcpPlugin();
 ```
 
 ### Using configuration object
+
+For more control, pass a configuration object:
 
 ```typescript
 const { plugin, config } = createMcpPlugin({
@@ -101,7 +182,7 @@ const { plugin, config } = createMcpPlugin({
 
 ## Error handling
 
-The library throws `McpPluginError` for configuration and connection issues:
+The library provides clear error messages to help you troubleshoot:
 
 ```typescript
 import { createMcpPlugin, McpPluginError } from '@youdotcom-oss/teams-mcp-client';
@@ -126,64 +207,13 @@ try {
 - `CONNECTION_FAILED` - Failed to connect to MCP server
 - `TIMEOUT` - Request timeout exceeded
 
-## Examples
-
-### Basic search bot
-
-```typescript
-import { Application } from '@microsoft/teams.ai';
-import { createMcpPlugin } from '@youdotcom-oss/teams-mcp-client';
-
-const { plugin, config } = createMcpPlugin({
-  apiKey: process.env.YDC_API_KEY,
-});
-
-const app = new Application({
-  ai: {
-    planner: {
-      instructions: 'You are a helpful search assistant. Use web search to answer questions.',
-      model: yourModel,
-      plugins: [plugin],
-    }
-  }
-});
-
-// The bot can now use you-search, you-express, and you-contents tools automatically
-```
-
-### Custom timeout and headers
-
-```typescript
-const { plugin, config } = createMcpPlugin({
-  apiKey: process.env.YDC_API_KEY,
-  timeout: 60000, // 60 seconds
-  headers: {
-    'X-Request-ID': 'custom-request-id',
-  },
-});
-```
-
-### Debug mode
-
-```typescript
-const { plugin, config } = createMcpPlugin({
-  apiKey: process.env.YDC_API_KEY,
-  debug: true, // Logs plugin creation and configuration
-});
-
-// Output:
-// [teams-mcp-client] Plugin created successfully
-// [teams-mcp-client] MCP Server URL: https://api.you.com/mcp
-// [teams-mcp-client] Timeout: 30000
-```
-
 ## Troubleshooting
 
 ### API key not found
 
-**Error**: "API key is required"
+**Issue**: You see "API key is required"
 
-**Solution**: Set the `YDC_API_KEY` environment variable or pass `apiKey` in config:
+**Solution**: Set the `YDC_API_KEY` environment variable or pass it in your config:
 
 ```bash
 export YDC_API_KEY=your-api-key-here
@@ -191,22 +221,22 @@ export YDC_API_KEY=your-api-key-here
 
 ### Connection timeout
 
-**Error**: "Connection timeout" or "TIMEOUT" error code
+**Issue**: Getting "Connection timeout" or "TIMEOUT" errors
 
-**Solution**: Increase timeout in configuration:
+**Solution**: Increase the timeout to give requests more time:
 
 ```typescript
 const { plugin, config } = createMcpPlugin({
   apiKey: process.env.YDC_API_KEY,
-  timeout: 60000, // 60 seconds
+  timeout: 60000, // Try 60 seconds
 });
 ```
 
 ### Invalid configuration
 
-**Error**: "Invalid configuration" with validation details
+**Issue**: "Invalid configuration" with validation details
 
-**Solution**: Check that:
+**Solution**: Double-check your configuration:
 - API key is not empty
 - MCP URL is a valid URL
 - Timeout is positive and ≤ 300000ms (5 minutes)
@@ -216,15 +246,13 @@ const { plugin, config } = createMcpPlugin({
 
 For detailed API documentation, see [docs/API.md](./docs/API.md).
 
-For example code and deployment guides, see [docs/examples/](./docs/examples/).
-
 ## Development
 
 See [AGENTS.md](./AGENTS.md) for development setup, architecture, and patterns.
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) in the repository root for guidelines.
+We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## License
 
