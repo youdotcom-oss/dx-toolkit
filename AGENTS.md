@@ -61,7 +61,7 @@ All packages must follow this naming rule:
 - **Code Quality**: Biome 2.3.8 (linter + formatter)
 - **Type Checking**: TypeScript 5.9.3
 - **Git Hooks**: lint-staged 16.2.7
-- **Version Control**: Git with bidirectional Git Subtree sync
+- **Version Control**: Git
 - **GitHub CLI**: `gh` for PR/issue management (recommended)
 
 ## Quick Start
@@ -229,12 +229,68 @@ export const fetchData = async (params: Params) => { ... };
 export async function fetchData(params: Params) { ... }
 ```
 
+**Numeric Separators**: Use underscores for large numbers (improves readability)
+
+```ts
+// ✅ Preferred
+const timeout = 90_000; // 90 seconds
+const maxSize = 1_000_000; // 1 million
+const largeNumber = 1_234_567_890;
+
+// ❌ Avoid
+const timeout = 90000;
+const maxSize = 1000000;
+const largeNumber = 1234567890;
+```
+
 **No Unused Exports**: All exports must be actively used
 
 ```bash
 # Before adding exports, verify usage:
 grep -r "ExportName" packages/
 ```
+
+**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
+
+```ts
+// ✅ Preferred - Bun native APIs
+import { $ } from 'bun';
+import { heapStats } from 'bun:jsc';
+
+// Path resolution (throws if not found - perfect for validation)
+const path = Bun.resolveSync('./file.js', import.meta.dir);
+
+// Shell commands
+await $`ls -la`;
+const output = await $`echo hello`.text();
+
+// Sleep
+await Bun.sleep(100);
+
+// Garbage collection
+Bun.gc(true);
+
+// ❌ Avoid - Node.js APIs when Bun alternative exists
+import { existsSync } from 'node:fs';
+import { exec } from 'node:child_process';
+const path = require.resolve('./file.js');
+await new Promise(resolve => setTimeout(resolve, 100));
+```
+
+**Why prefer Bun APIs?**
+- Better performance (native implementation)
+- Better TypeScript integration
+- More predictable behavior in Bun runtime
+- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
+
+**When Node.js APIs are acceptable:**
+- No Bun equivalent exists
+- Compatibility with Node.js runtime required
+- Third-party package dependency requires it
+
+**Resources:**
+- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
+- [Bun Shell](https://bun.sh/docs/runtime/shell)
 
 ## Git Workflow
 
@@ -335,8 +391,9 @@ This convention follows industry standards used by Node.js  and most major proje
 
 ### Workflow Files
 
-**`.github/workflows/publish-mcp.yml`**:
+**`.github/workflows/publish-mcp.yml`** (MCP-specific workflow with deployment):
 - Triggered: Manual via `workflow_dispatch`
+- Note: This workflow includes remote deployment steps specific to the MCP package. Other packages use simpler publish workflows without deployment.
 - Actions:
   1. Updates package version in packages/mcp/package.json
   2. Scans all workspace packages for dependencies on @youdotcom-oss/mcp
@@ -361,15 +418,18 @@ This convention follows industry standards used by Node.js  and most major proje
   - `RELEASE_ADMIN_TOKEN`: For triggering workflows on remote repository
   - `DEPLOYMENT_REPO`: Repository to trigger (format: `owner/repo`)
 
-**`.github/workflows/_publish-package.yml`**:
-- Reusable workflow for publishing packages
-- Called by package-specific publish workflows
+**`.github/workflows/_publish-package.yml`** (Reusable workflow for all packages):
+- Reusable workflow for publishing packages to npm
+- Called by package-specific publish workflows (e.g., `publish-mcp.yml`)
+- Handles version updates, npm publishing, and GitHub releases
 - Uses NPM Trusted Publishing (OIDC) for authentication
 - Requires `PUBLISH_TOKEN` secret for git operations on protected branches
+- Note: Most packages only use this workflow. MCP adds deployment steps in its specific workflow.
 
-**Remote Repository Requirements** (Deployment Target):
+**Remote Repository Requirements** (MCP package deployment only):
 
-The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events:
+The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events.
+This is only used for the MCP package which requires remote deployment infrastructure:
 
 1. **`update-version.yml`** - Listens for `update-mcp-version` event:
    - Receives version in `client_payload.version`
@@ -409,17 +469,15 @@ Use the `/create-package` command to interactively create new packages:
 Ask your agent to read and follow the instructions in `.claude/commands/create-package.md`
 
 The command will guide you through:
-1. **Package configuration** - Name, type (library/CLI/server/dual-purpose), npm package name, OSS repo
-2. **Optional features** - Docker support, HTTP server, CLI binary
-3. **Metadata** - Description and keywords
-4. **Automatic setup**:
+1. **Package configuration** - Name, npm package name
+2. **Metadata** - Description and keywords
+3. **Automatic setup**:
    - Creates package directory structure
    - Generates all configuration files (package.json, tsconfig.json, biome.json, .gitignore)
    - Creates source files with templates
-   - Generates documentation (README.md, AGENTS.md, CONTRIBUTING.md)
+   - Generates documentation (README.md, AGENTS.md)
    - Creates publish workflow (`.github/workflows/publish-{package}.yml`)
-   - Updates sync and close workflows for OSS integration
-5. **Post-creation checklist** - Manual steps for OSS repo creation and GitHub secrets
+4. **Post-creation checklist** - Manual steps for testing the package
 
 **Manual Alternative** (if not using Claude Code):
 
@@ -492,6 +550,98 @@ For package-specific development details, see each package's AGENTS.md:
   - Testing guidelines
   - Architecture diagrams
 
+### Documentation Standards
+
+**IMPORTANT EXCEPTION**: The root `README.md` (at monorepo level) is an exception to these guidelines. It serves as a project overview and does not follow the package consumption tone. These guidelines apply to **package-level documentation only** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
+
+All packages maintain two distinct documentation files with specific tone requirements:
+
+#### README.md - User-Facing Documentation
+
+**Audience**: End users (developers integrating the package)
+
+**Tone Characteristics**:
+- Encouraging and accessible - "Get up and running in 4 quick steps"
+- Task-focused and solution-oriented - "No installation, always up-to-date"
+- Second-person voice - Use "you", "your" consistently
+- Active imperatives - "Choose your setup", "Test your installation"
+
+**Content Requirements**:
+- Maximum 4 steps in "Getting started" section
+- Natural language examples in quotes
+- Progressive disclosure with collapsible sections
+- Problem-solution format for troubleshooting
+- Emphasize immediate value and ease of use
+
+**Language Patterns**:
+| ✅ Do | ❌ Don't |
+|-------|----------|
+| "Get up and running in 3 quick steps" | "Installation procedure requires..." |
+| "No installation required" | "This package is hosted remotely" |
+| "Your agent will automatically..." | "The system executes..." |
+| "Just describe what you want" | "Invoke the tool with parameters" |
+
+#### AGENTS.md - Developer Documentation
+
+**Audience**: Developers, contributors, AI coding agents
+
+**Tone Characteristics**:
+- Directive and technical - "Always use arrow functions for declarations"
+- Absolute constraints - "NEVER bypass git hooks"
+- Imperative explanatory - Side-by-side code examples
+- Enforcement language - "All exports must be actively used"
+
+**Content Requirements**:
+- Clear audience disclaimer at top
+- Sequential workflow structure (setup → code → develop → deploy)
+- Side-by-side code comparisons (✅/❌)
+- File path references with line numbers
+- Symptom/solution format for troubleshooting
+- Architecture diagrams where relevant
+
+**Language Patterns**:
+| ✅ Do | ❌ Don't |
+|-------|----------|
+| "Always use arrow functions" | "We recommend arrow functions" |
+| "NEVER bypass git hooks" | "Consider keeping hooks enabled" |
+| "All exports must be used" | "Try to avoid unused exports" |
+| "Check pattern: `^[a-z]+$`" | "Names should be lowercase" |
+
+#### Quick Reference Comparison
+
+| Aspect | README.md | AGENTS.md |
+|--------|-----------|-----------|
+| **Audience** | End users (integrators) | Developers (contributors) |
+| **Tone** | Encouraging, accessible | Directive, technical |
+| **Voice** | Active, second-person | Imperative, explanatory |
+| **Examples** | Natural language queries | Code patterns with ✅/❌ |
+| **Structure** | Progressive disclosure | Sequential workflows |
+| **Language** | "Works everywhere", "just", "simply" | "Always", "never", "must" |
+
+#### Validation Checklist
+
+Before publishing package documentation:
+
+**README.md:**
+- [ ] Has 4-step "Getting started" section
+- [ ] Uses encouraging language ("quick", "easy", "just")
+- [ ] Provides natural language examples
+- [ ] Uses collapsible sections for detailed config
+- [ ] Includes simple test queries
+- [ ] Emphasizes immediate value
+- [ ] Uses second-person voice throughout
+- [ ] Avoids technical jargon in main flow
+
+**AGENTS.md:**
+- [ ] Starts with clear audience disclaimer
+- [ ] Uses directive language (always/never)
+- [ ] Includes file path references
+- [ ] Provides side-by-side code examples (✅/❌)
+- [ ] Contains architecture diagrams where relevant
+- [ ] Uses symptom/solution format for troubleshooting
+- [ ] Specifies exact patterns with regex/commands
+- [ ] Cross-references to line numbers where appropriate
+
 ## Troubleshooting
 
 ### Workspace Issues
@@ -545,14 +695,14 @@ ls -la bin/
 
 ### For External Contributors
 
-1. Fork the OSS repository (`youdotcom-oss/mcp-server`)
+1. Fork this repository (`youdotcom-oss/dx-toolkit`)
 2. Create feature branch and make changes
 3. Sign CLA when prompted by bot
-4. Open PR in OSS repository
+4. Open pull request with your changes
 5. Address feedback from maintainers
 6. After approval, maintainers will merge and include in next release
 
-See [CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md) for detailed guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## Bun Runtime
 
@@ -577,6 +727,5 @@ bun run build    # Build all packages
 ## Support
 
 - **Package Issues**: See package-specific AGENTS.md
-- **Monorepo Issues**: Create issue in private repo
-- **OSS Contributions**: See OSS repo issues
+- **Issues and Contributions**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - **Email**: support@you.com

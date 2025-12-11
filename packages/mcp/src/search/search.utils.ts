@@ -18,7 +18,7 @@ export const fetchSearchResults = async ({
   // Build Query Param
   const searchQuery = [query];
   site && searchQuery.push(`site:${site}`);
-  fileType && searchQuery.push(`fileType:${fileType}`);
+  fileType && searchQuery.push(`filetype:${fileType}`);
   language && searchQuery.push(`lang:${language}`);
   if (exactTerms && excludeTerms) {
     throw new Error('Cannot specify both exactTerms and excludeTerms - please use only one');

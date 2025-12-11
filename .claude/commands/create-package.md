@@ -54,40 +54,70 @@ Suggested: @youdotcom-oss/{package-name}
 - **Verify consistency**: Extract name after slash, must equal package name from Question 1
 - Verify not published: `npm view {name}` should return 404
 
-**Question 3: OSS Repository Name**
-```
-OSS repository name?
-
-Suggested: youdotcom-oss/{package-name}
-
-Note: You will need to manually create this repository later.
-```
-
-**Validation for Question 3**:
-- Check pattern: `^youdotcom-oss/[a-z]([a-z0-9-]*[a-z0-9])?$`
-
 ### Phase 2: Metadata
 
-**Question 4: Package Description**
+**Question 3: Package Description**
 ```
 One-line description for package.json? (max 200 characters)
 ```
 
-**Validation for Question 4**:
+**Validation for Question 3**:
 - Max 200 characters
 - Not empty
 
-**Question 5: Keywords**
+**Question 4: Keywords**
 ```
 Keywords for npm? (comma-separated, e.g., 'ai, sdk, plugin')
 
 Max 10 keywords.
 ```
 
-**Validation for Question 5**:
+**Validation for Question 4**:
 - Split by comma, trim whitespace
 - Max 10 keywords
 - Each keyword lowercase recommended
+
+### Phase 3: Optional Features
+
+**Question 5: Processing Lag Tests**
+```
+Does this package need processing lag tests?
+
+These tests measure the processing overhead introduced by your code compared to raw API calls.
+
+Context:
+- We can't improve the You.com API performance itself
+- But we need to quantify what lag our abstraction layer adds
+- Tests compare: raw fetch/curl vs your package methods
+- Useful for: MCP tools, SDK wrappers, API client libraries
+
+Answer "Yes" if your package wraps You.com APIs and you need to track overhead.
+Answer "No" if your package doesn't directly wrap APIs (e.g., utility libraries, CLI tools).
+```
+
+**Validation for Question 5**:
+- Must be either "Yes" or "No" (case-insensitive)
+- Store as boolean for conditional file creation
+
+**Question 6: User-Agent Prefix (only if Question 5 = "Yes")**
+```
+What is the User-Agent prefix for this package?
+
+This will be used in API requests with the format: {prefix}/{version} (You.com; {client})
+
+Examples:
+- "MCP" for MCP server packages
+- "AI-SDK" for AI SDK plugins
+- "EVAL" for evaluation harnesses
+- "CLI" for CLI tools
+
+The prefix should be short (2-10 characters) and uppercase.
+```
+
+**Validation for Question 6**:
+- Only ask if processing lag tests enabled
+- Pattern: `^[A-Z][A-Z0-9-]{1,9}$` (2-10 uppercase chars, can include hyphens)
+- Examples: "MCP", "AI-SDK", "EVAL", "CLI"
 
 ## File Creation Sequence
 
@@ -109,10 +139,6 @@ mkdir -p packages/{package-name}/docs
 **File: packages/{package-name}/.gitignore**
 - Copy from: `packages/mcp/.gitignore`
 
-**Directory: packages/{package-name}/.hooks/**
-- Copy from: `packages/mcp/.hooks/`
-- Includes git hooks: `commit-msg` and `pre-commit`
-
 **File: packages/{package-name}/tsconfig.json**
 - Copy from: `packages/mcp/tsconfig.json`
 
@@ -133,8 +159,6 @@ mkdir -p packages/{package-name}/docs
 - Keep minimal dependencies (typically just `zod` for validation)
 - Remove server-specific fields: no `bin` field needed
 
-**IMPORTANT**: All packages in this monorepo should point to the `dx-toolkit` repository, NOT to individual OSS repositories. The `directory` field indicates the package location within the monorepo.
-
 ### 3. Source Files
 
 **File: packages/{package-name}/src/utils.ts**
@@ -152,11 +176,46 @@ export const placeholder = 'Add your exports here';
 
 ### 4. Documentation Files
 
+#### Documentation Tone Guidelines
+
+**IMPORTANT**: The root `README.md` (monorepo level) is an exception and does not follow these guidelines. These tone guidelines apply to **package-level documentation only**.
+
+All packages maintain two distinct documentation files with different tones:
+- **README.md**: Encouraging, user-facing, consumption-focused
+- **AGENTS.md**: Directive, developer-facing, contribution-focused
+
+See root [AGENTS.md → Documentation Standards](../../AGENTS.md#documentation-standards) for complete guidelines.
+
+#### Tone-Specific Writing Rules
+
+**README.md (5 rules):**
+1. Use encouraging, accessible language - avoid technical jargon
+2. Second-person voice with active imperatives
+3. **Exactly 4 steps in "Getting started"**
+4. Natural language examples in quotes
+5. Progressive disclosure for complex details
+
+**AGENTS.md (5 rules):**
+1. Directive language with absolute constraints ("Always", "Never", "Must")
+2. Side-by-side code comparisons (✅/❌)
+3. Sequential workflow structure
+4. File path references with line numbers
+5. Symptom/solution troubleshooting format
+
+**API.md (5 rules):**
+1. Technical and precise tone
+2. Reference-style structure
+3. Complete runnable examples
+4. Full TypeScript signatures with arrow functions
+5. Cross-references to related exports
+
+---
+
 **File: packages/{package-name}/README.md**
 ```markdown
 # {description}
 
-[Brief overview of what the package does]
+Get up and running with {package-name} in 4 quick steps. [Brief value proposition focusing on benefits]
 
 ## Features
 
@@ -166,11 +225,9 @@ export const placeholder = 'Add your exports here';
 
 ## Getting started
 
-### Prerequisites
+### 1. Installation
 
-- Bun >= 1.2.21 (or Node.js >= 18)
-
-### Installation
+Choose your package manager:
 
 \`\`\`bash
 # NPM
@@ -183,21 +240,46 @@ bun add {npm-package-name}
 yarn add {npm-package-name}
 \`\`\`
 
-### Quick example
+### 2. Quick setup
 
 \`\`\`typescript
 import { placeholder } from '{npm-package-name}';
 
-// Add usage example here
+// Your first example - keep it simple and immediate value
 \`\`\`
+
+### 3. Configure (if needed)
+
+[Add configuration steps if applicable, or skip if no configuration needed]
+
+### 4. Test your setup
+
+Try this simple example:
+"[Natural language example showing what users can do]"
+
+## Use cases & examples
+
+### Common scenarios
+
+**When to use [feature]:**
+- "Example query in natural language"
+- "Another example showing user intent"
 
 ## Documentation
 
 For detailed API documentation, see [docs/API.md](./docs/API.md).
 
+## Troubleshooting
+
+**Issue**: [Common problem users might face]
+
+**Solution**:
+- Step 1 to resolve
+- Step 2 to verify
+
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
 ## Development
 
@@ -205,8 +287,10 @@ See [AGENTS.md](./AGENTS.md) for development setup, architecture, and patterns.
 
 ## License
 
-MIT - see [LICENSE](./LICENSE) for details.
+MIT - see [LICENSE](../../LICENSE) for details.
 ```
+
+---
 
 **File: packages/{package-name}/AGENTS.md**
 ```markdown
@@ -249,11 +333,23 @@ bun run check:write      # Auto-fix all issues
 
 This package uses [Biome](https://biomejs.dev/) for automated formatting and linting.
 
-[Add package-specific coding patterns here]
+### Package-Specific Patterns
+
+**Arrow Functions**: Always use arrow functions for declarations
+
+\`\`\`ts
+// ✅ Preferred
+export const fetchData = async (params: Params) => { ... };
+
+// ❌ Avoid
+export async function fetchData(params: Params) { ... }
+\`\`\`
+
+**[Add more package-specific coding patterns here]**
 
 ## Contributing
 
-For contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For contribution guidelines, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Publishing
 
@@ -262,81 +358,30 @@ This package is published to npm via \`.github/workflows/publish-{package-name}.
 **Version Format**: Exact versions only (no ^ or ~ prefixes)
 
 See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
-```
 
-**File: packages/{package-name}/CONTRIBUTING.md**
-```markdown
-# Contributing to {description}
+## Troubleshooting
 
-Thank you for your interest in contributing!
+### Common Issues
 
-## Code of Conduct
+#### Symptom: [Specific problem developers might encounter]
 
-This project adheres to professional open-source standards. Be respectful, constructive, and collaborative.
-
-## Getting Started
-
-### Prerequisites
-
-- Bun >= 1.2.21
-
-### Quick Setup
+**Solution**:
 
 \`\`\`bash
-git clone https://github.com/{oss-repo}.git
-cd {package-name}
-bun install
-bun run dev
+# Fix command with explanation
+command --option value
 \`\`\`
 
-For detailed development setup, see [AGENTS.md](./AGENTS.md).
-
-## How to Contribute
-
-### Reporting Bugs
-
-**Before submitting**: Check [existing issues](https://github.com/{oss-repo}/issues)
-
-**When reporting**, include:
-- Clear bug description
-- Steps to reproduce
-- Expected vs actual behavior
-- Environment details
-
-### Suggesting Features
-
-Open an issue with:
-- Clear use case description
-- Why this benefits users
-- Example usage (if applicable)
-
-### Submitting Pull Requests
-
-1. Fork the repository
-2. Create feature branch: \`git checkout -b feature/my-feature\`
-3. Make changes with tests
-4. Run checks: \`bun run check\`
-5. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-6. Push and create PR
-
-## Development Workflow
-
-See [AGENTS.md](./AGENTS.md) for:
-- Code patterns
-- Testing guidelines
-- Architecture details
-
-## Getting Help
-
-- **Issues**: [GitHub Issues](https://github.com/{oss-repo}/issues)
-- **Email**: support@you.com
+[Add more troubleshooting sections as needed]
 ```
+
+---
 
 **File: packages/{package-name}/docs/API.md**
 ```markdown
 # {description} - API Documentation
 
-[Add API documentation here]
+Complete API reference for {npm-package-name}.
 
 ## Installation
 
@@ -344,19 +389,411 @@ See [AGENTS.md](./AGENTS.md) for:
 npm install {npm-package-name}
 \`\`\`
 
-## Usage
+## Core Exports
 
-[Add usage examples]
+### `functionName`
+
+\`\`\`typescript
+export const functionName = (params: ParamsType) => ReturnType
+\`\`\`
+
+**Description**: [What this function does]
+
+**Parameters**:
+- \`param1\` (Type): Description
+- \`param2\` (Type): Description
+
+**Returns**: Type - Description
+
+**Example**:
+\`\`\`typescript
+import { functionName } from '{npm-package-name}';
+
+const result = functionName({ param1: 'value' });
+\`\`\`
+
+[Add more API documentation as needed]
 ```
 
-### 5. Create Publish Workflow
+#### Quick Tone Check
+
+Use these indicators to verify correct tone:
+
+**README.md indicators:**
+- ✅ "Get up and running in 4 steps"
+- ✅ "No installation required"
+- ✅ "Your agent will automatically..."
+- ✅ "Just describe what you want"
+- ❌ "Implementation requires..."
+- ❌ "The system executes..."
+- ❌ "Configure the following parameters..."
+
+**AGENTS.md indicators:**
+- ✅ "Always use arrow functions"
+- ✅ "NEVER bypass git hooks"
+- ✅ "All exports must be used"
+- ✅ "Check pattern: \`^[a-z]+$\`"
+- ❌ "We recommend arrow functions"
+- ❌ "Consider keeping hooks enabled"
+- ❌ "Try to avoid unused exports"
+
+#### Common Creation Mistakes
+
+1. **Tone bleed** - Don't mix README's encouraging tone with AGENTS' directive tone
+2. **Placeholder retention** - Replace all \`{placeholders}\` with actual values
+3. **Structure deviation** - Maintain exact template structure
+4. **Jargon in README** - Keep technical details in AGENTS.md
+5. **Missing validation** - Always apply checklist before completion
+
+**Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
+
+### 5. Processing Lag Tests (Optional)
+
+**ONLY create these files if user answered "Yes" to Question 5.**
+
+**Important Note**: The root-level `docs/PERFORMANCE.md` already exists with general performance testing philosophy and methodology. Package-specific documentation should reference it and add package-specific details only.
+
+**File: packages/{package-name}/tests/processing-lag.spec.ts**
+
+This template is designed for packages that wrap You.com APIs. Customize the API endpoints, methods, and thresholds based on your package's specific needs.
+
+```typescript
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { heapStats } from 'bun:jsc';
+import packageJson from '../../package.json' with { type: 'json' };
+// Import your package methods here
+// import { yourPackageMethod } from '../src/your-module.ts';
+
+/**
+ * Processing Lag Test Suite
+ *
+ * Measures the overhead introduced by our abstraction layer compared to raw API calls.
+ * We can't improve the You.com API performance itself, but we need to quantify what
+ * processing lag our code adds.
+ *
+ * Metrics:
+ * - Processing lag (absolute time difference)
+ * - Overhead percentage (relative overhead)
+ * - Memory overhead (heap growth)
+ *
+ * Thresholds:
+ * - < 50ms absolute processing lag
+ * - < 10% relative overhead
+ * - < 300KB memory overhead (adjust based on your package's needs)
+ */
+
+// API Constants - UPDATE THESE for your package
+const API_ENDPOINT = 'https://api.you.com/v1/your-endpoint'; // Replace with actual endpoint
+const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
+
+// User-Agent format: {USER_AGENT_PREFIX}/{version} (You.com; {client})
+const USER_AGENT = `{USER_AGENT_PREFIX}/${packageJson.version} (You.com; {package-name}-test)`;
+
+beforeAll(async () => {
+  console.log('\n=== Warming up ===');
+
+  // Warmup: run your package method once to eliminate cold start effects
+  console.log('Running warmup call to eliminate cold start effects...');
+
+  // TODO: Replace with your package method
+  // await yourPackageMethod({ /* test params */ });
+
+  console.log('Warmup complete. Starting measurements...\n');
+});
+
+describe('Processing Lag: Package vs Raw API Calls', () => {
+  const iterations = 10;
+
+  test.serial('API processing lag', async () => {
+    const rawTimes: number[] = [];
+    const packageTimes: number[] = [];
+
+    for (let i = 0; i < iterations; i++) {
+      // Raw API call (baseline) - UPDATE THIS based on your API
+      const rawStart = performance.now();
+      await fetch(API_ENDPOINT, {
+        method: 'POST', // or 'GET' depending on your API
+        headers: {
+          // Use appropriate auth header for your API
+          'X-API-Key': YDC_API_KEY, // or 'Authorization': `Bearer ${YDC_API_KEY}`
+          'Content-Type': 'application/json',
+          'User-Agent': USER_AGENT,
+        },
+        body: JSON.stringify({
+          // Add your API request body here
+          // Example: { query: 'test' }
+        }),
+      });
+      rawTimes.push(performance.now() - rawStart);
+
+      // Your package method (with abstraction overhead) - UPDATE THIS
+      const packageStart = performance.now();
+      // TODO: Replace with your actual package method call
+      // await yourPackageMethod({ /* test params */ });
+      packageTimes.push(performance.now() - packageStart);
+
+      // Small delay between iterations to avoid rate limiting
+      await Bun.sleep(100);
+    }
+
+    const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
+    const avgPackage = packageTimes.reduce((a, b) => a + b) / iterations;
+    const processingLag = avgPackage - avgRaw;
+    const overheadPercent = (processingLag / avgRaw) * 100;
+
+    console.log('\n=== API Processing Lag ===');
+    console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
+    console.log(`Package avg: ${avgPackage.toFixed(2)}ms`);
+    console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
+    console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
+
+    // Assert processing lag thresholds
+    expect(processingLag).toBeLessThan(50); // < 50ms absolute lag
+    expect(overheadPercent).toBeLessThan(10); // < 10% relative overhead
+  });
+
+  test.serial('Memory overhead from package abstraction', async () => {
+    // Force GC before measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const beforeHeap = heapStats();
+
+    // Run multiple operations to measure sustained memory overhead
+    for (let i = 0; i < 5; i++) {
+      // TODO: Replace with your package method
+      // await yourPackageMethod({ /* test params */ });
+    }
+
+    // Force GC after measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const afterHeap = heapStats();
+
+    const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
+    console.log('\n=== Memory Overhead ===');
+    console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+
+    // Assert memory overhead threshold
+    // Adjust threshold based on your package's complexity
+    expect(heapGrowth).toBeLessThan(1024 * 300); // < 300KB
+  });
+});
+
+describe('Processing Lag Summary', () => {
+  test('displays threshold information', () => {
+    console.log('\n=== Processing Lag Thresholds ===');
+    console.log('Absolute lag: < 50ms');
+    console.log('Relative overhead: < 10%');
+    console.log('Memory overhead: < 300KB');
+    console.log('\nNote: These tests measure the overhead introduced by our');
+    console.log('abstraction layer compared to raw API calls. We cannot improve');
+    console.log('the You.com API performance itself, but we monitor what lag');
+    console.log('our code adds to ensure it remains minimal.');
+    expect(true).toBe(true);
+  });
+});
+```
+
+**Customization Instructions:**
+
+After creating this file, you must:
+
+**IMPORTANT - Before running tests:**
+
+1. **Search for all TODOs** - There are 3 TODO comments that MUST be replaced:
+   ```bash
+   grep -n "TODO:" packages/{package-name}/tests/processing-lag.spec.ts
+   ```
+   Expected locations: ~498 (warmup), ~531 (measurement), ~565 (memory test)
+
+2. **Search for all placeholders** - Find all template variables that need replacement:
+   ```bash
+   grep -n "{" packages/{package-name}/tests/processing-lag.spec.ts | grep -v "import"
+   ```
+   Expected locations:
+   - Line ~488: `{USER_AGENT_PREFIX}` in USER_AGENT constant
+   - Line ~488: `{package-name}` in USER_AGENT comment
+
+3. **Verify no TODOs remain** before committing:
+   ```bash
+   grep "TODO:" packages/{package-name}/tests/processing-lag.spec.ts && echo "❌ TODOs found!" || echo "✅ No TODOs"
+   ```
+
+**Then customize:**
+1. Replace `{USER_AGENT_PREFIX}` with the user agent prefix from Question 6 (e.g., "MCP", "AI-SDK")
+2. Replace `{package-name}` in USER_AGENT with your actual package name
+3. Replace `API_ENDPOINT` with your actual You.com API endpoint
+4. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
+5. Replace all `yourPackageMethod` calls with your actual package method calls (3 locations)
+6. Update request parameters to match your API requirements
+7. Adjust thresholds based on package type:
+
+   | Package Type | Lag | Overhead | Memory | When to Use |
+   |--------------|-----|----------|--------|-------------|
+   | **Thin library** | 50ms | 10% | 300KB | Direct API wrappers with minimal transformation |
+   | **SDK integration** | 80ms | 35% | 350KB | Moderate validation and data transformation |
+   | **MCP server** | 100ms | 50% | 400KB | Includes stdio/JSON-RPC transport overhead |
+   | **Complex framework** | 150ms | 75% | 500KB | Multiple abstraction layers, state management |
+
+   **Default (template)**: Uses thin library thresholds (50ms/10%/300KB)
+
+   **Adjust if your package has**:
+   - Process spawning → Use MCP server thresholds
+   - Multiple transformation layers → Use SDK integration thresholds
+   - Heavy state management → Use complex framework thresholds
+
+   See [root PERFORMANCE.md](../../../docs/PERFORMANCE.md#threshold-setting-guidelines) for detailed rationale.
+8. Remove all TODO comments once complete
+9. Add multiple test cases if your package wraps multiple APIs
+
+**File: packages/{package-name}/docs/PERFORMANCE.md**
+
+This document should reference the root performance philosophy and provide package-specific details.
+
+```markdown
+# {Package Name} Performance Testing
+
+> **General methodology**: See [root performance philosophy](../../../docs/PERFORMANCE.md) for core concepts, metrics, and methodology.
+
+This document covers {package-name}-specific performance testing details, including thresholds, test structure, and package-specific troubleshooting.
+
+## Package-Specific Thresholds
+
+| Metric | Threshold | Rationale |
+|--------|-----------|-----------|
+| **Processing lag** | < 50ms | TODO: Explain why this threshold for your package architecture |
+| **Overhead percentage** | < 10% | TODO: Explain acceptable overhead for your package |
+| **Memory overhead** | < 300KB | TODO: Explain memory requirements for your package |
+
+**Architecture considerations** (customize for your package):
+- List key overhead sources (e.g., validation, transformation, protocol overhead)
+- Explain why your thresholds differ from defaults (if they do)
+- Document any package-specific performance characteristics
+
+## Test Suite Structure
+
+### Test File Location
+`packages/{package-name}/tests/processing-lag.spec.ts`
+
+### APIs Tested
+
+#### API 1: {API Name}
+- **Endpoint**: `{METHOD} https://api.you.com/v1/{endpoint}`
+- **Authentication**: `{X-API-Key or Bearer}` header
+- **Iterations**: {number}
+- **Measures**: {what aspect of processing lag}
+
+TODO: Add more APIs if your package wraps multiple endpoints
+
+## Running Tests
+
+### Basic Execution
+
+```bash
+cd packages/{package-name}
+
+# Run processing lag tests
+bun test tests/processing-lag.spec.ts
+
+# Run with extended timeout if needed
+bun test tests/processing-lag.spec.ts --timeout 60000
+```
+
+### Prerequisites
+
+**Required**:
+- `YDC_API_KEY` environment variable set
+- TODO: List any package-specific prerequisites
+
+**Recommended**:
+- Stable network connection (no VPN)
+- Minimal system load
+- Recent `bun install`
+
+### Example Output
+
+```
+=== {API Name} Processing Lag ===
+Raw API avg: XXXms
+Package avg: XXXms
+Processing lag: XXms
+Overhead: X.XX%
+
+=== Memory Overhead ===
+Heap before: XXXX KB
+Heap after: XXXX KB
+Heap growth: XXX KB
+
+✓ All thresholds met
+```
+
+## Understanding Results
+
+### Negative Processing Lag
+TODO: Explain if/why your package might show negative lag
+
+### Low Positive Lag (< threshold)
+TODO: Explain what's normal for your package
+
+### High Positive Lag (> threshold)
+TODO: Explain when to investigate
+
+## Package-Specific Troubleshooting
+
+### Common Issue 1
+**Symptom**: TODO: Describe symptom
+
+**Cause**: TODO: Explain cause
+
+**Solution**: TODO: Provide solution
+
+TODO: Add more troubleshooting sections as needed
+
+## Optimization Guidelines
+
+TODO: Add package-specific optimization tips
+
+## Continuous Monitoring
+
+### In CI/CD
+Processing lag tests run automatically on:
+- Every pull request
+- Main branch commits
+- Release workflows
+
+### Local Development
+Run tests before committing:
+```bash
+bun test tests/processing-lag.spec.ts
+```
+
+## Related Documentation
+
+- [Root Performance Philosophy](../../../docs/PERFORMANCE.md) - General methodology
+- [Package README](../README.md) - Package overview
+- [Development Guide](../AGENTS.md) - Contributing guidelines
+```
+
+**Customization Required**:
+1. Replace all `{placeholder}` values with actual package information
+2. Fill in all `TODO:` sections with package-specific details
+3. Adjust thresholds based on your package's architecture
+4. Add package-specific troubleshooting sections
+5. Include optimization tips relevant to your package
+6. Remove sections that don't apply to your package
+
+### 6. Create Publish Workflow
 
 **File: .github/workflows/publish-{package-name}.yml**
 
 **CRITICAL**:
 - Workflow name MUST be "Publish {package-name} Release"
 - Package directory is automatically derived from npm package name
-- No need to specify package_name parameter
+- No separate OSS repository needed - everything is published from dx-toolkit
 
 Create minimal caller workflow:
 
@@ -378,18 +815,22 @@ jobs:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "{npm-package-name}"
-      oss_repo: "{oss-repo}"
       version: ${{ github.event.inputs.version }}
       next: ${{ github.event.inputs.next }}
     secrets:
-      RELEASE_ADMIN_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: ${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: ${{ secrets.MCP_NPM_TOKEN }}
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
 ```
 
-**Why no package_name?** The reusable workflow extracts it from `npm_package_name`:
-- `@youdotcom-oss/ai-sdk` → Directory: `packages/ai-sdk`
-- `@youdotcom-oss/eval` → Directory: `packages/eval`
+**Why no separate repos?** All packages are published directly from the dx-toolkit monorepo to npm. This simplifies:
+- Version management
+- Release coordination
+- Dependency updates
+- Documentation consistency
+
+**Authentication**: This monorepo uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) (OIDC) for npm authentication:
+- No npm tokens required - GitHub Actions authenticates automatically using OIDC
+- Automatic provenance generation for supply chain security
+- Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
 
 **Create the file**:
 
@@ -397,7 +838,6 @@ jobs:
 # Replace placeholders with actual values
 PACKAGE_NAME="{package-name}"
 NPM_PACKAGE="{npm-package-name}"
-OSS_REPO="{oss-repo}"
 
 cat > ".github/workflows/publish-${PACKAGE_NAME}.yml" << EOF
 name: Publish ${PACKAGE_NAME} Release
@@ -417,13 +857,10 @@ jobs:
     uses: ./.github/workflows/_publish-package.yml
     with:
       npm_package_name: "${NPM_PACKAGE}"
-      oss_repo: "${OSS_REPO}"
       version: \${{ github.event.inputs.version }}
       next: \${{ github.event.inputs.next }}
     secrets:
-      RELEASE_ADMIN_TOKEN: \${{ secrets.RELEASE_ADMIN_TOKEN }}
-      YDC_OSS_PUBLISH_TOKEN: \${{ secrets.YDC_OSS_PUBLISH_TOKEN }}
-      NPM_TOKEN: \${{ secrets.MCP_NPM_TOKEN }}
+      PUBLISH_TOKEN: \${{ secrets.PUBLISH_TOKEN }}
 EOF
 
 # Verify the output
@@ -448,60 +885,22 @@ Provide the user with this checklist:
 
 **Location**: packages/{package-name}/
 **NPM**: {npm-package-name}
-**OSS Repo**: {oss-repo}
+**Repository**: youdotcom-oss/dx-toolkit (monorepo)
 
 ---
 
 ## Next Steps (Manual)
 
-### 1. Create OSS Repository
-
-Create the OSS repository:
-1. Go to: https://github.com/organizations/youdotcom-oss/repositories/new
-2. Repository name: `{package-name}`
-3. Description: `{description}`
-4. **Public repository**
-5. **DO NOT** initialize with README (we'll sync from monorepo)
-6. Click "Create repository"
-
-### 2. Configure GitHub Secrets
-
-**Important**: This monorepo uses a **shared token** for all OSS operations.
-
-The existing `MCP_OSS_REMOTE_TOKEN` secret works for all packages. You do **NOT** need to create a new token.
-
-**Verification**:
-1. Check that `MCP_OSS_REMOTE_TOKEN` exists in: https://github.com/youdotcom-oss/dx-toolkit/settings/secrets/actions
-2. Ensure the token has these permissions:
-   - Read access to metadata
-   - Read and Write access to code (for all `youdotcom-oss/*` repos)
-
-**Only create a new token if**:
-- The existing token doesn't have access to your new OSS repo
-- Your organization requires per-package tokens (update workflows accordingly)
-
-### 3. Test Publish Workflow
-
-Test the publish workflow before going live:
-1. Go to: https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml
-2. Click "Run workflow"
-3. Enter version: `0.1.0-test-1`
-4. Optionally enter "next" number to create a pre-release
-5. Verify all jobs succeed:
-   - ✅ Create Release
-   - ✅ Sync to OSS Repository
-   - ✅ Publish to NPM (next tag)
-
-### 4. Implement Package Logic
+### 1. Implement Package Logic
 
 Now implement your package:
-1. Edit `packages/{package-name}/src/main.ts` - Add your public API
+1. Edit `packages/{package-name}/src/utils.ts` - Add your public API
 2. Create feature modules in `src/`
 3. Add tests in `tests/`
 4. Update `docs/API.md` with API documentation
 5. Run `bun run check` to verify code quality
 
-### 5. Test Publish Workflow
+### 2. Test Publish Workflow
 
 Before going live, test the publish workflow with a prerelease:
 
@@ -513,24 +912,21 @@ Before going live, test the publish workflow with a prerelease:
 4. Verify all workflow steps succeed:
    - ✅ Input validation passes
    - ✅ Version updated in package.json
-   - ✅ GitHub release created (private repo)
-   - ✅ Synced to OSS repository via git subtree
-   - ✅ GitHub release created (OSS repo)
+   - ✅ GitHub release created
    - ✅ Published to npm with `next` tag
 
 5. Verify prerelease:
    - npm: `npm view {npm-package-name}@next`
    - Should show version `0.1.0-next.1`
 
-### 6. First Stable Release
+### 3. First Stable Release
 
 When ready for first public release:
-1. Ensure OSS repository exists and is configured
-2. Push package code to main branch
-3. Trigger publish workflow with version `0.1.0`
-4. Verify npm package: https://www.npmjs.com/package/{npm-package-name}
-5. Verify GitHub release: https://github.com/{oss-repo}/releases
-6. Test installation: `bun add {npm-package-name}`
+1. Push package code to main branch
+2. Trigger publish workflow with version `0.1.0`
+3. Verify npm package: https://www.npmjs.com/package/{npm-package-name}
+4. Verify GitHub release: https://github.com/youdotcom-oss/dx-toolkit/releases
+5. Test installation: `bun add {npm-package-name}`
 
 ---
 
@@ -538,9 +934,6 @@ When ready for first public release:
 
 \`\`\`
 packages/{package-name}/
-├── .hooks/
-│   ├── commit-msg
-│   └── pre-commit
 ├── src/
 │   └── utils.ts
 ├── tests/
@@ -551,8 +944,7 @@ packages/{package-name}/
 ├── biome.json
 ├── .gitignore
 ├── README.md
-├── AGENTS.md
-└── CONTRIBUTING.md
+└── AGENTS.md
 \`\`\`
 
 ## Workflow Files Created

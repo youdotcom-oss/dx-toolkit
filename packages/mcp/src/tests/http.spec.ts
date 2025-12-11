@@ -283,36 +283,40 @@ describe('HTTP MCP Endpoint Basic Functionality', () => {
     expect(text).toContain('42');
   });
 
-  test('mcp server handles search tool request for latest tech news', async () => {
-    const response = await fetch(`${baseUrl}/mcp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream',
-        Authorization: `Bearer ${testApiKey}`,
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'tools/call',
-        id: 100,
-        params: {
-          name: 'you-search',
-          arguments: {
-            query: 'latest tech news',
-            count: 3,
-          },
+  test(
+    'mcp server handles search tool request for latest tech news',
+    async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+          Authorization: `Bearer ${testApiKey}`,
         },
-      }),
-    });
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'tools/call',
+          id: 100,
+          params: {
+            name: 'you-search',
+            arguments: {
+              query: 'latest tech news',
+              count: 3,
+            },
+          },
+        }),
+      });
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get('content-type')).toContain('text/event-stream');
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('text/event-stream');
 
-    const text = await response.text();
-    expect(text).toContain('data:');
-    expect(text).toContain('jsonrpc');
-    expect(text).toContain('result');
-    expect(text).toContain('latest tech news');
-    expect(text).toContain('Search Results for');
-  });
+      const text = await response.text();
+      expect(text).toContain('data:');
+      expect(text).toContain('jsonrpc');
+      expect(text).toContain('result');
+      expect(text).toContain('latest tech news');
+      expect(text).toContain('Search Results for');
+    },
+    { retry: 2 },
+  );
 });

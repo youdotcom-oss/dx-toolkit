@@ -5,67 +5,135 @@ import { fetchSearchResults, formatSearchResults } from '../search.utils.ts';
 const getUserAgent = () => 'MCP/test (You.com; test-client)';
 
 describe('fetchSearchResults', () => {
-  test('returns valid response structure for basic query', async () => {
-    const result = await fetchSearchResults({
-      searchQuery: { query: 'latest stock news' },
-      getUserAgent,
-    });
+  test(
+    'returns valid response structure for basic query',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: { query: 'latest stock news' },
+        getUserAgent,
+      });
 
-    expect(result).toHaveProperty('results');
-    expect(result).toHaveProperty('metadata');
-    expect(result.results).toHaveProperty('web');
-    expect(result.results).toHaveProperty('news');
-    expect(Array.isArray(result.results.web)).toBe(true);
-    expect(Array.isArray(result.results.news)).toBe(true);
+      expect(result).toHaveProperty('results');
+      expect(result).toHaveProperty('metadata');
+      expect(result.results).toHaveProperty('web');
+      expect(result.results).toHaveProperty('news');
+      expect(Array.isArray(result.results.web)).toBe(true);
+      expect(Array.isArray(result.results.news)).toBe(true);
 
-    // Assert required metadata fields
-    expect(typeof result.metadata?.query).toBe('string');
+      // Assert required metadata fields
+      expect(typeof result.metadata?.query).toBe('string');
 
-    // Optional fields: only assert type if present
-    if (result.metadata?.request_uuid !== undefined) {
-      expect(typeof result.metadata.request_uuid).toBe('string');
-    }
-  });
+      // search_uuid is optional but should be string if present
+      expect(result.metadata?.search_uuid).toBeDefined();
+      expect(typeof result.metadata?.search_uuid).toBe('string');
+    },
+    { retry: 2 },
+  );
 
-  test('handles search with filters', async () => {
-    const result = await fetchSearchResults({
-      searchQuery: {
-        query: 'javascript tutorial',
-        count: 3,
-        freshness: 'week',
-        country: 'US',
-      },
-      getUserAgent,
-    });
+  test(
+    'handles search with filters',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: {
+          query: 'javascript tutorial',
+          count: 3,
+          freshness: 'week',
+          country: 'US',
+        },
+        getUserAgent,
+      });
 
-    expect(result.results.web?.length).toBeLessThanOrEqual(3);
-    expect(result.metadata?.query).toContain('javascript tutorial');
-  });
+      expect(result.results.web?.length).toBeLessThanOrEqual(3);
+      expect(result.metadata?.query).toContain('javascript tutorial');
+    },
+    { retry: 2 },
+  );
 
-  test('validates response schema', async () => {
-    const result = await fetchSearchResults({
-      searchQuery: { query: 'latest technology news' },
-      getUserAgent,
-    });
+  test(
+    'validates response schema',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: { query: 'latest technology news' },
+        getUserAgent,
+      });
 
-    // Test that web results have required properties
-    // biome-ignore lint/style/noNonNullAssertion: Test
-    const webResult = result.results.web![0];
+      // Test that web results have required properties
+      // biome-ignore lint/style/noNonNullAssertion: Test
+      const webResult = result.results.web![0];
 
-    expect(webResult).toHaveProperty('url');
-    expect(webResult).toHaveProperty('title');
-    expect(webResult).toHaveProperty('description');
-    expect(webResult).toHaveProperty('snippets');
-    expect(Array.isArray(webResult?.snippets)).toBe(true);
+      expect(webResult).toHaveProperty('url');
+      expect(webResult).toHaveProperty('title');
+      expect(webResult).toHaveProperty('description');
+      expect(webResult).toHaveProperty('snippets');
+      expect(Array.isArray(webResult?.snippets)).toBe(true);
 
-    // Test that news results have required properties
-    // biome-ignore lint/style/noNonNullAssertion: Test
-    const newsResult = result.results.news![0];
-    expect(newsResult).toHaveProperty('url');
-    expect(newsResult).toHaveProperty('title');
-    expect(newsResult).toHaveProperty('description');
-    expect(newsResult).toHaveProperty('page_age');
-  });
+      // Test that news results have required properties
+      // biome-ignore lint/style/noNonNullAssertion: Test
+      const newsResult = result.results.news![0];
+      expect(newsResult).toHaveProperty('url');
+      expect(newsResult).toHaveProperty('title');
+      expect(newsResult).toHaveProperty('description');
+      expect(newsResult).toHaveProperty('page_age');
+    },
+    { retry: 2 },
+  );
+
+  test(
+    'handles livecrawl parameters',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: {
+          query: 'python tutorial',
+          count: 2,
+          livecrawl: 'web',
+          livecrawl_formats: 'markdown',
+        },
+        getUserAgent,
+      });
+
+      expect(result.results.web?.length).toBeLessThanOrEqual(2);
+      // Livecrawl should return contents field (fails naturally if not present)
+      expect(result.results.web?.[0]).toHaveProperty('contents');
+      expect(result.results.web?.[0]?.contents).toHaveProperty('markdown');
+      expect(typeof result.results.web?.[0]?.contents?.markdown).toBe('string');
+    },
+    { retry: 2 },
+  );
+
+  test(
+    'handles freshness date ranges',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: {
+          query: 'AI news',
+          freshness: '2024-01-01to2024-12-31',
+          count: 3,
+        },
+        getUserAgent,
+      });
+
+      expect(result).toHaveProperty('results');
+      expect(result.metadata?.query).toContain('AI news');
+    },
+    { retry: 2 },
+  );
+
+  test(
+    'handles count greater than 20',
+    async () => {
+      const result = await fetchSearchResults({
+        searchQuery: {
+          query: 'machine learning',
+          count: 50,
+        },
+        getUserAgent,
+      });
+
+      expect(result.results.web?.length).toBeGreaterThan(0);
+      expect(result.results.web?.length).toBeLessThanOrEqual(50);
+    },
+    { retry: 2 },
+  );
 });
 
 describe('formatSearchResults', () => {
@@ -85,7 +153,7 @@ describe('formatSearchResults', () => {
         news: [],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -132,7 +200,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },
@@ -182,7 +250,7 @@ describe('formatSearchResults', () => {
         ],
       },
       metadata: {
-        request_uuid: 'test-uuid',
+        search_uuid: 'test-uuid',
         query: 'test query',
         latency: 0.1,
       },

@@ -71,12 +71,68 @@ export const fetchData = async (params: Params) => { ... };
 export async function fetchData(params: Params) { ... }
 ```
 
+**Numeric Separators**: Use underscores for large numbers (improves readability)
+
+```ts
+// ✅ Preferred
+const timeout = 90_000; // 90 seconds
+const maxSize = 1_000_000; // 1 million
+const largeNumber = 1_234_567_890;
+
+// ❌ Avoid
+const timeout = 90000;
+const maxSize = 1000000;
+const largeNumber = 1234567890;
+```
+
 **No Unused Exports**: All exports must be actively used (Biome detects unused variables/imports, but NOT unused exports)
 
 ```bash
 # Before adding exports, verify usage:
 grep -r "ExportName" src/
 ```
+
+**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
+
+```ts
+// ✅ Preferred - Bun native APIs
+import { $ } from 'bun';
+import { heapStats } from 'bun:jsc';
+
+// Path resolution (throws if not found - perfect for validation)
+const path = Bun.resolveSync('./file.js', import.meta.dir);
+
+// Shell commands
+await $`ls -la`;
+const output = await $`echo hello`.text();
+
+// Sleep
+await Bun.sleep(100);
+
+// Garbage collection
+Bun.gc(true);
+
+// ❌ Avoid - Node.js APIs when Bun alternative exists
+import { existsSync } from 'node:fs';
+import { exec } from 'node:child_process';
+const path = require.resolve('./file.js');
+await new Promise(resolve => setTimeout(resolve, 100));
+```
+
+**Why prefer Bun APIs?**
+- Better performance (native implementation)
+- Better TypeScript integration
+- More predictable behavior in Bun runtime
+- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
+
+**When Node.js APIs are acceptable:**
+- No Bun equivalent exists
+- Compatibility with Node.js runtime required
+- Third-party package dependency requires it
+
+**Resources:**
+- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
+- [Bun Shell](https://bun.sh/docs/runtime/shell)
 
 ### MCP-Specific Patterns
 
@@ -176,6 +232,72 @@ For detailed contribution guidelines, including:
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
+### Maintaining Documentation
+
+Some documentation files require regular maintenance as the codebase evolves.
+
+#### PERFORMANCE.md Maintenance
+
+**File**: `docs/PERFORMANCE.md`
+**Type**: Living document (requires updates)
+**Owner**: Package maintainers
+
+**When to Update**:
+
+1. **Threshold Changes** - Update when performance thresholds are adjusted
+   - Document rationale for changes
+   - Update both threshold table and related text
+   - Example: Increasing memory threshold from 400KB to 500KB
+
+2. **Architecture Changes** - Update when MCP server architecture changes
+   - Add/remove overhead sources
+   - Update latency estimates (e.g., "stdio transport: 20-40ms")
+   - Revise optimization patterns
+
+3. **New APIs Added** - Update when new MCP tools are added
+   - Add new API section under "APIs Tested"
+   - Document authentication method
+   - Specify iteration count and timeout
+
+4. **Troubleshooting Updates** - Add new issues as they're discovered
+   - Document symptoms, causes, solutions
+   - Include investigation commands
+   - Link to related issues/PRs
+
+5. **Quarterly Reviews** - Review every 3 months
+   - Analyze threshold trends from CI results
+   - Verify thresholds still realistic
+   - Update examples with recent metrics
+   - Document in commit: `docs(mcp): quarterly performance review Q1 2025`
+
+**Update Process**:
+
+```bash
+# 1. Update PERFORMANCE.md
+vim docs/PERFORMANCE.md
+
+# 2. Run performance tests to verify examples
+bun test src/tests/processing-lag.spec.ts
+
+# 3. Update test thresholds if needed
+vim src/tests/processing-lag.spec.ts
+
+# 4. Commit changes
+git commit -m "docs(mcp): update performance thresholds and troubleshooting"
+```
+
+**Review Checklist**:
+- [ ] Thresholds match test file constants
+- [ ] Examples use recent test output
+- [ ] API list matches actual MCP tools
+- [ ] Troubleshooting sections accurate
+- [ ] Related docs updated (root PERFORMANCE.md if methodology changes)
+
+**Related Files**:
+- `src/tests/processing-lag.spec.ts` - Test thresholds must match
+- `../../docs/PERFORMANCE.md` - Root philosophy (update if methodology changes)
+- `README.md` - Performance claims should align with metrics
+
 ## Publishing
 
 ### Release Process
@@ -187,10 +309,19 @@ This package is published to npm via the `.github/workflows/publish-mcp.yml` wor
 2. Scans all workspace packages for dependencies on `@youdotcom-oss/mcp`
 3. Updates dependent packages with exact version (e.g., "1.4.0")
 4. Commits all version updates together
-5. Creates GitHub release in private repo
-6. Syncs to OSS repo via git subtree split
-7. Creates GitHub release in OSS repo
-8. Publishes to npm
+5. Creates GitHub release in this repository
+6. Publishes to npm
+7. Triggers remote deployment via `repository_dispatch` event (MCP-specific)
+   - Sends `update-mcp-version` event to deployment repository
+   - For stable releases: Triggers `deploy-mcp-production` event after version update completes
+   - Prereleases skip production deployment
+8. Publishes to Anthropic MCP Registry (stable releases only, MCP-specific)
+   - Automatically updates `server.json` versions to match published package
+   - Authenticates via GitHub OIDC (no manual credentials required)
+   - Runs only after successful production deployment
+   - Makes server discoverable at `io.github.youdotcom-oss/mcp`
+
+**Note**: Steps 7-8 are specific to the MCP package which requires remote deployment infrastructure and registry presence. Other packages in this monorepo have simpler publish workflows that only perform steps 1-6.
 
 **Version Format**: Exact versions only (no `^` or `~` prefixes)
 
@@ -296,6 +427,101 @@ if (item?.markdown) {
 expect(item).toBeDefined();
 expect(item).toHaveProperty("url"); // Fails with clear error if undefined
 ```
+
+### Shared Client Patterns
+
+**IMPORTANT: Long-running serial tests with retries can disconnect shared clients**
+
+#### Problem
+
+When using `test.serial()` with shared MCP client from `beforeAll`, long-running tests (especially with `retry` configuration) may cause:
+- Connection timeouts
+- Process cleanup by CI
+- "Not connected" errors in subsequent tests
+
+#### Solution: Use Dedicated Clients for Isolated Tests
+
+❌ **Shared Client** - Can disconnect after long-running tests:
+
+```ts
+let client: Client; // Shared across all tests
+
+beforeAll(async () => {
+  // ... setup
+  client = new Client({ name: 'test-client', version: '1.0.0' });
+  await client.connect(transport);
+});
+
+test.serial('long test with retries', async () => {
+  // Takes 53+ seconds with retries
+  await client.callTool(/* ... */);
+}, { timeout: 90_000, retry: 2 });
+
+test.serial('memory test', async () => {
+  // FAILS: client disconnected after previous test
+  await client.callTool(/* ... */); // Error: Not connected
+});
+```
+
+✅ **Dedicated Client** - Create fresh client for isolated tests:
+
+```ts
+test.serial('memory test', async () => {
+  // Create dedicated client for this test only
+  const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+  const transport = new StdioClientTransport({
+    command: 'npx',
+    args: [stdioPath],
+    env: { YDC_API_KEY },
+  });
+
+  const memoryClient = new Client({
+    name: 'memory-test-client',
+    version: '1.0.0',
+  });
+
+  await memoryClient.connect(transport);
+
+  // Run test operations
+  await memoryClient.callTool(/* ... */);
+
+  // Clean up
+  await memoryClient.close();
+}, { timeout: 15_000 });
+```
+
+#### When to Use Each Pattern
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| **Shared Client** | Quick tests (<30s each), no retry | Unit tests, basic integration tests |
+| **Dedicated Client** | Long tests (>30s), tests with retry, isolated state | Memory tests, performance tests, flaky API tests |
+
+#### Example: Processing Lag Test Suite
+
+See `src/tests/processing-lag.spec.ts` for complete example:
+- **Shared client**: Used for Search/Express/Contents lag tests
+- **Dedicated client**: Used for memory test to avoid connection issues
+
+### Test Retry Configuration
+
+All API-dependent tests use `{ retry: 2 }` for network resilience:
+
+```ts
+test('API test', async () => {
+  // Test implementation
+}, { retry: 2 }); // 3 total attempts (1 initial + 2 retries)
+```
+
+**Benefits**:
+- Handles transient network issues, rate limiting, intermittent failures
+- Tests pass if any of 3 attempts succeed
+- Low cost: only runs extra attempts on failure
+
+**Considerations**:
+- Total test time = iterations × max_attempts × time_per_iteration
+- Long tests with retry may disconnect shared clients (use dedicated client)
+- Example: 5 iterations × 3 attempts × 7s/call = 105s max
 
 ### Running Tests
 
