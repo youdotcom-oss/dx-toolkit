@@ -77,6 +77,28 @@ Max 10 keywords.
 - Max 10 keywords
 - Each keyword lowercase recommended
 
+### Phase 3: Optional Features
+
+**Question 5: Processing Lag Tests**
+```
+Does this package need processing lag tests?
+
+These tests measure the processing overhead introduced by your code compared to raw API calls.
+
+Context:
+- We can't improve the You.com API performance itself
+- But we need to quantify what lag our abstraction layer adds
+- Tests compare: raw fetch/curl vs your package methods
+- Useful for: MCP tools, SDK wrappers, API client libraries
+
+Answer "Yes" if your package wraps You.com APIs and you need to track overhead.
+Answer "No" if your package doesn't directly wrap APIs (e.g., utility libraries, CLI tools).
+```
+
+**Validation for Question 5**:
+- Must be either "Yes" or "No" (case-insensitive)
+- Store as boolean for conditional file creation
+
 ## File Creation Sequence
 
 After ALL questions answered and validated, create files in this order:
@@ -405,7 +427,206 @@ Use these indicators to verify correct tone:
 
 **Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
 
-### 5. Create Publish Workflow
+### 5. Processing Lag Tests (Optional)
+
+**ONLY create these files if user answered "Yes" to Question 5.**
+
+**File: packages/{package-name}/tests/processing-lag.spec.ts**
+
+This template is designed for packages that wrap You.com APIs. Customize the API endpoints, methods, and thresholds based on your package's specific needs.
+
+```typescript
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { heapStats } from 'bun:jsc';
+// Import your package methods here
+// import { yourPackageMethod } from '../src/your-module.ts';
+
+/**
+ * Processing Lag Test Suite
+ *
+ * Measures the overhead introduced by our abstraction layer compared to raw API calls.
+ * We can't improve the You.com API performance itself, but we need to quantify what
+ * processing lag our code adds.
+ *
+ * Metrics:
+ * - Processing lag (absolute time difference)
+ * - Overhead percentage (relative overhead)
+ * - Memory overhead (heap growth)
+ *
+ * Thresholds:
+ * - < 50ms absolute processing lag
+ * - < 10% relative overhead
+ * - < 300KB memory overhead (adjust based on your package's needs)
+ */
+
+// API Constants - UPDATE THESE for your package
+const API_ENDPOINT = 'https://api.you.com/v1/your-endpoint'; // Replace with actual endpoint
+const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
+
+beforeAll(async () => {
+  console.log('\n=== Warming up ===');
+
+  // Warmup: run your package method once to eliminate cold start effects
+  console.log('Running warmup call to eliminate cold start effects...');
+
+  // TODO: Replace with your package method
+  // await yourPackageMethod({ /* test params */ });
+
+  console.log('Warmup complete. Starting measurements...\n');
+});
+
+describe('Processing Lag: Package vs Raw API Calls', () => {
+  const iterations = 10;
+
+  test.serial('API processing lag', async () => {
+    const rawTimes: number[] = [];
+    const packageTimes: number[] = [];
+
+    for (let i = 0; i < iterations; i++) {
+      // Raw API call (baseline) - UPDATE THIS based on your API
+      const rawStart = performance.now();
+      await fetch(API_ENDPOINT, {
+        method: 'POST', // or 'GET' depending on your API
+        headers: {
+          // Use appropriate auth header for your API
+          'X-API-Key': YDC_API_KEY, // or 'Authorization': `Bearer ${YDC_API_KEY}`
+          'Content-Type': 'application/json',
+          'User-Agent': 'processing-lag-test/1.0',
+        },
+        body: JSON.stringify({
+          // Add your API request body here
+          // Example: { query: 'test' }
+        }),
+      });
+      rawTimes.push(performance.now() - rawStart);
+
+      // Your package method (with abstraction overhead) - UPDATE THIS
+      const packageStart = performance.now();
+      // TODO: Replace with your actual package method call
+      // await yourPackageMethod({ /* test params */ });
+      packageTimes.push(performance.now() - packageStart);
+
+      // Small delay between iterations to avoid rate limiting
+      await Bun.sleep(100);
+    }
+
+    const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
+    const avgPackage = packageTimes.reduce((a, b) => a + b) / iterations;
+    const processingLag = avgPackage - avgRaw;
+    const overheadPercent = (processingLag / avgRaw) * 100;
+
+    console.log('\n=== API Processing Lag ===');
+    console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
+    console.log(`Package avg: ${avgPackage.toFixed(2)}ms`);
+    console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
+    console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
+
+    // Assert processing lag thresholds
+    expect(processingLag).toBeLessThan(50); // < 50ms absolute lag
+    expect(overheadPercent).toBeLessThan(10); // < 10% relative overhead
+  });
+
+  test.serial('Memory overhead from package abstraction', async () => {
+    // Force GC before measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const beforeHeap = heapStats();
+
+    // Run multiple operations to measure sustained memory overhead
+    for (let i = 0; i < 5; i++) {
+      // TODO: Replace with your package method
+      // await yourPackageMethod({ /* test params */ });
+    }
+
+    // Force GC after measurement
+    Bun.gc(true);
+    await Bun.sleep(100); // Let GC complete
+
+    const afterHeap = heapStats();
+
+    const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
+    console.log('\n=== Memory Overhead ===');
+    console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
+    console.log(`Heap growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+
+    // Assert memory overhead threshold
+    // Adjust threshold based on your package's complexity
+    expect(heapGrowth).toBeLessThan(1024 * 300); // < 300KB
+  });
+});
+
+describe('Processing Lag Summary', () => {
+  test('displays threshold information', () => {
+    console.log('\n=== Processing Lag Thresholds ===');
+    console.log('Absolute lag: < 50ms');
+    console.log('Relative overhead: < 10%');
+    console.log('Memory overhead: < 300KB');
+    console.log('\nNote: These tests measure the overhead introduced by our');
+    console.log('abstraction layer compared to raw API calls. We cannot improve');
+    console.log('the You.com API performance itself, but we monitor what lag');
+    console.log('our code adds to ensure it remains minimal.');
+    expect(true).toBe(true);
+  });
+});
+```
+
+**Customization Instructions:**
+
+After creating this file, you must:
+1. Replace `API_ENDPOINT` with your actual You.com API endpoint
+2. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
+3. Replace `yourPackageMethod` with your actual package method calls
+4. Update request parameters to match your API requirements
+5. Adjust thresholds if needed (default: 50ms lag, 10% overhead, 300KB memory)
+6. Add multiple test cases if your package wraps multiple APIs
+
+**File: packages/{package-name}/docs/PERFORMANCE.md**
+
+```markdown
+# Performance Testing
+
+This package includes processing lag tests to measure the overhead introduced by our abstraction layer compared to raw You.com API calls.
+
+## What We Measure
+
+- **Processing lag**: Absolute time difference between raw API calls and our package methods
+- **Overhead percentage**: Relative overhead as a percentage of raw API time
+- **Memory overhead**: Heap growth from our abstraction layer
+
+## Acceptable Thresholds
+
+- Processing lag: < 50ms
+- Overhead: < 10%
+- Memory: < 300KB (adjust based on package complexity)
+
+## Running Tests
+
+```bash
+# Run processing lag tests
+bun test tests/processing-lag.spec.ts
+
+# Run with multiple iterations for reliability
+bun test --rerun-each 100 tests/processing-lag.spec.ts
+```
+
+## Interpreting Results
+
+These tests measure **what lag our code adds**, not the You.com API performance itself. We cannot improve API latency, but we ensure our abstraction layer introduces minimal overhead.
+
+If tests fail:
+1. Review recent code changes that may have added overhead
+2. Check for unnecessary data transformations or copies
+3. Profile with `bun --cpu-prof test tests/processing-lag.spec.ts`
+4. Consider optimizing hot paths identified in profiling
+
+## CI Integration
+
+Processing lag tests run automatically in CI to detect performance regressions.
+```
+
+### 6. Create Publish Workflow
 
 **File: .github/workflows/publish-{package-name}.yml**
 
