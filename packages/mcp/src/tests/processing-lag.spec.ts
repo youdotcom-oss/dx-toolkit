@@ -50,58 +50,61 @@ const calculateStats = (times: number[]) => {
   };
 };
 
-beforeAll(async () => {
-  console.log('\n=== Warming up: Building and starting MCP server ===');
+beforeAll(
+  async () => {
+    console.log('\n=== Warming up: Building and starting MCP server ===');
 
-  // Build MCP server with error handling
-  const buildResult = await $`bun run build`.quiet();
-  if (buildResult.exitCode !== 0) {
-    throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
-  }
+    // Build MCP server with error handling
+    const buildResult = await $`bun run build`.quiet();
+    if (buildResult.exitCode !== 0) {
+      throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
+    }
 
-  // Resolve stdio path (Bun.resolveSync throws if file not found)
-  let stdioPath: string;
-  try {
-    stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
-  } catch (_err) {
-    throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
-  }
+    // Resolve stdio path (Bun.resolveSync throws if file not found)
+    let stdioPath: string;
+    try {
+      stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
+    } catch (_err) {
+      throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
+    }
 
-  const transport = new StdioClientTransport({
-    command: 'npx',
-    args: [stdioPath],
-    env: {
-      YDC_API_KEY,
-    },
-  });
+    const transport = new StdioClientTransport({
+      command: 'npx',
+      args: [stdioPath],
+      env: {
+        YDC_API_KEY,
+      },
+    });
 
-  client = new Client({
-    name: 'processing-lag-test-client',
-    version: '0.0.1',
-  });
+    client = new Client({
+      name: 'processing-lag-test-client',
+      version: '0.0.1',
+    });
 
-  await client.connect(transport);
+    await client.connect(transport);
 
-  // Warmup: run each tool once to eliminate cold start effects
-  console.log('Running warmup calls to eliminate cold start effects...');
+    // Warmup: run each tool once to eliminate cold start effects
+    console.log('Running warmup calls to eliminate cold start effects...');
 
-  await client.callTool({
-    name: 'you-search',
-    arguments: { query: 'warmup', count: 1 },
-  });
+    await client.callTool({
+      name: 'you-search',
+      arguments: { query: 'warmup', count: 1 },
+    });
 
-  await client.callTool({
-    name: 'you-express',
-    arguments: { input: 'warmup' },
-  });
+    await client.callTool({
+      name: 'you-express',
+      arguments: { input: 'warmup' },
+    });
 
-  await client.callTool({
-    name: 'you-contents',
-    arguments: { urls: ['https://example.com'], format: 'markdown' },
-  });
+    await client.callTool({
+      name: 'you-contents',
+      arguments: { urls: ['https://example.com'], format: 'markdown' },
+    });
 
-  console.log('Warmup complete. Starting measurements...\n');
-});
+    console.log('Warmup complete. Starting measurements...\n');
+  },
+  { timeout: 30_000 },
+); // 30s timeout for build + server startup + 3 warmup API calls
 
 afterAll(async () => {
   await client.close();
