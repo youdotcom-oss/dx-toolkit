@@ -13,7 +13,7 @@ import { DEFAULT_DEBUG, DEFAULT_HEADERS, DEFAULT_MCP_URL, DEFAULT_TIMEOUT } from
  */
 export const mergeConfig = (userConfig?: Partial<McpPluginConfig>): ResolvedMcpPluginConfig => {
   // Get API key from config or environment variable
-  const apiKey = userConfig?.apiKey ?? process.env.YDC_API_KEY ?? process.env.YDC_API_KEY;
+  const apiKey = userConfig?.apiKey ?? process.env.YDC_API_KEY;
 
   // Merge with defaults
   const merged: McpPluginConfig = {
