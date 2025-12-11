@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, streamText } from 'ai';
 import { youContents, youExpress, youSearch } from '../main.ts';
 
@@ -20,6 +21,7 @@ import { youContents, youExpress, youSearch } from '../main.ts';
 
 describe('AI SDK Plugin Integration Tests', () => {
   let ydcApiKey: string;
+  let anthropic: ReturnType<typeof createAnthropic>;
 
   beforeAll(() => {
     ydcApiKey = process.env.YDC_API_KEY || '';
@@ -31,6 +33,10 @@ describe('AI SDK Plugin Integration Tests', () => {
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests');
     }
+
+    anthropic = createAnthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
   });
 
   describe('youSearch tool', () => {
@@ -38,7 +44,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'basic web search - generates response with tool usage',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
           },
@@ -69,7 +75,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'search with env var API key',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch(), // Uses YDC_API_KEY from env
           },
@@ -78,6 +84,10 @@ describe('AI SDK Plugin Integration Tests', () => {
 
         expect(result.text).toBeDefined();
         expect(result.toolCalls.length).toBeGreaterThan(0);
+
+        // Verify search tool was called
+        const searchToolCall = result.toolCalls.find((call) => call.toolName === 'search');
+        expect(searchToolCall).toBeDefined();
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -88,7 +98,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'agent response with web search - generates AI answer',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             agent: youExpress({ apiKey: ydcApiKey }),
           },
@@ -119,7 +129,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'agent with simple query',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             agent: youExpress({ apiKey: ydcApiKey }),
           },
@@ -128,6 +138,11 @@ describe('AI SDK Plugin Integration Tests', () => {
 
         expect(result.text).toBeDefined();
         expect(result.text).toContain('2025');
+
+        // Verify agent tool was called
+        expect(result.toolCalls.length).toBeGreaterThan(0);
+        const agentToolCall = result.toolCalls.find((call) => call.toolName === 'agent');
+        expect(agentToolCall).toBeDefined();
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -138,7 +153,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'content extraction - extracts and summarizes page content',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             extract: youContents({ apiKey: ydcApiKey }),
           },
@@ -173,7 +188,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'multiple URL extraction',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             extract: youContents({ apiKey: ydcApiKey }),
           },
@@ -196,7 +211,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'streamText with youSearch - streams response chunks',
       async () => {
         const result = streamText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
           },
@@ -222,6 +237,12 @@ describe('AI SDK Plugin Integration Tests', () => {
         // Validate tool usage
         const usage = await result.usage;
         expect(usage).toBeDefined();
+
+        // Verify search tool was called
+        const toolCalls = await result.toolCalls;
+        expect(toolCalls.length).toBeGreaterThan(0);
+        const searchToolCall = toolCalls.find((call) => call.toolName === 'search');
+        expect(searchToolCall).toBeDefined();
       },
       { timeout: 90_000, retry: 2 },
     );
@@ -236,7 +257,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       // Error should occur during execution
       await expect(async () => {
         await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: '' }),
           },
@@ -251,7 +272,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       // Should fail during API call with clear error
       await expect(async () => {
         await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: invalidKey }),
           },
@@ -266,7 +287,7 @@ describe('AI SDK Plugin Integration Tests', () => {
         // This test validates that even with potential API issues,
         // the tool doesn't crash the entire generation
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
           },
@@ -285,7 +306,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       'multiple tools can be used together',
       async () => {
         const result = await generateText({
-          model: 'anthropic/claude-sonnet-4.5',
+          model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
             agent: youExpress({ apiKey: ydcApiKey }),
@@ -309,7 +330,7 @@ describe('AI SDK Plugin Integration Tests', () => {
       async () => {
         // Test with different Anthropic model
         const result = await generateText({
-          model: 'anthropic/claude-3-5-haiku-20241022',
+          model: anthropic('claude-3-5-haiku-20241022'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
           },
@@ -318,6 +339,10 @@ describe('AI SDK Plugin Integration Tests', () => {
 
         expect(result.text).toBeDefined();
         expect(result.toolCalls.length).toBeGreaterThan(0);
+
+        // Verify search tool was called
+        const searchToolCall = result.toolCalls.find((call) => call.toolName === 'search');
+        expect(searchToolCall).toBeDefined();
       },
       { timeout: 60_000, retry: 2 },
     );

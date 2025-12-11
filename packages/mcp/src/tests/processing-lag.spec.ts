@@ -4,6 +4,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { $ } from 'bun';
 import packageJson from '../../package.json' with { type: 'json' };
+import { CONTENTS_API_URL, EXPRESS_API_URL, SEARCH_API_URL } from '../shared/api-constants.ts';
 
 /**
  * Processing Lag Test Suite
@@ -24,11 +25,6 @@ import packageJson from '../../package.json' with { type: 'json' };
  */
 
 let client: Client;
-
-// API Constants
-const SEARCH_API_URL = 'https://ydc-index.io/v1/search';
-const EXPRESS_API_URL = 'https://api.you.com/v1/agents/runs';
-const CONTENTS_API_URL = 'https://ydc-index.io/v1/contents';
 
 const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
 

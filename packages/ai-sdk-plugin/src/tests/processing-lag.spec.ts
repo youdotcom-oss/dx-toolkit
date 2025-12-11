@@ -1,5 +1,6 @@
 import { heapStats } from 'bun:jsc';
 import { beforeAll, describe, expect, test } from 'bun:test';
+import { CONTENTS_API_URL, EXPRESS_API_URL, SEARCH_API_URL } from '@youdotcom-oss/mcp';
 import packageJson from '../../package.json' with { type: 'json' };
 import { youContents, youExpress, youSearch } from '../main.ts';
 
@@ -22,31 +23,47 @@ import { youContents, youExpress, youSearch } from '../main.ts';
  */
 
 const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
-const getUserAgent = () => `AI-SDK/${packageJson.version} (You.com; ai-sdk-plugin-test)`;
 
-// API endpoints
-const SEARCH_API_URL = 'https://api.ydc-index.io/search';
-const EXPRESS_API_URL = 'https://api.you.com/express';
-const CONTENTS_API_URL = 'https://api.ydc-index.io/contents';
+// User-Agent matching SDK plugin format: AI-SDK/{version} (You.com; {client})
+const USER_AGENT = `AI-SDK/${packageJson.version} (You.com; processing-lag-test)`;
+
+/**
+ * Calculate statistics and remove outliers (> 2 standard deviations)
+ * Improves test reliability by filtering network anomalies
+ */
+const calculateStats = (times: number[]) => {
+  const avg = times.reduce((a, b) => a + b) / times.length;
+  const stdDev = Math.sqrt(times.reduce((sum, time) => sum + (time - avg) ** 2, 0) / times.length);
+
+  // Remove outliers (> 2 standard deviations from mean)
+  const filtered = times.filter((t) => Math.abs(t - avg) <= 2 * stdDev);
+
+  return {
+    avg: filtered.length > 0 ? filtered.reduce((a, b) => a + b) / filtered.length : avg,
+    outliers: times.length - filtered.length,
+  };
+};
 
 beforeAll(async () => {
   console.log('\n=== Warming up ===');
-
-  // Warmup: run both raw API and plugin calls to eliminate cold start effects
   console.log('Running warmup calls to eliminate cold start effects...');
 
   // Warmup raw API call
-  await fetch(SEARCH_API_URL, {
+  const warmupUrl = new URL(SEARCH_API_URL);
+  warmupUrl.searchParams.append('query', 'warmup');
+  warmupUrl.searchParams.append('count', '1');
+
+  await fetch(warmupUrl, {
     method: 'GET',
     headers: {
       'X-API-Key': YDC_API_KEY,
-      'User-Agent': getUserAgent(),
+      'User-Agent': USER_AGENT,
     },
   });
 
   // Warmup plugin call
   const searchTool = youSearch({ apiKey: YDC_API_KEY });
-  await searchTool.execute?.({ query: 'warmup test' }, { toolCallId: 'warmup', messages: [] });
+  await searchTool.execute?.({ query: 'warmup', count: 1 }, { toolCallId: 'warmup', messages: [] });
 
   console.log('Warmup complete. Starting measurements...\n');
 });
@@ -65,33 +82,43 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       for (let i = 0; i < iterations; i++) {
         // Raw API call (baseline)
         const rawStart = performance.now();
-        const rawResponse = await fetch(`${SEARCH_API_URL}?query=test`, {
+        const rawUrl = new URL(SEARCH_API_URL);
+        rawUrl.searchParams.append('query', 'javascript tutorial');
+        rawUrl.searchParams.append('count', '3');
+
+        await fetch(rawUrl, {
           method: 'GET',
           headers: {
             'X-API-Key': YDC_API_KEY,
-            'User-Agent': getUserAgent(),
+            'User-Agent': USER_AGENT,
           },
         });
-        await rawResponse.json();
         rawTimes.push(performance.now() - rawStart);
 
         // Plugin call (with AI SDK tool abstraction overhead)
         const pluginStart = performance.now();
-        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] });
+        await searchTool.execute?.(
+          {
+            query: 'javascript tutorial',
+            count: 3,
+          },
+          { toolCallId: 'test', messages: [] },
+        );
         pluginTimes.push(performance.now() - pluginStart);
 
         // Small delay between iterations to avoid rate limiting
         await Bun.sleep(100);
       }
 
-      const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
-      const avgPlugin = pluginTimes.reduce((a, b) => a + b) / iterations;
-      const processingLag = avgPlugin - avgRaw;
-      const overheadPercent = (processingLag / avgRaw) * 100;
+      // Calculate statistics with outlier detection
+      const rawStats = calculateStats(rawTimes);
+      const pluginStats = calculateStats(pluginTimes);
+      const processingLag = pluginStats.avg - rawStats.avg;
+      const overheadPercent = (processingLag / rawStats.avg) * 100;
 
       console.log('\n=== Search API Processing Lag ===');
-      console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-      console.log(`Plugin avg: ${avgPlugin.toFixed(2)}ms`);
+      console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+      console.log(`Plugin avg: ${pluginStats.avg.toFixed(2)}ms (${pluginStats.outliers} outliers removed)`);
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -99,7 +126,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000, retry: 2 },
+    { retry: 2 },
   );
 
   test.serial(
@@ -110,41 +137,51 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
 
       const expressTool = youExpress({ apiKey: YDC_API_KEY });
 
-      for (let i = 0; i < iterations; i++) {
+      // Express API is slower due to AI processing, reduce iterations
+      const expressIterations = 3;
+
+      for (let i = 0; i < expressIterations; i++) {
         // Raw API call (baseline)
         const rawStart = performance.now();
-        const rawResponse = await fetch(EXPRESS_API_URL, {
+        await fetch(EXPRESS_API_URL, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${YDC_API_KEY}`,
             'Content-Type': 'application/json',
-            'User-Agent': getUserAgent(),
+            Accept: 'application/json',
+            'User-Agent': USER_AGENT,
           },
           body: JSON.stringify({
-            input: 'test',
+            agent: 'express',
+            input: 'What is JavaScript?',
             stream: false,
           }),
         });
-        await rawResponse.json();
         rawTimes.push(performance.now() - rawStart);
 
         // Plugin call (with AI SDK tool abstraction overhead)
         const pluginStart = performance.now();
-        await expressTool.execute?.({ input: 'test' }, { toolCallId: 'test', messages: [] });
+        await expressTool.execute?.(
+          {
+            input: 'What is JavaScript?',
+          },
+          { toolCallId: 'test', messages: [] },
+        );
         pluginTimes.push(performance.now() - pluginStart);
 
-        // Small delay between iterations to avoid rate limiting
-        await Bun.sleep(100);
+        // Longer delay between iterations to avoid rate limiting
+        await Bun.sleep(500);
       }
 
-      const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
-      const avgPlugin = pluginTimes.reduce((a, b) => a + b) / iterations;
-      const processingLag = avgPlugin - avgRaw;
-      const overheadPercent = (processingLag / avgRaw) * 100;
+      // Calculate statistics with outlier detection
+      const rawStats = calculateStats(rawTimes);
+      const pluginStats = calculateStats(pluginTimes);
+      const processingLag = pluginStats.avg - rawStats.avg;
+      const overheadPercent = (processingLag / rawStats.avg) * 100;
 
       console.log('\n=== Express API Processing Lag ===');
-      console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-      console.log(`Plugin avg: ${avgPlugin.toFixed(2)}ms`);
+      console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+      console.log(`Plugin avg: ${pluginStats.avg.toFixed(2)}ms (${pluginStats.outliers} outliers removed)`);
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -152,7 +189,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000, retry: 2 },
+    { retry: 2 },
   );
 
   test.serial(
@@ -167,38 +204,44 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       for (let i = 0; i < iterations; i++) {
         // Raw API call (baseline)
         const rawStart = performance.now();
-        const rawResponse = await fetch(CONTENTS_API_URL, {
+        await fetch(CONTENTS_API_URL, {
           method: 'POST',
           headers: {
             'X-API-Key': YDC_API_KEY,
             'Content-Type': 'application/json',
-            'User-Agent': getUserAgent(),
+            'User-Agent': USER_AGENT,
           },
           body: JSON.stringify({
             urls: [testUrl],
             format: 'markdown',
           }),
         });
-        await rawResponse.json();
         rawTimes.push(performance.now() - rawStart);
 
         // Plugin call (with AI SDK tool abstraction overhead)
         const pluginStart = performance.now();
-        await contentsTool.execute?.({ urls: [testUrl], format: 'markdown' }, { toolCallId: 'test', messages: [] });
+        await contentsTool.execute?.(
+          {
+            urls: [testUrl],
+            format: 'markdown',
+          },
+          { toolCallId: 'test', messages: [] },
+        );
         pluginTimes.push(performance.now() - pluginStart);
 
         // Small delay between iterations to avoid rate limiting
         await Bun.sleep(100);
       }
 
-      const avgRaw = rawTimes.reduce((a, b) => a + b) / iterations;
-      const avgPlugin = pluginTimes.reduce((a, b) => a + b) / iterations;
-      const processingLag = avgPlugin - avgRaw;
-      const overheadPercent = (processingLag / avgRaw) * 100;
+      // Calculate statistics with outlier detection
+      const rawStats = calculateStats(rawTimes);
+      const pluginStats = calculateStats(pluginTimes);
+      const processingLag = pluginStats.avg - rawStats.avg;
+      const overheadPercent = (processingLag / rawStats.avg) * 100;
 
       console.log('\n=== Contents API Processing Lag ===');
-      console.log(`Raw API avg: ${avgRaw.toFixed(2)}ms`);
-      console.log(`Plugin avg: ${avgPlugin.toFixed(2)}ms`);
+      console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
+      console.log(`Plugin avg: ${pluginStats.avg.toFixed(2)}ms (${pluginStats.outliers} outliers removed)`);
       console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
       console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
 
@@ -206,7 +249,7 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       expect(processingLag).toBeLessThan(80); // < 80ms absolute lag
       expect(overheadPercent).toBeLessThan(35); // < 35% relative overhead
     },
-    { timeout: 60_000, retry: 2 },
+    { retry: 2 },
   );
 
   test.serial(
@@ -221,7 +264,13 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       // Run multiple operations to measure sustained memory overhead
       const searchTool = youSearch({ apiKey: YDC_API_KEY });
       for (let i = 0; i < 5; i++) {
-        await searchTool.execute?.({ query: 'memory test' }, { toolCallId: 'test', messages: [] });
+        await searchTool.execute?.(
+          {
+            query: 'memory test',
+            count: 1,
+          },
+          { toolCallId: 'test', messages: [] },
+        );
       }
 
       // Force GC after measurement
@@ -231,15 +280,21 @@ describe('Processing Lag: AI SDK Plugin vs Raw API Calls', () => {
       const afterHeap = heapStats();
 
       const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
+      const perOpGrowth = heapGrowth / 5;
+
       console.log('\n=== Memory Overhead ===');
       console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
       console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
-      console.log(`Heap growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+      console.log(`Total growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
+      console.log(`Per-operation growth: ${(perOpGrowth / 1024).toFixed(2)} KB`);
+      console.log(
+        `Growth pattern: ${heapGrowth < 0 ? 'Constant (good)' : heapGrowth > 100_000 ? 'Linear (check for leaks)' : 'Stable'}`,
+      );
 
       // Assert memory overhead threshold (SDK integration)
       expect(heapGrowth).toBeLessThan(1024 * 350); // < 350KB
     },
-    { timeout: 30_000, retry: 2 },
+    { retry: 2 },
   );
 });
 

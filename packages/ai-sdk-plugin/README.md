@@ -1,27 +1,24 @@
 # Vercel AI SDK plugin for You.com
 
-Integrate You.com's web search, AI agents, and content extraction capabilities into your Vercel AI SDK applications via Model Context Protocol (MCP).
+Integrate You.com's web search, AI agents, and content extraction capabilities into your Vercel AI SDK applications.
 
 ## Features
 
-- **Web Search** (`you-search`) - Search the web using You.com's search API with real-time results
-- **AI Agent** (`you-express`) - Fast AI responses with optional web search integration
-- **Content Extraction** (`you-contents`) - Extract full page content in markdown or HTML format
+- **Web Search** (`youSearch`) - Search the web using You.com's search API with real-time results
+- **AI Agent** (`youExpress`) - Fast AI responses with optional web search integration
+- **Content Extraction** (`youContents`) - Extract full page content in markdown or HTML format
 - Full TypeScript support with type safety
-- Automatic tool discovery via MCP
-- Production-ready HTTP transport
+- Simple API with no server setup required
 
 ## Getting started
 
-Get up and running with You.com AI SDK plugin in 4 quick steps. No complex configuration needed - just install, start the server, and search!
+Get up and running in 3 quick steps:
 
 ### 1. Get your API key
 
 Sign up at [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your free API key.
 
 ### 2. Install the package
-
-Choose your preferred package manager:
 
 \`\`\`bash
 # NPM
@@ -34,76 +31,55 @@ bun add @youdotcom-oss/ai-sdk-plugin ai
 yarn add @youdotcom-oss/ai-sdk-plugin ai
 \`\`\`
 
-### 3. Start the MCP server
-
-This plugin connects to an MCP server. Choose your setup:
-
-**Quick start (recommended):**
-
-\`\`\`bash
-# Install and start MCP server globally
-bun add -g @youdotcom-oss/mcp
-YDC_API_KEY=your-key-here bun start @youdotcom-oss/mcp
-\`\`\`
-
-<details>
-<summary>Or run from source</summary>
-
-\`\`\`bash
-# Clone repository
-git clone https://github.com/youdotcom-oss/dx-toolkit.git
-cd dx-toolkit
-
-# Start MCP server
-YDC_API_KEY=your-key-here bun --cwd packages/mcp start
-\`\`\`
-</details>
-
-The server runs on `http://localhost:4000/mcp` by default.
-
-### 4. Test your setup
-
-Try this simple search example:
+### 3. Use the tools
 
 \`\`\`typescript
-import { createYouMCPClient } from '@youdotcom-oss/ai-sdk-plugin';
 import { generateText } from 'ai';
+import { youSearch, youExpress, youContents } from '@youdotcom-oss/ai-sdk-plugin';
 
-const { tools, close } = await createYouMCPClient({
-  apiKey: process.env.YDC_API_KEY,
+const result = await generateText({
+  model: 'anthropic/claude-sonnet-4.5',
+  tools: {
+    search: youSearch(),
+    agent: youExpress(),
+    extract: youContents(),
+  },
+  maxSteps: 5,
+  prompt: 'Search for the latest AI developments',
 });
 
-try {
-  const result = await generateText({
-    model: 'anthropic/claude-sonnet-4.5',
-    tools,
-    maxSteps: 5,
-    prompt: 'Search for the latest AI developments',
-  });
-
-  console.log(result.text);
-} finally {
-  await close();
-}
+console.log(result.text);
 \`\`\`
+
+That's it! Your agent will automatically use the tools when needed.
 
 ## Configuration
 
-### API Options
+Each tool accepts an optional configuration object:
 
 \`\`\`typescript
-export type YouMCPClientConfig = {
-  apiKey?: string;              // You.com API key (or use YDC_API_KEY env var)
-  serverUrl?: string;           // Default: 'http://localhost:4000/mcp'
-  headers?: Record<string, string>;
-  clientName?: string;          // Default: 'youdotcom-ai-sdk-plugin'
-  onUncaughtError?: (error: unknown) => void;
+export type YouToolsConfig = {
+  apiKey?: string;  // You.com API key (defaults to YDC_API_KEY env var)
 };
 \`\`\`
 
 ### Environment Variables
 
-- `YDC_API_KEY` - Your You.com API key (required if not provided in config)
+Set your API key as an environment variable:
+
+\`\`\`bash
+export YDC_API_KEY=your-api-key-here
+\`\`\`
+
+Or pass it directly to the tools:
+
+\`\`\`typescript
+import { youSearch } from '@youdotcom-oss/ai-sdk-plugin';
+
+const search = youSearch({
+  apiKey: 'your-api-key-here',
+});
+\`\`\`
 
 ## Documentation
 

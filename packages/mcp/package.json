@@ -24,14 +24,18 @@
   ],
   "bin": "bin/stdio.js",
   "type": "module",
-  "main": "./src/utils.ts",
+  "main": "./src/main.ts",
   "exports": {
-    ".": "./src/utils.ts",
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./src/main.ts"
+    },
     "./http": "./src/http.ts",
     "./stdio": "./src/stdio.ts"
   },
   "files": [
     "bin/stdio.js",
+    "./dist/**",
     "./src/**",
     "!./src/**/tests/*",
     "!./src/**/*.spec.@(tsx|ts)"
@@ -40,7 +44,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/stdio.ts --outfile ./bin/stdio.js --target=node",
+    "build": "bun run build:stdio && bun run build:types",
+    "build:stdio": "bun build ./src/stdio.ts --outfile ./bin/stdio.js --target=node",
+    "build:types": "tsc --project tsconfig.json --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
@@ -60,6 +66,7 @@
     "test:watch": "bun test --watch"
   },
   "mcpName": "io.github.youdotcom-oss/mcp",
+  "types": "./dist/main.d.ts",
   "dependencies": {
     "zod": "^4.1.13",
     "@hono/mcp": "^0.2.0",

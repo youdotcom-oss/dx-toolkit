@@ -1,23 +1,17 @@
-import { createYouMCPClient } from '@youdotcom-oss/ai-sdk-plugin';
+import { youSearch } from '@youdotcom-oss/ai-sdk-plugin';
 import { generateText } from 'ai';
 
 const main = async () => {
-  const { tools, close } = await createYouMCPClient({
-    apiKey: process.env.YDC_API_KEY,
+  const result = await generateText({
+    model: 'anthropic/claude-sonnet-4.5',
+    tools: {
+      search: youSearch(),
+    },
+    prompt: 'Search for the latest developments in AI agents',
   });
 
-  try {
-    const result = await generateText({
-      model: 'anthropic/claude-sonnet-4.5',
-      tools: tools as any,
-      prompt: 'Search for the latest developments in AI agents',
-    });
-
-    console.log('Response:', result.text);
-    console.log('\nTool calls:', result.toolCalls.length);
-  } finally {
-    await close();
-  }
+  console.log('Response:', result.text);
+  console.log('\nTool calls:', result.toolCalls.length);
 };
 
 main().catch(console.error);

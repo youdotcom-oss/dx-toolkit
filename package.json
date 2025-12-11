@@ -21,6 +21,7 @@
     "prepare": "git config core.hooksPath .hooks",
     "start:mcp": "bun --cwd packages/mcp start",
     "test": "bun run --filter '*' test",
+    "test:ai-sdk-plugin": "bun --cwd packages/ai-sdk-plugin test",
     "test:coverage": "bun run --filter '*' test:coverage",
     "test:mcp": "bun --cwd packages/mcp test",
     "test:watch": "bun run --filter '*' test:watch"

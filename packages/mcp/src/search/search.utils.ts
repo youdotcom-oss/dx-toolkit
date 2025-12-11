@@ -1,3 +1,4 @@
+import { SEARCH_API_URL } from '../shared/api-constants.ts';
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts';
 import { formatSearchResultsText } from '../shared/format-search-results-text.ts';
 import { type NewsResult, type SearchQuery, type SearchResponse, SearchResponseSchema } from './search.schemas.ts';
@@ -11,7 +12,7 @@ export const fetchSearchResults = async ({
   YDC_API_KEY?: string;
   getUserAgent: () => string;
 }) => {
-  const url = new URL('https://ydc-index.io/v1/search');
+  const url = new URL(SEARCH_API_URL);
 
   const searchParams = new URLSearchParams();
 

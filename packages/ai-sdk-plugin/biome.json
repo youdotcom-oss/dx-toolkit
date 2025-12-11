@@ -12,18 +12,6 @@
           }
         }
       }
-    },
-    {
-      "includes": ["src/client.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": {
-              "level": "off"
-            }
-          }
-        }
-      }
     }
   ]
 }

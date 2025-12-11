@@ -184,16 +184,21 @@ import { foo } from '@youdotcom-oss/utils';
 3. You do NOT need to manually update version numbers after the initial dependency is added
 4. The workflow scans all workspace packages and updates any dependencies on the published package
 
-**Dependency Structure for Pure TypeScript Packages**:
+**Dependency Structure**:
 
-Some packages (like `@youdotcom-oss/mcp`) serve dual purposes:
-1. **Library consumption** - Users import utilities/schemas from the package
-2. **Server/CLI** - Pre-built binaries or remote deployments
+This monorepo uses two patterns for package dependencies based on publishing strategy:
 
-For pure TypeScript packages where source is published directly, all dependencies are listed in `dependencies`:
+**Pattern 1: Source-Published Packages** (e.g., `@youdotcom-oss/mcp`)
+
+Packages that publish TypeScript source files directly. All dependencies in `dependencies`:
 
 ```json
 {
+  "main": "./src/main.ts",
+  "exports": {
+    ".": "./src/main.ts"
+  },
+  "files": ["./src/**", "!./src/**/tests/*"],
   "dependencies": {
     "zod": "^4.1.13",
     "@hono/mcp": "^0.2.0",
@@ -204,12 +209,61 @@ For pure TypeScript packages where source is published directly, all dependencie
 ```
 
 **Why all in dependencies?**
-- Package publishes TypeScript source files (not compiled JavaScript)
-- Library consumers need access to all type definitions and dependencies
+- Library consumers need access to all type definitions
 - Users importing from the package require the full dependency tree
-- Pre-built binaries (`bin/stdio.js`) are compiled separately with dependencies bundled
+- Pre-built binaries (if any) are compiled separately with dependencies bundled
 
-**Example**: The MCP server package exports TypeScript utilities and schemas (`src/utils.ts`) directly. The STDIO binary (`bin/stdio.js`) is pre-compiled for standalone execution.
+**Pattern 2: Bundled Packages** (e.g., `@youdotcom-oss/ai-sdk-plugin`)
+
+Packages that publish compiled bundles. Dependencies are bundled, externals in `dependencies` or `peerDependencies`:
+
+```json
+{
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external ai",
+    "build:types": "tsc --declaration --emitDeclarationOnly --noEmit false --outDir ./dist",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@youdotcom-oss/mcp": "1.3.8"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.0"
+  }
+}
+```
+
+**Why bundle?**
+- Single file distribution (easier consumption)
+- Reduced installation time (fewer dependencies to fetch)
+- External dependencies (`--external`) avoid duplication in user's node_modules
+- Peer dependencies ensure compatibility with user's AI framework version
+
+**When to use each pattern:**
+- **Source-published**: MCP servers, CLI tools, packages with optional compiled binaries
+- **Bundled**: SDK plugins, framework integrations, libraries with external peer dependencies
+
+**Cross-package dependencies**: Always use exact versions for workspace packages
+
+```json
+{
+  "dependencies": {
+    "@youdotcom-oss/mcp": "1.3.8"
+  }
+}
+```
+
+Packages depending on other workspace packages should use the **bundled pattern** to avoid dependency conflicts.
 
 **Lock Files**: Only root `bun.lock` is committed
 
