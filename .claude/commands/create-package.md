@@ -602,18 +602,26 @@ describe('Processing Lag Summary', () => {
 
 After creating this file, you must:
 
-**FIRST: Search for all placeholders**
-```bash
-# Find all TODO comments and placeholders that need replacement
-grep -n "TODO:" packages/{package-name}/tests/processing-lag.spec.ts
-grep -n "{" packages/{package-name}/tests/processing-lag.spec.ts | grep -v "import"
-```
+**IMPORTANT - Before running tests:**
 
-You will find placeholders at approximately:
-- Line ~488: `{USER_AGENT_PREFIX}` in USER_AGENT constant
-- Line ~498: `yourPackageMethod` in warmup  (TODO)
-- Line ~531: `yourPackageMethod` in measurement (TODO)
-- Line ~565: `yourPackageMethod` in measurement (TODO)
+1. **Search for all TODOs** - There are 3 TODO comments that MUST be replaced:
+   ```bash
+   grep -n "TODO:" packages/{package-name}/tests/processing-lag.spec.ts
+   ```
+   Expected locations: ~498 (warmup), ~531 (measurement), ~565 (memory test)
+
+2. **Search for all placeholders** - Find all template variables that need replacement:
+   ```bash
+   grep -n "{" packages/{package-name}/tests/processing-lag.spec.ts | grep -v "import"
+   ```
+   Expected locations:
+   - Line ~488: `{USER_AGENT_PREFIX}` in USER_AGENT constant
+   - Line ~488: `{package-name}` in USER_AGENT comment
+
+3. **Verify no TODOs remain** before committing:
+   ```bash
+   grep "TODO:" packages/{package-name}/tests/processing-lag.spec.ts && echo "❌ TODOs found!" || echo "✅ No TODOs"
+   ```
 
 **Then customize:**
 1. Replace `{USER_AGENT_PREFIX}` with the user agent prefix from Question 6 (e.g., "MCP", "AI-SDK")
@@ -622,10 +630,23 @@ You will find placeholders at approximately:
 4. Update authentication headers (`X-API-Key` or `Authorization: Bearer`)
 5. Replace all `yourPackageMethod` calls with your actual package method calls (3 locations)
 6. Update request parameters to match your API requirements
-7. Adjust thresholds based on package type (see root PERFORMANCE.md):
-   - Thin library: 50ms lag, 10% overhead, 300KB memory
-   - SDK integration: 80ms lag, 35% overhead, 350KB memory
-   - MCP server: 100ms lag, 50% overhead, 400KB memory
+7. Adjust thresholds based on package type:
+
+   | Package Type | Lag | Overhead | Memory | When to Use |
+   |--------------|-----|----------|--------|-------------|
+   | **Thin library** | 50ms | 10% | 300KB | Direct API wrappers with minimal transformation |
+   | **SDK integration** | 80ms | 35% | 350KB | Moderate validation and data transformation |
+   | **MCP server** | 100ms | 50% | 400KB | Includes stdio/JSON-RPC transport overhead |
+   | **Complex framework** | 150ms | 75% | 500KB | Multiple abstraction layers, state management |
+
+   **Default (template)**: Uses thin library thresholds (50ms/10%/300KB)
+
+   **Adjust if your package has**:
+   - Process spawning → Use MCP server thresholds
+   - Multiple transformation layers → Use SDK integration thresholds
+   - Heavy state management → Use complex framework thresholds
+
+   See [root PERFORMANCE.md](../../../docs/PERFORMANCE.md#threshold-setting-guidelines) for detailed rationale.
 8. Remove all TODO comments once complete
 9. Add multiple test cases if your package wraps multiple APIs
 
