@@ -1,4 +1,3 @@
-// biome-ignore lint/suspicious/noConsole: Console output is needed for performance test reporting
 import { heapStats } from 'bun:jsc';
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -42,9 +41,7 @@ const USER_AGENT = `MCP/${packageJson.version} (You.com; processing-lag-test)`;
  */
 const calculateStats = (times: number[]) => {
   const avg = times.reduce((a, b) => a + b) / times.length;
-  const stdDev = Math.sqrt(
-    times.reduce((sum, time) => sum + Math.pow(time - avg, 2), 0) / times.length
-  );
+  const stdDev = Math.sqrt(times.reduce((sum, time) => sum + (time - avg) ** 2, 0) / times.length);
 
   // Remove outliers (> 2 standard deviations from mean)
   const filtered = times.filter((t) => Math.abs(t - avg) <= 2 * stdDev);
@@ -63,9 +60,7 @@ beforeAll(async () => {
   // Build MCP server with error handling
   const buildResult = await $`bun run build`.quiet();
   if (buildResult.exitCode !== 0) {
-    throw new Error(
-      `Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`
-    );
+    throw new Error(`Build failed. Run 'bun run build' manually to see errors.\n${buildResult.stderr}`);
   }
 
   // Resolve stdio path (Bun.resolveSync throws if file not found)
@@ -73,9 +68,7 @@ beforeAll(async () => {
   try {
     stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
   } catch (_err) {
-    throw new Error(
-      `stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`
-    );
+    throw new Error(`stdio.js not found. Build may have failed silently. Run 'bun run build' and check for errors.`);
   }
 
   const transport = new StdioClientTransport({
@@ -326,9 +319,7 @@ describe('Processing Lag: MCP Server vs Raw API Calls', () => {
     console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
     console.log(`Total growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
     console.log(`Per-operation growth: ${(perOpGrowth / 1024).toFixed(2)} KB`);
-    console.log(
-      `Growth pattern: ${perOpGrowth < 1024 ? 'Constant (good)' : 'Linear (check for leaks)'}`
-    );
+    console.log(`Growth pattern: ${perOpGrowth < 1024 ? 'Constant (good)' : 'Linear (check for leaks)'}`);
 
     // Assert memory overhead threshold
     // MCP server maintains state, schemas, and buffers, so 400KB is reasonable
