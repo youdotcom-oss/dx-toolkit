@@ -53,6 +53,7 @@
     "check:types": "tsc --noEmit",
     "check:write": "bun run format && bun run lint:fix && bun run format:package",
     "dev": "echo 'No dev server for library package'",
+    "example": "bun scripts/run-example.ts",
     "format": "biome format --write",
     "format:check": "biome format",
     "format:package": "format-package --write",

@@ -60,6 +60,8 @@ const youSearch: (config?: YouToolsConfig) => CoreTool
 - `fileType` (string, optional): Filter by file type (e.g., "pdf", "doc")
 - `language` (string, optional): ISO 639-1 language code (e.g., "en", "es")
 - `site` (string, optional): Restrict search to specific domain
+- `livecrawl` (string, optional): Live-crawl sections for full content ("web", "news", "all")
+- `livecrawl_formats` (string, optional): Format for crawled content ("html", "markdown")
 
 **Returns** (to AI model):
 - `text` (string): Formatted search results with titles, snippets, and URLs
@@ -246,9 +248,9 @@ const tools = {
 
 ---
 
-### Exported Types from @youdotcom-oss/mcp
+### Re-exported Types from @youdotcom-oss/mcp
 
-This plugin re-exports types from `@youdotcom-oss/mcp` for convenience:
+For convenience, this plugin re-exports the following types from `@youdotcom-oss/mcp`:
 
 ```typescript
 export type {
@@ -261,81 +263,13 @@ export type {
 } from '@youdotcom-oss/mcp';
 ```
 
-**Type Definitions:**
-
-**`SearchQuery`**: Parameters for search tool
-```typescript
-type SearchQuery = {
-  query: string;
-  count?: number;
-  country?: string;
-  safesearch?: string;
-  freshness?: string;
-  exactTerms?: string;
-  excludeTerms?: string;
-  fileType?: string;
-  language?: string;
-  site?: string;
-  // Additional fields...
-};
-```
-
-**`SearchResponse`**: Search API response structure
-```typescript
-type SearchResponse = {
-  results: Array<{
-    title: string;
-    url: string;
-    description: string;
-    // Additional fields...
-  }>;
-  news?: Array<{
-    title: string;
-    url: string;
-    snippet: string;
-    // Additional fields...
-  }>;
-};
-```
-
-**`ExpressAgentInput`**: Parameters for agent tool
-```typescript
-type ExpressAgentInput = {
-  input: string;
-  tools?: Array<{ type: string }>;
-};
-```
-
-**`ExpressAgentMcpResponse`**: Agent API response structure
-```typescript
-type ExpressAgentMcpResponse = {
-  answer: string;
-  webSearch?: Array<{
-    title: string;
-    url: string;
-    snippet: string;
-  }>;
-};
-```
-
-**`ContentsQuery`**: Parameters for contents tool
-```typescript
-type ContentsQuery = {
-  urls: string[];
-  format?: 'markdown' | 'html';
-};
-```
-
-**`ContentsApiResponse`**: Contents API response structure
-```typescript
-type ContentsApiResponse = {
-  results: Array<{
-    url: string;
-    content: string;
-    // Additional fields...
-  }>;
-};
-```
+**For complete type definitions and schemas**, see the [MCP API Reference](../../mcp/docs/API.md):
+- [`SearchQuery`](../../mcp/docs/API.md#searchquery) - Search tool parameters
+- [`SearchResponse`](../../mcp/docs/API.md#searchresponse) - Search API response structure
+- [`ExpressAgentInput`](../../mcp/docs/API.md#expressagentinput) - Agent tool parameters
+- [`ExpressAgentMcpResponse`](../../mcp/docs/API.md#expressagentmcpresponse) - Agent API response structure
+- [`ContentsQuery`](../../mcp/docs/API.md#contentsquery) - Contents tool parameters
+- [`ContentsApiResponse`](../../mcp/docs/API.md#contentsapiresponse) - Contents API response structure
 
 ---
 
@@ -512,26 +446,28 @@ try {
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | `YDC_API_KEY` | Yes* | You.com API key | `your-youdotcom-api-key` |
-| `ANTHROPIC_API_KEY` | Yes** | Anthropic API key (for AI models) | `sk-ant-...` |
+| `ANTHROPIC_API_KEY` | No** | API key for your AI model provider | `sk-ant-...` |
 
 \* Required unless passed in `config.apiKey`
-\** Required only if using Anthropic models
+\** Required only for running tests (examples use Anthropic models). The plugin works with any AI SDK compatible model provider.
 
 **Setup:**
 ```bash
 export YDC_API_KEY="your-youdotcom-api-key-here"
+
+# Only required if using Anthropic models
 export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
 ```
 
 Get your API keys:
 - You.com: [you.com/platform/api-keys](https://you.com/platform/api-keys)
-- Anthropic: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- Your AI model provider (e.g., Anthropic, OpenAI, etc.)
 
 ---
 
 ## Performance
 
-This plugin adds minimal overhead over direct API calls. See [PERFORMANCE.md](./PERFORMANCE.md) for detailed performance metrics and testing methodology.
+This plugin adds minimal overhead over direct API calls. See [PERFORMANCE.md](../../../docs/PERFORMANCE.md) for detailed performance metrics and testing methodology.
 
 **Key metrics**:
 - **Processing lag**: < 80ms (tool wrapper, validation, formatting)

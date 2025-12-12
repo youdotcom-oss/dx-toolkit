@@ -97,8 +97,7 @@ packages/ai-sdk-plugin/
 │       └── processing-lag.spec.ts   # Performance overhead tests
 ├── examples/                        # Usage examples
 ├── docs/
-│   ├── API.md                       # API reference
-│   └── PERFORMANCE.md              # Performance testing guide
+│   └── API.md                       # API reference
 ├── package.json                     # Package configuration
 └── README.md                        # User documentation
 ```
@@ -230,6 +229,8 @@ Web and news search using You.com Search API.
 - `country` (string, optional) - Country code filter
 - `safesearch` (string, optional) - Safe search level
 - `freshness` (string, optional) - Time range filter
+- `livecrawl` (string, optional) - Live-crawl sections for full content ("web", "news", "all")
+- `livecrawl_formats` (string, optional) - Format for crawled content ("html", "markdown")
 - Additional filters (see API.md)
 
 **Returns**: Web results with snippets and news articles
@@ -357,7 +358,7 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 - Measure absolute lag (< 80ms threshold)
 - Measure relative overhead (< 35% threshold)
 - Measure memory overhead (< 350KB threshold)
-- See [PERFORMANCE.md](./docs/PERFORMANCE.md) for details
+- See [PERFORMANCE.md](../../docs/PERFORMANCE.md) for methodology and threshold details
 
 **Test Configuration**:
 
@@ -464,43 +465,15 @@ text: formatSearchResults(response)
 text: response.results.map(r => r.title).join('\n')
 ```
 
-### Universal Code Patterns
+### Code Style
 
-**Arrow Functions**: Always use arrow functions for declarations
-
-```typescript
-// ✅ Arrow function
-export const youSearch = (config: YouToolsConfig = {}) => { ... };
-
-// ❌ Function declaration
-export function youSearch(config: YouToolsConfig = {}) { ... }
-```
-
-**Numeric Separators**: Use underscores for large numbers
-
-```typescript
-// ✅ Readable
-{ timeout: 60_000, retry: 2 }
-const maxRetries = 1_000_000;
-
-// ❌ Hard to read
-{ timeout: 60000, retry: 2 }
-const maxRetries = 1000000;
-```
-
-**No Unused Exports**: All exports must be actively used
-
-```bash
-# Before adding exports, verify usage
-grep -r "ExportName" examples/
-grep -r "ExportName" src/tests/
-```
+For universal code patterns (arrow functions, numeric separators, Bun APIs, etc.), see [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
 
 ## Performance
 
 ### Processing Lag Thresholds
 
-This plugin maintains strict performance thresholds (see [PERFORMANCE.md](./docs/PERFORMANCE.md)):
+This plugin maintains strict performance thresholds (see [PERFORMANCE.md](../../docs/PERFORMANCE.md)):
 
 | Metric | Threshold | Rationale |
 |--------|-----------|-----------|
@@ -590,70 +563,24 @@ bun test --verbose src/tests/integration.spec.ts
 
 ## Contributing
 
-For detailed contribution guidelines, including:
+See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
-- Bug reporting
-- Feature requests
-- Pull request workflow
-- Commit message conventions (Conventional Commits)
-- Code review process
-
-See [CONTRIBUTING.md](../../CONTRIBUTING.md)
-
-### Commit Message Format
-
-Use conventional commits with `ai-sdk-plugin` scope:
+**Package-specific scope**: Use `ai-sdk-plugin` scope in commit messages:
 
 ```bash
 feat(ai-sdk-plugin): add support for image search
 fix(ai-sdk-plugin): handle empty search results
-docs(ai-sdk-plugin): update API reference
-test(ai-sdk-plugin): add retry logic to flaky test
 ```
 
 ## Publishing
 
-This package is published to npm via the monorepo's `.github/workflows/_publish-package.yml` workflow.
+See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documentation. This package uses the shared `.github/workflows/_publish-package.yml` workflow.
 
-**Triggering a release** (maintainers only):
-
-1. Go to Actions → Publish ai-sdk-plugin Release → Run workflow
-2. Enter version WITHOUT "v" prefix (e.g., `0.1.0`)
-3. Workflow will:
-   - Update version in package.json
-   - Update dependent packages with exact version
-   - Create GitHub release (e.g., `v0.1.0`)
-   - Publish to npm as `@youdotcom-oss/ai-sdk-plugin@0.1.0`
-
-**Version format**:
-- Git tags: `v{version}` (e.g., `v0.1.0`)
-- package.json: `{version}` (no "v" prefix)
-- npm: `@youdotcom-oss/ai-sdk-plugin@{version}`
-
-## Bun Runtime
-
-This package uses Bun (>= 1.2.21) instead of Node.js:
-
-```bash
-bun <file>       # Run TypeScript directly
-bun test         # Built-in test runner
-bun install      # Install dependencies
-```
-
-**Import Extensions** (enforced by Biome):
-- Local TypeScript files: `.ts` extension
-- NPM packages: `.js` extension
-- JSON files: `.json` with import assertion
-
-**Example**:
-```typescript
-import packageJson from '../package.json' with { type: 'json' };
-import { formatSearchResults } from '@youdotcom-oss/mcp';
-```
+**Package-specific**: Workflow name is "Publish ai-sdk-plugin Release"
 
 ## Support
 
 - **Package Issues**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - **API Issues**: Check [API.md](./docs/API.md) and [You.com Platform](https://you.com/platform)
-- **Performance Issues**: See [PERFORMANCE.md](./docs/PERFORMANCE.md)
+- **Performance Issues**: See [PERFORMANCE.md](../../docs/PERFORMANCE.md)
 - **Email**: support@you.com

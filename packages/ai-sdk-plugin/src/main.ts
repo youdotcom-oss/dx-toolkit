@@ -4,9 +4,6 @@ import {
   ExpressAgentInputSchema,
   fetchContents,
   fetchSearchResults,
-  formatContentsResponse,
-  formatExpressAgentResponse,
-  formatSearchResults,
   SearchQuerySchema,
 } from '@youdotcom-oss/mcp';
 import { tool } from 'ai';
@@ -63,18 +60,8 @@ export const youSearch = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
-      // Format the response
-      const formatted = formatSearchResults(response);
-
-      // Return formatted text and structured data
-      return {
-        text: formatted.content[0]?.text || '',
-        data: {
-          hits: response.results.web || [],
-          news: response.results.news || [],
-          ...formatted.structuredContent,
-        },
-      };
+      // Return raw API response for maximum flexibility
+      return response;
     },
   });
 };
@@ -120,14 +107,8 @@ export const youExpress = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
-      // Format the response
-      const formatted = formatExpressAgentResponse(response);
-
-      // Return formatted text and structured data
-      return {
-        text: formatted.content.map((c) => c.text).join('\n\n'),
-        data: formatted.structuredContent,
-      };
+      // Return raw API response for maximum flexibility
+      return response;
     },
   });
 };
@@ -173,14 +154,8 @@ export const youContents = (config: YouToolsConfig = {}) => {
         getUserAgent,
       });
 
-      // Format the response
-      const formatted = formatContentsResponse(response, params.format || 'markdown');
-
-      // Return formatted text and structured data (use raw response for data to preserve markdown/html fields)
-      return {
-        text: formatted.content[0]?.text || '',
-        data: response,
-      };
+      // Return raw API response for maximum flexibility
+      return response;
     },
   });
 };

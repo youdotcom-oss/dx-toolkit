@@ -222,80 +222,67 @@ bun run format:package           # Format package.json only
 
 ## Contributing
 
-For detailed contribution guidelines, including:
+See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 
-- Bug reporting
-- Feature requests
-- Pull request workflow
-- Commit message conventions (Conventional Commits)
-- Code review process
+**Package-specific scope**: Use `mcp` scope in commit messages:
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md)
+```bash
+feat(mcp): add new search filter
+fix(mcp): resolve timeout issue
+```
 
 ### Maintaining Documentation
 
 Some documentation files require regular maintenance as the codebase evolves.
 
-#### PERFORMANCE.md Maintenance
+#### Performance Documentation Maintenance
 
-**File**: `docs/PERFORMANCE.md`
+**File**: `../../docs/PERFORMANCE.md` (root-level, centralized performance doc)
 **Type**: Living document (requires updates)
 **Owner**: Package maintainers
 
 **When to Update**:
 
-1. **Threshold Changes** - Update when performance thresholds are adjusted
-   - Document rationale for changes
-   - Update both threshold table and related text
+1. **Threshold Changes** - Update when MCP package's performance thresholds are adjusted
+   - Update the `@youdotcom-oss/mcp` section under "Package Performance Thresholds"
+   - Document rationale for changes in commit message
    - Example: Increasing memory threshold from 400KB to 500KB
 
-2. **Architecture Changes** - Update when MCP server architecture changes
-   - Add/remove overhead sources
-   - Update latency estimates (e.g., "stdio transport: 20-40ms")
-   - Revise optimization patterns
+2. **Architecture Changes** - Update if methodology changes affect multiple packages
+   - Update general methodology sections in root PERFORMANCE.md
+   - Examples: New measurement techniques, different outlier detection algorithms
+   - Coordinate with other package maintainers if changes affect threshold guidelines
 
-3. **New APIs Added** - Update when new MCP tools are added
-   - Add new API section under "APIs Tested"
-   - Document authentication method
-   - Specify iteration count and timeout
-
-4. **Troubleshooting Updates** - Add new issues as they're discovered
-   - Document symptoms, causes, solutions
-   - Include investigation commands
-   - Link to related issues/PRs
-
-5. **Quarterly Reviews** - Review every 3 months
+3. **Quarterly Reviews** - Review every 3 months
    - Analyze threshold trends from CI results
-   - Verify thresholds still realistic
-   - Update examples with recent metrics
-   - Document in commit: `docs(mcp): quarterly performance review Q1 2025`
+   - Verify MCP package thresholds are still realistic
+   - Document in commit: `docs(performance): quarterly review for @youdotcom-oss/mcp Q1 2025`
 
 **Update Process**:
 
 ```bash
-# 1. Update PERFORMANCE.md
-vim docs/PERFORMANCE.md
+# 1. Update package thresholds in root PERFORMANCE.md
+vim ../../docs/PERFORMANCE.md
+# Edit the @youdotcom-oss/mcp section under "Package Performance Thresholds"
 
-# 2. Run performance tests to verify examples
+# 2. Run performance tests to verify thresholds
 bun test src/tests/processing-lag.spec.ts
 
 # 3. Update test thresholds if needed
 vim src/tests/processing-lag.spec.ts
 
 # 4. Commit changes
-git commit -m "docs(mcp): update performance thresholds and troubleshooting"
+git commit -m "docs(performance): update mcp package thresholds"
 ```
 
 **Review Checklist**:
-- [ ] Thresholds match test file constants
-- [ ] Examples use recent test output
-- [ ] API list matches actual MCP tools
-- [ ] Troubleshooting sections accurate
-- [ ] Related docs updated (root PERFORMANCE.md if methodology changes)
+- [ ] Thresholds in `../../docs/PERFORMANCE.md` match test file constants
+- [ ] Test location path is correct
+- [ ] Run command is accurate
 
 **Related Files**:
 - `src/tests/processing-lag.spec.ts` - Test thresholds must match
-- `../../docs/PERFORMANCE.md` - Root philosophy (update if methodology changes)
+- `../../docs/PERFORMANCE.md` - Centralized performance documentation
 - `README.md` - Performance claims should align with metrics
 
 ## Publishing
@@ -948,23 +935,3 @@ PORT=4000 bun bin/http
 For connecting MCP clients to your self-hosted server, see the "Adding to your MCP client" section in [README.md](./README.md).
 
 For complete API reference documentation including parameters, response formats, and examples, see [API.md](./docs/API.md).
-
-## Bun Runtime
-
-This project uses Bun (>= 1.2.21) instead of Node.js:
-
-```bash
-bun <file>       # Run TypeScript directly
-bun install      # Install dependencies
-bun test         # Built-in test runner
-```
-
-**Import Extensions** (enforced by Biome):
-
-- Local files: `.ts` extension
-- NPM packages: `.js` extension
-- JSON files: `.json` with import assertion
-
-See `src/contents/register-contents-tool.ts:1-5` for import examples.
-
-**Build**: Build configuration is defined in `package.json` scripts. The `bun run build` command compiles `src/stdio.ts` to `bin/stdio.js` for production use.

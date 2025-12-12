@@ -24,7 +24,7 @@ import { youContents, youExpress, youSearch } from '../main.ts';
 /**
  * Type helper to narrow execute result to non-async type
  */
-const getExecuteResult = <T extends { text: string; data: any }>(result: T | AsyncIterable<T> | undefined): T => {
+const getExecuteResult = <T>(result: T | AsyncIterable<T> | undefined): T => {
   if (!result || typeof result === 'symbol' || Symbol.asyncIterator in Object(result)) {
     throw new Error('Invalid result type');
   }
@@ -51,7 +51,7 @@ describe('AI SDK Plugin Integration Tests', () => {
 
   describe('youSearch tool', () => {
     test(
-      'basic web search - returns results with snippets',
+      'basic web search - returns raw API response',
       async () => {
         const searchTool = youSearch({ apiKey: ydcApiKey });
         const executeResult = await searchTool.execute?.(
@@ -62,16 +62,18 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        // Validate response structure
-        const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(typeof result.text).toBe('string');
-        expect(result.text.length).toBeGreaterThan(0);
+        // Validate raw API response structure
+        const result = getExecuteResult(executeResult) as any;
+        expect(result.results).toBeDefined();
+        expect(result.results.web).toBeDefined();
+        expect(Array.isArray(result.results.web)).toBe(true);
+        expect(result.results.web.length).toBeGreaterThan(0);
 
-        // Validate structured data
-        expect(result.data).toBeDefined();
-        expect(result.data.hits).toBeDefined();
-        expect(Array.isArray(result.data.hits)).toBe(true);
+        // Validate search result structure
+        const firstResult = result.results.web[0];
+        expect(firstResult?.url).toBeDefined();
+        expect(firstResult?.title).toBeDefined();
+        expect(firstResult?.description).toBeDefined();
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -89,10 +91,10 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(result.data).toBeDefined();
-        expect(result.data.hits.length).toBeLessThanOrEqual(5);
+        const result = getExecuteResult(executeResult) as any;
+        expect(result.results).toBeDefined();
+        expect(result.results.web).toBeDefined();
+        expect(result.results.web.length).toBeLessThanOrEqual(5);
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -109,9 +111,9 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(result.data.hits.length).toBeGreaterThan(0);
+        const result = getExecuteResult(executeResult) as any;
+        expect(result.results).toBeDefined();
+        expect(result.results.web.length).toBeGreaterThan(0);
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -119,7 +121,7 @@ describe('AI SDK Plugin Integration Tests', () => {
 
   describe('youExpress tool', () => {
     test(
-      'agent response - provides AI answer',
+      'agent response - returns raw API response with answer',
       async () => {
         const expressTool = youExpress({ apiKey: ydcApiKey });
         const executeResult = await expressTool.execute?.(
@@ -129,18 +131,14 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        // Validate response
+        // Validate raw API response
         const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(typeof result.text).toBe('string');
-        expect(result.text.length).toBeGreaterThan(0);
+        expect(result.answer).toBeDefined();
+        expect(typeof result.answer).toBe('string');
+        expect(result.answer.length).toBeGreaterThan(0);
 
         // Should mention TypeScript
-        expect(result.text.toLowerCase()).toContain('typescript');
-
-        // Validate structured data
-        expect(result.data).toBeDefined();
-        expect(result.data.answer).toBeDefined();
+        expect(result.answer.toLowerCase()).toContain('typescript');
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -157,8 +155,8 @@ describe('AI SDK Plugin Integration Tests', () => {
         );
 
         const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(result.text).toContain('2025');
+        expect(result.answer).toBeDefined();
+        expect(result.answer).toContain('2025');
       },
       { timeout: 60_000, retry: 2 },
     );
@@ -166,7 +164,7 @@ describe('AI SDK Plugin Integration Tests', () => {
 
   describe('youContents tool', () => {
     test(
-      'single URL extraction - returns markdown content',
+      'single URL extraction - returns raw API response array',
       async () => {
         const contentsTool = youContents({ apiKey: ydcApiKey });
         const executeResult = await contentsTool.execute?.(
@@ -177,18 +175,14 @@ describe('AI SDK Plugin Integration Tests', () => {
           { toolCallId: 'test', messages: [] },
         );
 
-        // Validate response
-        const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(typeof result.text).toBe('string');
-        expect(result.text.length).toBeGreaterThan(0);
-
-        // Validate structured data
-        expect(result.data).toBeDefined();
-        expect(Array.isArray(result.data)).toBe(true);
-        expect(result.data.length).toBeGreaterThan(0);
-        expect(result.data[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
-        expect(result.data[0]?.markdown).toBeDefined();
+        // Validate raw API response (array of content objects)
+        const result = getExecuteResult(executeResult) as any;
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
+        expect(result[0]?.markdown).toBeDefined();
+        expect(typeof result[0]?.markdown).toBe('string');
+        expect(result[0]?.markdown?.length).toBeGreaterThan(0);
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -209,11 +203,10 @@ describe('AI SDK Plugin Integration Tests', () => {
         );
 
         const result = getExecuteResult(executeResult);
-        expect(result.text).toBeDefined();
-        expect(result.data).toBeDefined();
-        expect(result.data.length).toBe(2);
-        expect(result.data[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
-        expect(result.data[1]?.url).toBe('https://documentation.you.com/developer-resources/python-sdk');
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBe(2);
+        expect(result[0]?.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
+        expect(result[1]?.url).toBe('https://documentation.you.com/developer-resources/python-sdk');
       },
       { timeout: 30_000, retry: 2 },
     );
@@ -239,46 +232,50 @@ describe('AI SDK Plugin Integration Tests', () => {
 
   describe('AI SDK integration', () => {
     test.skipIf(!process.env.ANTHROPIC_API_KEY)(
-      'tools work with generateText and trigger multiple tool calls',
+      'tools work with generateText and return raw API responses',
       async () => {
-        // Complex prompt that should trigger multiple tools:
-        // 1. Search for recent info
-        // 2. Agent for synthesis
-        // 3. Contents for URL extraction
+        // Test that tools execute and return raw API responses
         const result = await generateText({
           model: anthropic('claude-sonnet-4-5-20250929'),
           tools: {
             search: youSearch({ apiKey: ydcApiKey }),
-            agent: youExpress({ apiKey: ydcApiKey }),
-            extract: youContents({ apiKey: ydcApiKey }),
           },
-          prompt: `Find recent information about the Vercel AI SDK, get the documentation from https://sdk.vercel.ai,
-          and explain the key differences between streaming and non-streaming responses`,
-          // Note: maxSteps removed due to type incompatibility with current AI SDK version
+          prompt: 'Search for the latest developments in AI agents',
         });
 
-        // Validate response structure
-        expect(result.text).toBeDefined();
-        expect(typeof result.text).toBe('string');
-        expect(result.text.length).toBeGreaterThan(0);
-
-        // Validate tool usage - at least one tool should be called
+        // Validate tool execution
         expect(result.toolCalls).toBeDefined();
         expect(result.toolCalls.length).toBeGreaterThan(0);
+        expect(result.toolCalls[0]?.toolName).toBe('search');
 
-        // Validate tool results
+        // Validate tool results contain raw API response
         expect(result.toolResults).toBeDefined();
         expect(result.toolResults.length).toBeGreaterThan(0);
 
-        // Verify at least one of our tools was called
-        const toolNames = result.toolCalls.map((call) => call.toolName);
-        const usedTools = toolNames.filter((name) => ['search', 'agent', 'extract'].includes(name));
-        expect(usedTools.length).toBeGreaterThan(0);
+        // Extract tool result from steps (Claude Sonnet 4.5 returns results without verbose text)
+        const toolResult = result.steps?.[0]?.content?.find((c: any) => c.type === 'tool-result') as any;
+        expect(toolResult).toBeDefined();
+        expect(toolResult?.output).toBeDefined();
 
-        console.log(`\n=== Tool Usage Summary ===`);
-        console.log(`Total tool calls: ${result.toolCalls.length}`);
-        console.log(`Tools used: ${usedTools.join(', ')}`);
-        console.log(`Response length: ${result.text.length} characters`);
+        // Validate raw API response structure
+        const output = toolResult?.output as any;
+        expect(output.results).toBeDefined();
+        expect(output.results.web).toBeDefined();
+        expect(Array.isArray(output.results.web)).toBe(true);
+        expect(output.results.web.length).toBeGreaterThan(0);
+
+        // Validate search result structure
+        const firstResult = output.results.web[0];
+        expect(firstResult.url).toBeDefined();
+        expect(firstResult.title).toBeDefined();
+        expect(firstResult.description).toBeDefined();
+
+        console.log(`\n=== Integration Test Summary ===`);
+        console.log(`Tool called: ${result.toolCalls[0]?.toolName}`);
+        console.log(`Web results: ${output.results?.web?.length}`);
+        console.log(`News results: ${output.results?.news?.length || 0}`);
+        console.log(`Finish reason: ${result.finishReason}`);
+        console.log(`Steps: ${result.steps?.length}`);
       },
       { timeout: 120_000, retry: 2 },
     );
