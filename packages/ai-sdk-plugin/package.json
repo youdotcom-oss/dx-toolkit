@@ -1,7 +1,7 @@
 {
-  "name": "@youdotcom-oss/mcp",
-  "version": "1.3.8",
-  "description": "You.com API Model Context Protocol Server",
+  "name": "@youdotcom-oss/ai-sdk-plugin",
+  "version": "0.1.0",
+  "description": "Vercel AI SDK plugin for You.com web search, AI agents, and content extraction via MCP",
   "license": "MIT",
   "engines": {
     "node": ">=18",
@@ -10,70 +10,68 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
-    "directory": "packages/mcp"
+    "directory": "packages/ai-sdk-plugin"
   },
   "bugs": {
     "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
   },
-  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/mcp#readme",
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/ai-sdk-plugin#readme",
   "author": "You.com (https://you.com)",
   "keywords": [
+    "ai",
+    "sdk",
+    "plugin",
+    "you",
+    "search",
     "mcp",
-    "web search",
-    "model context protocol"
+    "vercel",
+    "model-context-protocol",
+    "ai-agents",
+    "web-search"
   ],
-  "bin": "bin/stdio.js",
   "type": "module",
-  "main": "./src/main.ts",
+  "main": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "default": "./src/main.ts"
-    },
-    "./http": "./src/http.ts",
-    "./stdio": "./src/stdio.ts"
+      "default": "./dist/main.js"
+    }
   },
   "files": [
-    "bin/stdio.js",
-    "./dist/**",
-    "./src/**",
-    "!./src/**/tests/*",
-    "!./src/**/*.spec.@(tsx|ts)"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun run build:stdio && bun run build:types",
-    "build:stdio": "bun build ./src/stdio.ts --outfile ./bin/stdio.js --target=node",
-    "build:types": "tsc --project tsconfig.json --declaration --emitDeclarationOnly --noEmit false",
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external ai",
+    "build:types": "tsc --project tsconfig.build.json  --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
     "check:write": "bun run format && bun run lint:fix && bun run format:package",
-    "dev": "bun src/stdio.ts",
+    "example": "bun scripts/run-example.ts",
     "format": "biome format --write",
     "format:check": "biome format",
     "format:package": "format-package --write",
-    "inspect": "bash -c 'source .env 2>/dev/null || true; bunx @modelcontextprotocol/inspector -e YDC_API_KEY=$YDC_API_KEY bun dev'",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
-    "start": "bun run bin/http",
+    "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:coverage:watch": "bun test --coverage --watch",
     "test:watch": "bun test --watch"
   },
-  "mcpName": "io.github.youdotcom-oss/mcp",
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "zod": "^4.1.13",
-    "@hono/mcp": "^0.2.2",
-    "@modelcontextprotocol/sdk": "^1.24.3",
-    "hono": "^4.10.8"
+    "@youdotcom-oss/mcp": "1.3.8"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "0.17.5"
+    "@ai-sdk/anthropic": "^2.0.56"
   }
 }

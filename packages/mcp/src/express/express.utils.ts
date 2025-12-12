@@ -1,3 +1,4 @@
+import { EXPRESS_API_URL } from '../shared/api-constants.ts';
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts';
 import { formatSearchResultsText } from '../shared/format-search-results-text.ts';
 import {
@@ -6,9 +7,6 @@ import {
   type ExpressAgentInput,
   type ExpressAgentMcpResponse,
 } from './express.schemas.ts';
-
-// Express Agent Constants
-const AGENTS_RUN_URL = 'https://api.you.com/v1/agents/runs';
 
 /**
  * Checks response status and throws appropriate errors for agent API calls
@@ -70,7 +68,7 @@ export const callExpressAgent = async ({
     body: JSON.stringify(requestBody),
   };
 
-  const response = await fetch(AGENTS_RUN_URL, options);
+  const response = await fetch(EXPRESS_API_URL, options);
 
   if (!response.ok) {
     await agentThrowOnFailedStatus(response);

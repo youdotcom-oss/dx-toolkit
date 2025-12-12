@@ -1,3 +1,4 @@
+import { CONTENTS_API_URL } from '../shared/api-constants.ts';
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts';
 import {
   type ContentsApiResponse,
@@ -5,8 +6,6 @@ import {
   type ContentsQuery,
   type ContentsStructuredContent,
 } from './contents.schemas.ts';
-
-const CONTENTS_API_URL = 'https://ydc-index.io/v1/contents';
 
 /**
  * Fetch content from You.com Contents API

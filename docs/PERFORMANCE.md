@@ -210,6 +210,22 @@ const result = await client.callTool({ name: 'api', arguments: params });
 
 Aim for thresholds that keep total lag below perception thresholds.
 
+## Package Performance Thresholds
+
+### @youdotcom-oss/mcp
+- **Processing lag**: < 100ms
+- **Overhead percentage**: < 50%
+- **Memory overhead**: < 400KB
+- **Test location**: `packages/mcp/src/tests/processing-lag.spec.ts`
+- **Run tests**: `cd packages/mcp && bun test src/tests/processing-lag.spec.ts`
+
+### @youdotcom-oss/ai-sdk-plugin
+- **Processing lag**: < 80ms
+- **Overhead percentage**: < 35%
+- **Memory overhead**: < 350KB
+- **Test location**: `packages/ai-sdk-plugin/src/tests/processing-lag.spec.ts`
+- **Run tests**: `cd packages/ai-sdk-plugin && bun test src/tests/processing-lag.spec.ts`
+
 ## Common Troubleshooting
 
 ### High Processing Lag
@@ -322,17 +338,10 @@ Skip processing lag tests for packages that:
 - Review failures as optimization opportunities
 - Keep tests updated with API changes
 
-### Documentation
-- Document package-specific thresholds in package's PERFORMANCE.md
-- Explain what overhead sources are expected
-- Link to root performance philosophy (this document)
-- Include troubleshooting for package-specific issues
-
 ## Further Reading
-
-For package-specific performance documentation, see:
-- [MCP Server Performance](../packages/mcp/docs/PERFORMANCE.md)
 
 For general development guidelines, see:
 - [Contributing Guide](../CONTRIBUTING.md)
 - [Development Guide](../AGENTS.md)
+- [MCP Server API](../packages/mcp/docs/API.md)
+- [AI SDK Plugin API](../packages/ai-sdk-plugin/docs/API.md)
