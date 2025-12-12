@@ -93,14 +93,15 @@ packages/ai-sdk-plugin/
 ├── src/
 │   ├── main.ts                      # Tool exports (youSearch, youExpress, youContents)
 │   └── tests/
-│       ├── integration.spec.ts      # End-to-end tool tests
-│       └── processing-lag.spec.ts   # Performance overhead tests
+│       └── integration.spec.ts      # End-to-end tool tests
 ├── examples/                        # Usage examples
 ├── docs/
 │   └── API.md                       # API reference
 ├── package.json                     # Package configuration
 └── README.md                        # User documentation
 ```
+
+**Note**: Performance monitoring is centralized at the monorepo level. See `scripts/performance/` and root `AGENTS.md` for details.
 
 ## AI SDK Tool Pattern
 
@@ -342,7 +343,8 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 2. **Add integration tests**
 3. **Add example in examples/**
 4. **Update README.md and API.md**
-5. **Run performance tests** - Ensure overhead stays within thresholds
+
+**Note**: Performance is monitored centrally. See "Performance" section below.
 
 ### Testing Strategy
 
@@ -352,13 +354,6 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 - Test tool composition (multiple tools together)
 - Test with different AI models
 - Test streaming responses
-
-**Processing Lag Tests** (`src/tests/processing-lag.spec.ts`):
-- Compare raw API calls vs tool abstraction overhead
-- Measure absolute lag (< 80ms threshold)
-- Measure relative overhead (< 35% threshold)
-- Measure memory overhead (< 350KB threshold)
-- See [PERFORMANCE.md](../../docs/PERFORMANCE.md) for methodology and threshold details
 
 **Test Configuration**:
 
@@ -384,15 +379,14 @@ bun test
 # Integration tests only
 bun test src/tests/integration.spec.ts
 
-# Processing lag tests only
-bun test src/tests/processing-lag.spec.ts
-
 # Coverage report
 bun test:coverage
 
 # Watch mode
 bun test:watch
 ```
+
+**Note**: Performance measurements are run centrally via `scripts/performance/measure.ts`. See "Performance" section for details.
 
 **Prerequisites**:
 - `YDC_API_KEY` environment variable
@@ -468,39 +462,6 @@ text: response.results.map(r => r.title).join('\n')
 ### Code Style
 
 For universal code patterns (arrow functions, numeric separators, Bun APIs, etc.), see [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
-
-## Performance
-
-### Processing Lag Thresholds
-
-This plugin maintains strict performance thresholds (see [PERFORMANCE.md](../../docs/PERFORMANCE.md)):
-
-| Metric | Threshold | Rationale |
-|--------|-----------|-----------|
-| **Processing lag** | < 80ms | SDK integration overhead (tool wrapper, validation, formatting) |
-| **Overhead percentage** | < 35% | Acceptable for abstraction providing type safety and error handling |
-| **Memory overhead** | < 350KB | Tool instances, schemas, and response transformation |
-
-**Overhead sources**:
-1. AI SDK `tool()` wrapper - Tool registration and execution context
-2. Zod validation - Input schema validation
-3. MCP utilities - API calls and response formatting
-4. Response transformation - Converting to `{ text, data }` format
-5. Error handling - API key validation and error messages
-
-### Performance Testing
-
-Run performance tests before committing:
-
-```bash
-bun test src/tests/processing-lag.spec.ts
-```
-
-**Monitor overhead when**:
-- Adding new tool parameters
-- Modifying response formatting
-- Updating @youdotcom-oss/mcp dependency
-- Adding validation logic
 
 ## Troubleshooting
 

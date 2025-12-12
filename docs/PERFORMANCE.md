@@ -210,21 +210,30 @@ const result = await client.callTool({ name: 'api', arguments: params });
 
 Aim for thresholds that keep total lag below perception thresholds.
 
+<!-- BEGIN AUTO-GENERATED RESULTS -->
+## Latest Test Results
+
+**Last Updated**: Not yet measured
+**Workflow Run**: [Pending first run](https://github.com/youdotcom-oss/dx-toolkit/actions)
+
+Results will be populated automatically by the weekly performance monitoring workflow.
+<!-- END AUTO-GENERATED RESULTS -->
+
 ## Package Performance Thresholds
 
 ### @youdotcom-oss/mcp
 - **Processing lag**: < 100ms
 - **Overhead percentage**: < 50%
 - **Memory overhead**: < 400KB
-- **Test location**: `packages/mcp/src/tests/processing-lag.spec.ts`
-- **Run tests**: `cd packages/mcp && bun test src/tests/processing-lag.spec.ts`
+- **Measurement script**: `scripts/performance/measure.ts`
+- **Run manually**: `bun scripts/performance/measure.ts > results.json`
 
 ### @youdotcom-oss/ai-sdk-plugin
 - **Processing lag**: < 80ms
 - **Overhead percentage**: < 35%
 - **Memory overhead**: < 350KB
-- **Test location**: `packages/ai-sdk-plugin/src/tests/processing-lag.spec.ts`
-- **Run tests**: `cd packages/ai-sdk-plugin && bun test src/tests/processing-lag.spec.ts`
+- **Measurement script**: `scripts/performance/measure.ts`
+- **Run manually**: `bun scripts/performance/measure.ts > results.json`
 
 ## Common Troubleshooting
 
