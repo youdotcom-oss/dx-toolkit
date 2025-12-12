@@ -73,6 +73,6 @@
     "ai": "^5.0.0"
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^2.0.54"
+    "@ai-sdk/anthropic": "^2.0.56"
   }
 }
