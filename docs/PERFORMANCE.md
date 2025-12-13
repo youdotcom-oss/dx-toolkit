@@ -281,21 +281,28 @@ Aim for thresholds that keep total lag below perception thresholds.
 </details>
 <!-- END AUTO-GENERATED RESULTS -->
 
+## Running Performance Measurements
+
+To measure performance for all packages manually:
+
+```bash
+# From repository root
+bun scripts/performance/measure.ts > results.json
+```
+
+This measures all packages in a single run and outputs results as JSON. The weekly workflow uses this same script.
+
 ## Package Performance Thresholds
 
 ### @youdotcom-oss/mcp
 - **Processing lag**: < 100ms
 - **Overhead percentage**: < 50%
 - **Memory overhead**: < 400KB
-- **Measurement script**: `scripts/performance/measure.ts`
-- **Run manually**: `bun scripts/performance/measure.ts > results.json`
 
 ### @youdotcom-oss/ai-sdk-plugin
 - **Processing lag**: < 80ms
 - **Overhead percentage**: < 35%
 - **Memory overhead**: < 350KB
-- **Measurement script**: `scripts/performance/measure.ts`
-- **Run manually**: `bun scripts/performance/measure.ts > results.json`
 
 ## Common Troubleshooting
 
