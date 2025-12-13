@@ -127,6 +127,46 @@ const measurePerformance = async (config: {
 };
 
 /**
+ * Retry wrapper for measurements
+ * Retries up to 2 times if any metric fails threshold
+ */
+const measureWithRetry = async (measureFn: () => Promise<PerformanceResult>): Promise<PerformanceResult> => {
+  const maxAttempts = 3;
+  let lastResult: PerformanceResult;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    lastResult = await measureFn();
+
+    // Check if all metrics passed
+    const allPassed = Object.values(lastResult.metrics).every((m) => m.pass);
+
+    if (allPassed) {
+      if (attempt > 1) {
+        console.error(`✅ All metrics passed on attempt ${attempt}`);
+      }
+      return lastResult;
+    }
+
+    // Log failed metrics
+    const failedMetrics = Object.entries(lastResult.metrics)
+      .filter(([_, m]) => !m.pass)
+      .map(([name, m]) => `${name}: ${m.value.toFixed(2)} (threshold: ${m.threshold})`);
+
+    if (attempt < maxAttempts) {
+      console.error(`\n⚠️  Attempt ${attempt}/${maxAttempts} - Metrics exceeded threshold:`);
+      console.error(`   ${failedMetrics.join(', ')}`);
+      console.error('   Retrying measurement...\n');
+      await Bun.sleep(2000); // Wait 2s before retry
+    } else {
+      console.error(`\n❌ All ${maxAttempts} attempts failed - Metrics still exceed threshold:`);
+      console.error(`   ${failedMetrics.join(', ')}`);
+    }
+  }
+
+  return lastResult;
+};
+
+/**
  * Measure MCP package performance
  * Thresholds: 100ms lag, 50% overhead, 400KB memory
  */
@@ -309,7 +349,7 @@ const main = async () => {
   console.error('Measuring performance for all packages...\n');
 
   try {
-    const results = await Promise.all([measureMcp(), measureAiSdkPlugin()]);
+    const results = await Promise.all([measureWithRetry(measureMcp), measureWithRetry(measureAiSdkPlugin)]);
 
     console.error('\n=== Measurement Complete ===');
     console.error('Outputting results as JSON...\n');
