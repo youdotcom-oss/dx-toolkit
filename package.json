@@ -7,7 +7,8 @@
     "bun": ">= 1.2.21"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "scripts/*"
   ],
   "scripts": {
     "build": "bun run --filter '*' build",

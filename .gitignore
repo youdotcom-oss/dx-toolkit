@@ -58,6 +58,7 @@ loglevel.json
 # Test artifacts (workspace-level)
 test-results/
 test-output/
+results.json
 
 # Temporary files
 tmp/

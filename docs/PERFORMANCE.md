@@ -210,21 +210,99 @@ const result = await client.callTool({ name: 'api', arguments: params });
 
 Aim for thresholds that keep total lag below perception thresholds.
 
+<!-- BEGIN AUTO-GENERATED RESULTS -->
+## Latest Test Results
+
+**Last Updated**: 2025-12-13T00:59:01.946Z
+**Workflow Run**: [View Results](https://github.com/youdotcom-oss/dx-toolkit/actions/runs/20184221356)
+
+| Package | Processing Lag | Overhead % | Memory | Status |
+|---------|---------------|------------|--------|--------|
+| @youdotcom-oss/mcp | ✅ 5.13ms (< 100.00ms) | ✅ 6.25% (< 50.00%) | ✅ 107.06KB (< 400.00KB) | ✅ Pass |
+| @youdotcom-oss/ai-sdk-plugin | ✅ 0.08ms (< 80.00ms) | ✅ 0.10% (< 35.00%) | ✅ 62.47KB (< 350.00KB) | ✅ Pass |
+
+<details>
+<summary>View detailed metrics</summary>
+
+
+### @youdotcom-oss/mcp
+
+**Timestamp**: 2025-12-13T00:59:01.889Z
+
+**Processing Lag**:
+- Raw API avg: 82.04ms
+- Wrapper avg: 87.16ms
+- Processing lag: 5.13ms
+- Threshold: < 100.00ms
+- Status: ✅ Pass
+
+**Overhead**:
+- Percentage: 6.25%
+- Threshold: < 50.00%
+- Status: ✅ Pass
+
+**Memory**:
+- Heap before: 10216.47KB
+- Heap after: 10323.54KB
+- Growth: 107.06KB
+- Threshold: < 400.00KB
+- Status: ✅ Pass
+
+**Test Configuration**:
+- Iterations: 20
+
+
+### @youdotcom-oss/ai-sdk-plugin
+
+**Timestamp**: 2025-12-13T00:58:57.580Z
+
+**Processing Lag**:
+- Raw API avg: 83.64ms
+- Wrapper avg: 83.72ms
+- Processing lag: 0.08ms
+- Threshold: < 80.00ms
+- Status: ✅ Pass
+
+**Overhead**:
+- Percentage: 0.10%
+- Threshold: < 35.00%
+- Status: ✅ Pass
+
+**Memory**:
+- Heap before: 10422.35KB
+- Heap after: 10484.82KB
+- Growth: 62.47KB
+- Threshold: < 350.00KB
+- Status: ✅ Pass
+
+**Test Configuration**:
+- Iterations: 20
+
+</details>
+<!-- END AUTO-GENERATED RESULTS -->
+
+## Running Performance Measurements
+
+To measure performance for all packages manually:
+
+```bash
+# From repository root
+bun scripts/performance/measure.ts > results.json
+```
+
+This measures all packages in a single run and outputs results as JSON. The weekly workflow uses this same script.
+
 ## Package Performance Thresholds
 
 ### @youdotcom-oss/mcp
 - **Processing lag**: < 100ms
 - **Overhead percentage**: < 50%
 - **Memory overhead**: < 400KB
-- **Test location**: `packages/mcp/src/tests/processing-lag.spec.ts`
-- **Run tests**: `cd packages/mcp && bun test src/tests/processing-lag.spec.ts`
 
 ### @youdotcom-oss/ai-sdk-plugin
 - **Processing lag**: < 80ms
 - **Overhead percentage**: < 35%
 - **Memory overhead**: < 350KB
-- **Test location**: `packages/ai-sdk-plugin/src/tests/processing-lag.spec.ts`
-- **Run tests**: `cd packages/ai-sdk-plugin && bun test src/tests/processing-lag.spec.ts`
 
 ## Common Troubleshooting
 

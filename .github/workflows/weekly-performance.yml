@@ -1,0 +1,62 @@
+name: Weekly Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # 1pm UTC every Monday
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  monitor-performance:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # For pushing commits
+      issues: write # For creating/updating issues
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build packages
+        run: bun run build
+
+      - name: Run performance measurements
+        run: bun scripts/performance/measure.ts > results.json
+        env:
+          YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
+
+      - name: Detect regressions and file issues
+        run: bun scripts/performance/detect-and-file.ts results.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update documentation
+        run: bun scripts/performance/update-docs.ts results.json
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/PERFORMANCE.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs(performance): update weekly measurements [skip ci]"
+            git push
+          fi
+
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ github.run_number }}
+          path: results.json
+          retention-days: 90

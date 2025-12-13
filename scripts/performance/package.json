@@ -1,0 +1,11 @@
+{
+  "name": "performance",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    "@ai-sdk/anthropic": "^2.0.56",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@youdotcom-oss/ai-sdk-plugin": "workspace:*",
+    "@youdotcom-oss/mcp": "workspace:*"
+  }
+}

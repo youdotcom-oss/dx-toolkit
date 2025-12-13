@@ -231,60 +231,6 @@ feat(mcp): add new search filter
 fix(mcp): resolve timeout issue
 ```
 
-### Maintaining Documentation
-
-Some documentation files require regular maintenance as the codebase evolves.
-
-#### Performance Documentation Maintenance
-
-**File**: `../../docs/PERFORMANCE.md` (root-level, centralized performance doc)
-**Type**: Living document (requires updates)
-**Owner**: Package maintainers
-
-**When to Update**:
-
-1. **Threshold Changes** - Update when MCP package's performance thresholds are adjusted
-   - Update the `@youdotcom-oss/mcp` section under "Package Performance Thresholds"
-   - Document rationale for changes in commit message
-   - Example: Increasing memory threshold from 400KB to 500KB
-
-2. **Architecture Changes** - Update if methodology changes affect multiple packages
-   - Update general methodology sections in root PERFORMANCE.md
-   - Examples: New measurement techniques, different outlier detection algorithms
-   - Coordinate with other package maintainers if changes affect threshold guidelines
-
-3. **Quarterly Reviews** - Review every 3 months
-   - Analyze threshold trends from CI results
-   - Verify MCP package thresholds are still realistic
-   - Document in commit: `docs(performance): quarterly review for @youdotcom-oss/mcp Q1 2025`
-
-**Update Process**:
-
-```bash
-# 1. Update package thresholds in root PERFORMANCE.md
-vim ../../docs/PERFORMANCE.md
-# Edit the @youdotcom-oss/mcp section under "Package Performance Thresholds"
-
-# 2. Run performance tests to verify thresholds
-bun test src/tests/processing-lag.spec.ts
-
-# 3. Update test thresholds if needed
-vim src/tests/processing-lag.spec.ts
-
-# 4. Commit changes
-git commit -m "docs(performance): update mcp package thresholds"
-```
-
-**Review Checklist**:
-- [ ] Thresholds in `../../docs/PERFORMANCE.md` match test file constants
-- [ ] Test location path is correct
-- [ ] Run command is accurate
-
-**Related Files**:
-- `src/tests/processing-lag.spec.ts` - Test thresholds must match
-- `../../docs/PERFORMANCE.md` - Centralized performance documentation
-- `README.md` - Performance claims should align with metrics
-
 ## Publishing
 
 ### Release Process
