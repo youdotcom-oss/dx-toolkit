@@ -61,6 +61,7 @@ const calculateSeverity = (exceedsByPercent: number): Regression['severity'] => 
 
 /**
  * Detect regressions from performance results
+ * Only reports moderate (>25% over) and critical (>50% over) regressions
  */
 const detectRegressions = (results: PerformanceResult[]): Regression[] => {
   const regressions: Regression[] = [];
@@ -70,6 +71,12 @@ const detectRegressions = (results: PerformanceResult[]): Regression[] => {
       if (!metricData.pass) {
         const exceedsBy = metricData.value - metricData.threshold;
         const exceedsByPercent = (exceedsBy / metricData.threshold) * 100;
+        const severity = calculateSeverity(exceedsByPercent);
+
+        // Skip minor regressions (<25% over threshold)
+        if (severity === 'minor') {
+          continue;
+        }
 
         regressions.push({
           package: result.package,
@@ -78,7 +85,7 @@ const detectRegressions = (results: PerformanceResult[]): Regression[] => {
           threshold: metricData.threshold,
           exceedsBy,
           exceedsByPercent,
-          severity: calculateSeverity(exceedsByPercent),
+          severity,
           timestamp: result.timestamp,
         });
       }
