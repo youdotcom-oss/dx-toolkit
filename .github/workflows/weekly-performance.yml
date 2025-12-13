@@ -4,9 +4,6 @@ on:
   schedule:
     - cron: '0 13 * * 1' # 1pm UTC every Monday
   workflow_dispatch: # Allow manual triggers
-  push:
-    branches:
-      - dx-148-centralize-performance-tests-and-automate-weekly # TEMPORARY: for testing
 
 jobs:
   monitor-performance:
