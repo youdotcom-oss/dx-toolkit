@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { ILogger } from '@microsoft/teams.common';
-import type { AnthropicModel } from '../models/anthropic-model.enum.ts';
+import type { AnthropicModel } from './teams-anthropic.utils.ts';
 
 /**
  * Configuration options for AnthropicChatModel

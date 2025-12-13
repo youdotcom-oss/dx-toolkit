@@ -124,45 +124,32 @@ Enter comma-separated list (e.g., "ai, zod") or leave empty to bundle everything
 
 ### Phase 3: Optional Features
 
-**Question 7: Processing Lag Tests**
+**Question 7: Centralized Performance Monitoring**
 ```
-Does this package need processing lag tests?
+Should this package be added to centralized performance monitoring?
 
-These tests measure the processing overhead introduced by your code compared to raw API calls.
+This monorepo uses centralized performance testing in scripts/performance/ to track
+processing overhead across all packages with weekly automated monitoring.
 
 Context:
-- We can't improve the You.com API performance itself
-- But we need to quantify what lag our abstraction layer adds
-- Tests compare: raw fetch/curl vs your package methods
-- Useful for: MCP tools, SDK wrappers, API client libraries
+- Centralized measurements run via scripts/performance/measure.ts
+- Weekly automation detects regressions and creates GitHub issues
+- Public transparency via GitHub issues and docs/PERFORMANCE.md
+- No package-specific test maintenance required
 
-Answer "Yes" if your package wraps You.com APIs and you need to track overhead.
-Answer "No" if your package doesn't directly wrap APIs (e.g., utility libraries, CLI tools).
+Answer "Yes" if:
+- Your package wraps You.com APIs (Search, Express, Contents)
+- You need to track processing overhead compared to raw API calls
+- Examples: MCP servers, SDK plugins, API client libraries
+
+Answer "No" if:
+- Your package doesn't directly wrap APIs
+- Examples: Utility libraries, CLI tools, pure TypeScript helpers
 ```
 
 **Validation for Question 7**:
 - Must be either "Yes" or "No" (case-insensitive)
-- Store as boolean for conditional file creation
-
-**Question 8: User-Agent Prefix (only if Question 7 = "Yes")**
-```
-What is the User-Agent prefix for this package?
-
-This will be used in API requests with the format: {prefix}/{version} (You.com; {client})
-
-Examples:
-- "MCP" for MCP server packages
-- "AI-SDK" for AI SDK plugins
-- "EVAL" for evaluation harnesses
-- "CLI" for CLI tools
-
-The prefix should be short (2-10 characters) and uppercase.
-```
-
-**Validation for Question 8**:
-- Only ask if processing lag tests enabled
-- Pattern: `^[A-Z][A-Z0-9-]{1,9}$` (2-10 uppercase chars, can include hyphens)
-- Examples: "MCP", "AI-SDK", "EVAL", "CLI"
+- Store as boolean for post-creation checklist reminder
 
 ## File Creation Sequence
 
@@ -197,15 +184,41 @@ mkdir -p packages/{package-name}/docs
   - name: `{npm-package-name}`
   - version: `0.1.0`
   - description: `{description}`
+  - license: `MIT`
+  - engines.node: `>=18`
+  - engines.bun: `>= 1.2.21`
+  - repository.type: `git`
   - repository.url: `git+https://github.com/youdotcom-oss/dx-toolkit.git`
   - repository.directory: `packages/{package-name}`
   - bugs.url: `https://github.com/youdotcom-oss/dx-toolkit/issues`
   - homepage: `https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/{package-name}#readme`
+  - author: `You.com (https://you.com)`
   - keywords: `{keywords-array}`
+  - publishConfig.access: `public`
 
 **If build pattern = "source":**
 ```json
 {
+  "name": "{npm-package-name}",
+  "version": "0.1.0",
+  "description": "{description}",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/{package-name}"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/{package-name}#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": {keywords-array},
+  "type": "module",
   "main": "./src/main.ts",
   "exports": {
     ".": "./src/main.ts"
@@ -215,6 +228,9 @@ mkdir -p packages/{package-name}/docs
     "!./src/**/tests/*",
     "!./src/**/*.spec.@(tsx|ts)"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
@@ -230,15 +246,35 @@ mkdir -p packages/{package-name}/docs
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch"
-  }
+  },
+  "types": "./dist/main.d.ts"
 }
 ```
 
 **If build pattern = "bundled":**
 ```json
 {
+  "name": "{npm-package-name}",
+  "version": "0.1.0",
+  "description": "{description}",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/{package-name}"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/{package-name}#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": {keywords-array},
+  "type": "module",
   "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
@@ -246,6 +282,9 @@ mkdir -p packages/{package-name}/docs
     }
   },
   "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "bun run build:bundle && bun run build:types",
     "build:bundle": "bun build src/main.ts --outdir dist --target node {external-flags}",
@@ -265,7 +304,8 @@ mkdir -p packages/{package-name}/docs
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "test:watch": "bun test --watch"
-  }
+  },
+  "types": "./dist/main.d.ts"
 }
 ```
 
@@ -756,249 +796,7 @@ Use these indicators to verify correct tone:
 
 **Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
 
-### 5. Processing Lag Tests (Optional)
-
-**ONLY create these files if user answered "Yes" to Question 7.**
-
-**Important Note**: Performance thresholds are documented centrally in `docs/PERFORMANCE.md`. After creating the test file, add a new section to `docs/PERFORMANCE.md` under "Package Performance Thresholds" with your package's thresholds and test location.
-
-**File: packages/{package-name}/tests/processing-lag.spec.ts**
-
-This template follows production patterns from `@youdotcom-oss/mcp` and `@youdotcom-oss/ai-sdk-plugin`. Key improvements:
-- **Outlier detection**: `calculateStats()` helper filters network anomalies
-- **Test retry**: `{ timeout: 90_000, retry: 2 }` handles API variability
-- **API imports**: Import constants from `@youdotcom-oss/mcp` if using it
-- **Better metrics**: Per-operation growth tracking, growth pattern analysis
-
-```typescript
-import { heapStats } from 'bun:jsc';
-import { beforeAll, describe, expect, test } from 'bun:test';
-import packageJson from '../../package.json' with { type: 'json' };
-
-// If your package depends on @youdotcom-oss/mcp, import API constants from it:
-// import { SEARCH_API_URL, EXPRESS_API_URL, CONTENTS_API_URL } from '@youdotcom-oss/mcp';
-
-// Otherwise, define API constants for the APIs you're wrapping:
-const SEARCH_API_URL = 'https://api.ydc-index.io/search';
-const EXPRESS_API_URL = 'https://api.you.com/smart-agent/express';
-const CONTENTS_API_URL = 'https://api.ydc-index.io/rag';
-
-const YDC_API_KEY = process.env.YDC_API_KEY ?? '';
-const USER_AGENT = `{USER_AGENT_PREFIX}/${packageJson.version} (You.com; processing-lag-test)`;
-
-/**
- * Calculate statistics and remove outliers (> 2 standard deviations)
- * Improves test reliability by filtering network anomalies
- */
-const calculateStats = (times: number[]) => {
-  const avg = times.reduce((a, b) => a + b) / times.length;
-  const stdDev = Math.sqrt(times.reduce((sum, time) => sum + (time - avg) ** 2, 0) / times.length);
-
-  // Remove outliers (> 2 standard deviations from mean)
-  const filtered = times.filter((t) => Math.abs(t - avg) <= 2 * stdDev);
-
-  return {
-    avg: filtered.length > 0 ? filtered.reduce((a, b) => a + b) / filtered.length : avg,
-    outliers: times.length - filtered.length,
-  };
-};
-
-beforeAll(async () => {
-  console.log('\n=== Warming up ===');
-  console.log('Running warmup calls to eliminate cold start effects...');
-
-  // TODO: Add warmup code for your package
-  // Example for SDK plugin:
-  // const searchTool = youSearch({ apiKey: YDC_API_KEY });
-  // await searchTool.execute?.({ query: 'warmup', count: 1 }, { toolCallId: 'warmup', messages: [] });
-
-  console.log('Warmup complete. Starting measurements...\n');
-});
-
-describe('Processing Lag: Package vs Raw API Calls', () => {
-  const iterations = 10;
-
-  test.serial(
-    'Search API processing lag',
-    async () => {
-      const rawTimes: number[] = [];
-      const packageTimes: number[] = [];
-
-      for (let i = 0; i < iterations; i++) {
-        // Raw API call (baseline)
-        const rawStart = performance.now();
-        const rawUrl = new URL(SEARCH_API_URL);
-        rawUrl.searchParams.append('query', 'javascript tutorial');
-        rawUrl.searchParams.append('count', '3');
-
-        await fetch(rawUrl, {
-          method: 'GET',
-          headers: {
-            'X-API-Key': YDC_API_KEY,
-            'User-Agent': USER_AGENT,
-          },
-        });
-        rawTimes.push(performance.now() - rawStart);
-
-        // Your package method (with abstraction overhead)
-        const packageStart = performance.now();
-        // TODO: Replace with your actual package method call
-        // Example for SDK plugin:
-        // await searchTool.execute?.({ query: 'javascript tutorial', count: 3 }, { toolCallId: 'test', messages: [] });
-        packageTimes.push(performance.now() - packageStart);
-
-        // Small delay between iterations to avoid rate limiting
-        await Bun.sleep(100);
-      }
-
-      // Calculate statistics with outlier detection
-      const rawStats = calculateStats(rawTimes);
-      const packageStats = calculateStats(packageTimes);
-      const processingLag = packageStats.avg - rawStats.avg;
-      const overheadPercent = (processingLag / rawStats.avg) * 100;
-
-      console.log('\n=== Search API Processing Lag ===');
-      console.log(`Raw API avg: ${rawStats.avg.toFixed(2)}ms (${rawStats.outliers} outliers removed)`);
-      console.log(`Package avg: ${packageStats.avg.toFixed(2)}ms (${packageStats.outliers} outliers removed)`);
-      console.log(`Processing lag: ${processingLag.toFixed(2)}ms`);
-      console.log(`Overhead: ${overheadPercent.toFixed(2)}%`);
-
-      // Assert processing lag thresholds (adjust based on package type - see table below)
-      expect(processingLag).toBeLessThan(50); // < 50ms absolute lag (thin library default)
-      expect(overheadPercent).toBeLessThan(10); // < 10% relative overhead (thin library default)
-    },
-    { timeout: 90_000, retry: 2 }, // Retry up to 2 times for network/API variability
-  );
-
-  test.serial(
-    'Memory overhead from package abstraction',
-    async () => {
-      // Force GC before measurement
-      Bun.gc(true);
-      await Bun.sleep(100); // Let GC complete
-
-      const beforeHeap = heapStats();
-
-      // Run multiple operations to measure sustained memory overhead
-      const memoryIterations = 5;
-      for (let i = 0; i < memoryIterations; i++) {
-        // TODO: Replace with your package method
-        // Example for SDK plugin:
-        // await searchTool.execute?.({ query: 'memory test', count: 1 }, { toolCallId: 'test', messages: [] });
-      }
-
-      // Force GC after measurement
-      Bun.gc(true);
-      await Bun.sleep(100); // Let GC complete
-
-      const afterHeap = heapStats();
-
-      const heapGrowth = afterHeap.heapSize - beforeHeap.heapSize;
-      const perOpGrowth = heapGrowth / memoryIterations;
-
-      console.log('\n=== Memory Overhead ===');
-      console.log(`Heap before: ${(beforeHeap.heapSize / 1024).toFixed(2)} KB`);
-      console.log(`Heap after: ${(afterHeap.heapSize / 1024).toFixed(2)} KB`);
-      console.log(`Total growth: ${(heapGrowth / 1024).toFixed(2)} KB`);
-      console.log(`Per-operation growth: ${(perOpGrowth / 1024).toFixed(2)} KB`);
-      console.log(`Growth pattern: ${heapGrowth < 0 ? 'Constant (good)' : heapGrowth > 100_000 ? 'Linear (check for leaks)' : 'Stable'}`);
-
-      // Assert memory overhead threshold (adjust based on package type - see table below)
-      expect(heapGrowth).toBeLessThan(1024 * 300); // < 300KB (thin library default)
-    },
-    { timeout: 15_000, retry: 2 },
-  );
-});
-
-describe('Processing Lag Summary', () => {
-  test('displays threshold information', () => {
-    console.log('\n=== Processing Lag Thresholds ===');
-    console.log('Absolute lag: < 50ms'); // Update based on package type
-    console.log('Relative overhead: < 10%'); // Update based on package type
-    console.log('Memory overhead: < 300KB'); // Update based on package type
-    console.log('\nNote: These tests measure the overhead introduced by our');
-    console.log('abstraction layer compared to raw API calls. We cannot improve');
-    console.log('the You.com API performance itself, but we monitor what lag');
-    console.log('our code adds to ensure it remains minimal.');
-    expect(true).toBe(true);
-  });
-});
-```
-
-**Customization Checklist:**
-
-1. **Replace `{USER_AGENT_PREFIX}`** with your user agent prefix from Question 8
-   - Examples: "MCP", "AI-SDK", "EVAL", "CLI"
-   - Line ~703 in USER_AGENT constant
-
-2. **Import API constants** (if using `@youdotcom-oss/mcp`):
-   - Uncomment line ~695: `import { SEARCH_API_URL, ... } from '@youdotcom-oss/mcp';`
-   - Remove or comment out lines ~698-700 (manual API constant definitions)
-   - If NOT using MCP package: Keep manual definitions and update URLs
-
-3. **Import your package methods**:
-   - Add imports after line ~692
-   - Example for SDK: `import { youSearch, youExpress, youContents } from '../main.ts';`
-   - Example for MCP: Import client setup utilities
-
-4. **Replace all TODOs** (3 locations):
-   - Line ~726: Add warmup code
-   - Line ~761: Add package method call in test loop
-   - Line ~801: Add package method call in memory test
-
-5. **Adjust thresholds** based on package type:
-
-   | Package Type | Lag | Overhead | Memory | When to Use |
-   |--------------|-----|----------|--------|-------------|
-   | **Thin library** | 50ms | 10% | 300KB | Direct API wrappers with minimal transformation |
-   | **SDK integration** | 80ms | 35% | 350KB | Moderate validation and data transformation |
-   | **MCP server** | 100ms | 50% | 400KB | Includes stdio/JSON-RPC transport overhead |
-   | **Complex framework** | 150ms | 75% | 500KB | Multiple abstraction layers, state management |
-
-   Update thresholds at:
-   - Lines ~783-784: `expect(processingLag).toBeLessThan(50)` and `expect(overheadPercent).toBeLessThan(10)`
-   - Line ~823: `expect(heapGrowth).toBeLessThan(1024 * 300)`
-   - Lines ~832-834: Console log output
-
-6. **Add more API tests** (if needed):
-   - Copy the `test.serial('Search API processing lag', ...)` pattern
-   - Create separate tests for Express API, Contents API, or custom APIs
-   - See `@youdotcom-oss/ai-sdk-plugin/src/tests/processing-lag.spec.ts` for multi-API example
-
-7. **Verify before committing**:
-   ```bash
-   grep "TODO:" packages/{package-name}/tests/processing-lag.spec.ts && echo "❌ TODOs found!" || echo "✅ No TODOs"
-   grep "{USER_AGENT_PREFIX}" packages/{package-name}/tests/processing-lag.spec.ts && echo "❌ Placeholders found!" || echo "✅ No placeholders"
-   ```
-
-**After creating the test file**, add your package's performance thresholds to `docs/PERFORMANCE.md`:
-
-1. Open `docs/PERFORMANCE.md`
-2. Find the "Package Performance Thresholds" section
-3. Add a new subsection for your package following this format:
-
-```markdown
-### @youdotcom-oss/{package-name}
-- **Processing lag**: < {X}ms
-- **Overhead percentage**: < {Y}%
-- **Memory overhead**: < {Z}KB
-- **Test location**: `packages/{package-name}/src/tests/processing-lag.spec.ts`
-- **Run tests**: `cd packages/{package-name} && bun test src/tests/processing-lag.spec.ts`
-```
-
-**Threshold Guidelines** (from `docs/PERFORMANCE.md`):
-- **Thin library wrappers**: < 50ms lag, < 10% overhead, < 300KB memory
-- **SDK integrations**: < 80ms lag, < 35% overhead, < 350KB memory
-- **MCP servers**: < 100ms lag, < 50% overhead, < 400KB memory
-
-Choose thresholds based on your package architecture. Document rationale if deviating from guidelines.
-
-**Customization Required**:
-1. Replace all `{placeholder}` values in the test file with actual package information
-2. Add package thresholds to `docs/PERFORMANCE.md` under "Package Performance Thresholds"
-3. Adjust thresholds based on your package's architecture
-
-### 6. Create Publish Workflow
+### 5. Create Publish Workflow
 
 **File: .github/workflows/publish-{package-name}.yml**
 
@@ -1083,95 +881,63 @@ cat ".github/workflows/publish-${PACKAGE_NAME}.yml"
 
 ### Automatic Actions
 
+The command will automatically:
+
 1. Delete existing lockfile: `rm bun.lock`
 2. Run `bun install` from repository root to regenerate lockfile with new package
 3. Verify workspace linkage: `bun run --filter {npm-package-name} check`
-4. Display success summary with file count
+4. Display package structure summary
 
-### Manual Steps Checklist
+### Completion Message
 
-Provide the user with this checklist:
+After successful creation, display:
 
 ```markdown
 ## ✅ Package Created Successfully!
 
 **Location**: packages/{package-name}/
-**NPM**: {npm-package-name}
-**Repository**: youdotcom-oss/dx-toolkit (monorepo)
+**NPM Package**: {npm-package-name}
+**Build Pattern**: {source|bundled}
 
 ---
 
-## Next Steps (Manual)
+## Next Steps
 
-### 1. Implement Package Logic
-
-Now implement your package:
-1. Edit `packages/{package-name}/src/utils.ts` - Add your public API
-2. Create feature modules in `src/`
-3. Add tests in `tests/`
-4. Update `docs/API.md` with API documentation
-5. Run `bun run check` to verify code quality
-
-### 2. Register Package in CLAUDE.md
-
-Add a reference to your package AGENTS.md in the root CLAUDE.md file:
-
-1. Open `CLAUDE.md` at the monorepo root
-2. Add your package reference after the existing package references:
-   ```
-   @packages/{package-name}/AGENTS.md
-   ```
-3. This ensures Claude Code can access your package's development guide
-
-### 3. Test Publish Workflow
-
-Before going live, test the publish workflow with a prerelease:
-
-1. Go to: https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml
-2. Click "Run workflow"
-3. Enter inputs:
-   - **version**: `0.1.0` (base version without "v" prefix)
-   - **next**: `1` (creates version `0.1.0-next.1`)
-4. Verify all workflow steps succeed:
-   - ✅ Input validation passes
-   - ✅ Version updated in package.json
-   - ✅ GitHub release created
-   - ✅ Published to npm with `next` tag
-
-5. Verify prerelease:
-   - npm: `npm view {npm-package-name}@next`
-   - Should show version `0.1.0-next.1`
-
-### 4. First Stable Release
-
-When ready for first public release:
-1. Push package code to main branch
-2. Trigger publish workflow with version `0.1.0`
-3. Verify npm package: https://www.npmjs.com/package/{npm-package-name}
-4. Verify GitHub release: https://github.com/youdotcom-oss/dx-toolkit/releases
-5. Test installation: `bun add {npm-package-name}`
-
----
-
-## Package Structure Created
+Your package has been created with the following structure:
 
 \`\`\`
 packages/{package-name}/
 ├── src/
-│   ├── main.ts
-│   └── tests/
+│   ├── main.ts              # Public API exports
+│   └── tests/               # Test directory
 ├── docs/
-│   └── API.md
+│   └── API.md               # API documentation
 ├── package.json
 ├── tsconfig.json
 ├── biome.json
-├── README.md
-└── AGENTS.md
+├── README.md                # User-facing documentation
+└── AGENTS.md                # Developer documentation
 \`\`\`
 
-## Workflow Files Created
+**Workflow created**: `.github/workflows/publish-{package-name}.yml`
 
-- ✅ Created: `.github/workflows/publish-{package-name}.yml`
+---
+
+For development workflow, testing, publishing, and contribution guidelines, see:
+
+- **Package development**: `packages/{package-name}/AGENTS.md`
+- **Monorepo guidelines**: Root `AGENTS.md`
+- **Adding performance monitoring**: Root `AGENTS.md` → "Adding Performance Monitoring to New Packages"
+- **Publishing workflow**: Root `AGENTS.md` → "Publishing"
+
+**Quick start:**
+
+\`\`\`bash
+cd packages/{package-name}
+bun test                 # Run tests
+bun run check            # Check code quality
+bun run check:write      # Auto-fix issues
+\`\`\`
 ```
 
 ## Error Handling
@@ -1267,59 +1033,20 @@ Before marking as complete, verify:
 
 - ✅ All questions asked and validated
 - ✅ Package directory created with correct structure
-- ✅ All configuration files copied/templated correctly
-- ✅ Source files created with appropriate templates
-- ✅ Documentation files created with proper content
+- ✅ All configuration files copied/templated correctly (tsconfig.json, biome.json, package.json with all required fields)
+- ✅ Source files created with appropriate templates (main.ts with exports)
+- ✅ Documentation files created with proper content (README.md, AGENTS.md, API.md)
 - ✅ Publish workflow created and syntactically valid
-- ✅ `bun install` runs successfully
-- ✅ Package passes `bun run check`
-- ✅ Post-creation checklist displayed to user
+- ✅ `bun install` runs successfully from root
+- ✅ Package passes `bun run check` from package directory
+- ✅ Completion message displayed with references to AGENTS.md
 
-Good luck creating the new package!
+For post-creation workflow (implementing features, testing, publishing), the user should refer to the package's AGENTS.md and root AGENTS.md as instructed in the completion message.
 
-## Testing the Command
+## Command Maintenance
 
-After implementing changes to this command:
+This command is maintained in `.claude/commands/create-package.md`.
 
-1. **Manual Testing**: Run the command end-to-end with test inputs
-   - Test with sample package name, description, keywords
-   - Verify all files are created correctly
-   - Check file contents match templates
-   - Verify directory structure (src/, tests/, docs/)
+**Testing changes**: After modifying this command, test it end-to-end by creating a test package with various build patterns.
 
-2. **Integration Test**: Consider adding a test package creation in CI
-   - Create test package with random name
-   - Verify all files created correctly
-   - Run `bun install` and `bun run check` on new package
-   - Clean up test package
-   - Verify no artifacts remain
-
-3. **Rollback Test**: Verify rollback works by simulating failures
-   - Test failure during file creation
-   - Test failure during workflow updates
-   - Ensure partial package creation is cleaned up
-   - Verify git state is restored
-
-Example CI test workflow:
-```yaml
-- name: Test create-package command
-  run: |
-    # Generate random package name
-    TEST_PKG="test-pkg-$RANDOM"
-
-    # Run command with test inputs
-    # (implementation depends on how command is invoked)
-
-    # Verify package was created
-    test -d "packages/$TEST_PKG"
-    test -f "packages/$TEST_PKG/package.json"
-
-    # Verify package works
-    cd "packages/$TEST_PKG"
-    bun install
-    bun run check
-
-    # Clean up
-    cd ../..
-    rm -rf "packages/$TEST_PKG"
-```
+**Rollback behavior**: The command includes automatic rollback if any file creation fails. All created files are cleaned up on error.

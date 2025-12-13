@@ -616,6 +616,103 @@ test('should have markdown property', () => {
 - Tests should fail with clear error messages
 - Use optional chaining with direct assertions
 
+**Private Class Fields**: Always use `#` private fields, never `private` keyword
+
+```ts
+// ✅ Preferred - JavaScript private fields (#)
+export class AnthropicChatModel implements IChatModel {
+  #anthropic: Anthropic;
+  #model: string;
+  #requestOptions?: AnthropicRequestOptions;
+  #log: ILogger;
+
+  constructor(options: AnthropicChatModelOptions) {
+    this.#model = options.model;
+    this.#requestOptions = options.requestOptions;
+    this.#log = options.logger || new ConsoleLogger();
+    this.#anthropic = new Anthropic({ apiKey: options.apiKey });
+  }
+
+  async send(input: Message): Promise<ModelMessage> {
+    const response = await this.#anthropic.messages.create({
+      model: this.#model,
+      // ...
+    });
+  }
+}
+
+// ❌ Avoid - TypeScript private keyword
+export class AnthropicChatModel implements IChatModel {
+  private anthropic: Anthropic;
+  private model: string;
+  private requestOptions?: AnthropicRequestOptions;
+  private log: ILogger;
+
+  constructor(options: AnthropicChatModelOptions) {
+    this.model = options.model;
+    this.requestOptions = options.requestOptions;
+    this.log = options.logger || new ConsoleLogger();
+    this.anthropic = new Anthropic({ apiKey: options.apiKey });
+  }
+}
+```
+
+**Why use # private fields?**
+- True runtime privacy (not just compile-time)
+- JavaScript standard (TC39 Stage 4)
+- Prevents accidental access in JavaScript
+- More explicit intent than `private` keyword
+- Works in both TypeScript and JavaScript
+- Better encapsulation for class internals
+
+**Type Guards**: Prefer type guards over type casting for runtime type narrowing
+
+```ts
+// ✅ Preferred - Type guard functions
+const isInputModelMessage = (input: Message): input is ModelMessage =>
+  input.role === 'model' && Boolean(input?.function_calls);
+
+const isHandler = (fn: unknown): fn is {
+  (): unknown;
+  handler: (args: unknown) => Promise<unknown>;
+} => Boolean(fn && Object.hasOwn(fn, 'handler'));
+
+// Usage - type-safe without casting
+if (isInputModelMessage(input)) {
+  // TypeScript knows input is ModelMessage here
+  for (const call of input.function_calls) {
+    const func = options.functions[call.name];
+    if (isHandler(func)) {
+      // TypeScript knows func has handler property here
+      const result = await func.handler(call.arguments);
+    }
+  }
+}
+
+// ❌ Avoid - Type casting (loses type safety)
+if ((input as ModelMessage).function_calls) {
+  for (const call of (input as ModelMessage).function_calls) {
+    const func = options.functions[call.name] as { handler: Function };
+    const result = await func.handler(call.arguments);
+  }
+}
+```
+
+**Why prefer type guards over casting?**
+- Native TypeScript type narrowing
+- Explicit runtime checks with compile-time benefits
+- Clear, reusable type predicates
+- Type safety at call sites without assumptions
+- Self-documenting type requirements
+
+**When to use Zod for schema validation:**
+Type guards are for internal type narrowing. Use Zod for schema validation:
+- MCP tool input/output schemas (see `packages/mcp/src/*/schemas.ts`)
+- API request/response validation
+- Validating external input (user input, config files)
+- Need detailed error messages for validation failures
+- Sharing schemas between runtime and compile-time validation
+
 **Resources:**
 - [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
 - [Bun Shell](https://bun.sh/docs/runtime/shell)
@@ -787,7 +884,16 @@ This is only used for the MCP package which requires remote deployment infrastru
 
 ### Adding a New Package
 
-Use the `/create-package` command to interactively create new packages:
+**IMPORTANT**: For complete package creation instructions, see [`.claude/commands/create-package.md`](./.claude/commands/create-package.md).
+
+The create-package command provides:
+- Interactive question flow for package configuration
+- Validation of package names and npm availability
+- Automated file creation (package.json, tsconfig.json, biome.json, source files, documentation)
+- Automatic workflow generation for publishing
+- Rollback on errors
+
+**Quick usage:**
 
 **For Claude Code users:**
 ```bash
@@ -795,43 +901,55 @@ Use the `/create-package` command to interactively create new packages:
 ```
 
 **For other AI coding agents:**
-Ask your agent to read and follow the instructions in `.claude/commands/create-package.md`
+Read and follow the instructions in `.claude/commands/create-package.md`
 
-The command will guide you through:
-1. **Package configuration** - Name, npm package name
-2. **Metadata** - Description and keywords
-3. **Automatic setup**:
-   - Creates package directory structure
-   - Generates all configuration files (package.json, tsconfig.json, biome.json)
-   - Creates source files with templates
-   - Generates documentation (README.md, AGENTS.md)
-   - Creates publish workflow (`.github/workflows/publish-{package}.yml`)
-4. **Post-creation checklist** - Manual steps for testing the package
+**After package creation**, the command will:
+1. Generate complete package structure with all required files
+2. Create publish workflow at `.github/workflows/publish-{package}.yml`
+3. Run `bun install` to register the package in the workspace
+4. Display next steps with references to this file
 
-**Manual Alternative** (if not using Claude Code):
+### Post-Creation Workflow
 
+After creating a package with the create-package command:
+
+**1. Implement Package Logic**
+- Edit `packages/{package-name}/src/main.ts` to export your public API
+- Create feature modules in `src/` directory
+- Add tests in `src/tests/` directory
+- Update `docs/API.md` with API documentation
+- Run `bun run check` from package directory to verify code quality
+
+**2. Register Package Documentation**
+- Add your package's AGENTS.md reference to root `CLAUDE.md`
+- This ensures Claude Code can access package development guidelines
+- Format: `@packages/{package-name}/AGENTS.md`
+
+**3. Add Performance Monitoring (Optional)**
+- Only required for packages that wrap You.com APIs directly
+- Add measurements to `scripts/performance/measure.ts`
+- See "Adding Performance Monitoring to New Packages" section below
+- Skip for utility libraries, CLI tools, or packages without API wrappers
+
+**4. Test Locally**
 ```bash
-# Create package directory
-mkdir -p packages/new-package
-
-# Initialize package
-cd packages/new-package
-bun init
-
-# Copy configuration from existing package
-cp ../mcp/{tsconfig.json,biome.json} .
-
-# Update root package.json workspaces (if needed)
-# Workspaces already includes "packages/*"
-
-# Install dependencies from root
-cd ../..
-bun install
+cd packages/{package-name}
+bun test                 # Run tests
+bun run check            # Check code quality
+bun run build            # Build package (if bundled pattern)
 ```
 
-**Important**: When manually creating packages, you must also:
-- Create `.github/workflows/publish-{package}.yml` workflow
-- See `.claude/commands/create-package.md` for detailed manual instructions
+**5. Test Publish Workflow**
+- Test with prerelease before first stable release
+- Go to: `https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml`
+- Enter version `0.1.0` with next `1` to create `0.1.0-next.1`
+- Verify workflow succeeds and package appears on npm
+
+**6. First Stable Release**
+- Push package code to main branch
+- Trigger publish workflow with version `0.1.0` (no next value)
+- Verify package at `https://www.npmjs.com/package/{npm-package-name}`
+- Test installation: `bun add {npm-package-name}`
 
 ### Working on Packages
 

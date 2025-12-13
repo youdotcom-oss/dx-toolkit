@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { AnthropicChatModel } from '../models/anthropic-chat-model.ts';
-import { AnthropicModel } from '../models/anthropic-model.enum.ts';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { AnthropicChatModel } from '../chat-model.ts';
+import { AnthropicModel } from '../teams-anthropic.utils.ts';
 
 /**
  * Integration tests for AnthropicChatModel
@@ -41,7 +41,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Basic Chat', () => {
-    it(
+    test(
       'should send simple message and get response',
       async () => {
         const response = await model.send({
@@ -58,7 +58,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should handle system message',
       async () => {
         const response = await model.send(
@@ -82,7 +82,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should handle conversation with multiple messages',
       async () => {
         const { LocalMemory } = await import('@microsoft/teams.ai');
@@ -118,7 +118,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Streaming', () => {
-    it(
+    test(
       'should stream response chunks',
       async () => {
         const chunks: string[] = [];
@@ -154,7 +154,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should handle empty chunks gracefully',
       async () => {
         let chunkCount = 0;
@@ -181,7 +181,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Function Calling', () => {
-    it(
+    test(
       'should declare functions and return tool use information',
       async () => {
         const response = await model.send(
@@ -221,7 +221,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should register multiple function definitions',
       async () => {
         const response = await model.send(
@@ -264,7 +264,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should support disabling auto function calling',
       async () => {
         let functionCalled = false;
@@ -305,7 +305,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Configuration Options', () => {
-    it(
+    test(
       'should respect temperature setting',
       async () => {
         const deterministicModel = new AnthropicChatModel({
@@ -336,7 +336,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 60_000 },
     );
 
-    it(
+    test(
       'should respect max_tokens limit',
       async () => {
         const limitedModel = new AnthropicChatModel({
@@ -362,7 +362,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Error Handling', () => {
-    it(
+    test(
       'should handle invalid API key',
       async () => {
         const invalidModel = new AnthropicChatModel({
@@ -384,7 +384,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 30_000 },
     );
 
-    it(
+    test(
       'should handle network errors',
       async () => {
         const unreachableModel = new AnthropicChatModel({
@@ -408,7 +408,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
       { timeout: 15_000 },
     );
 
-    it(
+    test(
       'should handle very short content',
       async () => {
         const response = await model.send({
@@ -426,7 +426,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Model Variants', () => {
-    it(
+    test(
       'should work with Claude Haiku 3.5',
       async () => {
         const haikuModel = new AnthropicChatModel({
@@ -452,7 +452,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
   });
 
   describe('Memory and Context', () => {
-    it(
+    test(
       'should maintain conversation context',
       async () => {
         const { LocalMemory } = await import('@microsoft/teams.ai');

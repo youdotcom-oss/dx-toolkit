@@ -7,12 +7,36 @@ import {
   type ModelMessage,
 } from '@microsoft/teams.ai';
 import { ConsoleLogger, type ILogger } from '@microsoft/teams.common';
-import type { AnthropicChatModelOptions, AnthropicRequestOptions } from '../types/options.ts';
+import type { AnthropicChatModelOptions, AnthropicRequestOptions } from './teams-anthropic.types.ts';
 import {
   extractSystemMessage,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
-} from '../utils/message-transformer.ts';
+} from './teams-anthropic.utils.ts';
+
+const isInputModelMessage = (input: Message): input is ModelMessage =>
+  input.role === 'model' && Boolean(input?.function_calls);
+const isHandler = (
+  fn: unknown,
+): fn is {
+  (): unknown;
+  handler: (args: unknown) => Promise<unknown>;
+} => Boolean(fn && Object.hasOwn(fn, 'handler'));
+
+/**
+ * Type guard to check if a function definition has a description property
+ */
+const isFunctionWithDescription = (fn: unknown): fn is { description: string } =>
+  typeof fn === 'object' &&
+  fn !== null &&
+  'description' in fn &&
+  typeof (fn as { description: unknown }).description === 'string';
+
+/**
+ * Type guard to check if a function definition has a parameters property
+ */
+const isFunctionWithParameters = (fn: unknown): fn is { parameters: Record<string, unknown> } =>
+  typeof fn === 'object' && fn !== null && 'parameters' in fn;
 
 /**
  * Anthropic Claude chat model implementation for Microsoft Teams.ai
@@ -46,10 +70,10 @@ import {
  * ```
  */
 export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
-  private readonly _anthropic: Anthropic;
-  private readonly _model: string;
-  private readonly _requestOptions?: AnthropicRequestOptions;
-  private readonly _log: ILogger;
+  #anthropic: Anthropic;
+  #model: string;
+  #requestOptions?: AnthropicRequestOptions;
+  #log: ILogger;
 
   /**
    * Create a new AnthropicChatModel instance
@@ -58,19 +82,19 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
    * @throws Error if API key is not provided and ANTHROPIC_API_KEY env var is not set
    */
   constructor(options: AnthropicChatModelOptions) {
-    this._model = options.model;
-    this._requestOptions = options.requestOptions;
-    this._log = options.logger || new ConsoleLogger('AnthropicChatModel', { level: 'info' });
+    this.#model = options.model;
+    this.#requestOptions = options.requestOptions;
+    this.#log = options.logger || new ConsoleLogger('AnthropicChatModel', { level: 'info' });
 
     // Initialize Anthropic SDK client
-    this._anthropic = new Anthropic({
+    this.#anthropic = new Anthropic({
       apiKey: options.apiKey || process.env.ANTHROPIC_API_KEY,
       baseURL: options.baseUrl,
       defaultHeaders: options.headers,
       timeout: options.timeout || 60_000,
     });
 
-    this._log.log('info', `AnthropicChatModel initialized with model: ${this._model}`);
+    this.#log.log('info', `AnthropicChatModel initialized with model: ${this.#model}`);
   }
 
   /**
@@ -109,41 +133,40 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       await memory.push(input);
 
       // Handle function execution if input is a model message with function calls
-      if (input.role === 'model' && (input as ModelMessage).function_calls) {
-        const modelMsg = input as ModelMessage;
+      if (isInputModelMessage(input)) {
         const shouldAutoExecute = options?.autoFunctionCalling !== false;
 
-        if (shouldAutoExecute && modelMsg.function_calls && options?.functions) {
-          this._log.log('debug', `Auto-executing ${modelMsg.function_calls.length} function calls`);
+        if (shouldAutoExecute && input.function_calls && options?.functions) {
+          this.#log.log('debug', `Auto-executing ${input.function_calls.length} function calls`);
 
           // Execute all function calls
-          for (const fnCall of modelMsg.function_calls) {
-            const fnDef = options.functions[fnCall.name];
+          for (const call of input.function_calls) {
+            const func = options.functions[call.name];
 
-            if (fnDef && typeof fnDef === 'object' && 'handler' in fnDef) {
+            if (isHandler(func)) {
               try {
-                const handler = (fnDef as { handler: (args: unknown) => Promise<unknown> }).handler;
-                const result = await handler(fnCall.arguments);
-                const fnResult: Message = {
+                const handler = func.handler;
+                const result = await handler(call.arguments);
+                const message: Message = {
                   role: 'function',
-                  function_id: fnCall.id || fnCall.name,
+                  function_id: call.id || call.name,
                   content: typeof result === 'string' ? result : JSON.stringify(result),
                 };
 
                 // Recursively call send() with function result
-                return await this.send(fnResult, options);
-              } catch (fnErr: unknown) {
-                const fnErrorMsg = fnErr instanceof Error ? fnErr.message : String(fnErr);
-                this._log.log('error', `Function execution failed: ${fnErrorMsg}`);
+                return await this.send(message, options);
+              } catch (error: unknown) {
+                const fnErrorMsg = error instanceof Error ? error.message : String(error);
+                this.#log.log('error', `Function execution failed: ${fnErrorMsg}`);
 
                 // Return error as function result
-                const fnResult: Message = {
+                const message: Message = {
                   role: 'function',
-                  function_id: fnCall.id || fnCall.name,
+                  function_id: call.id || call.name,
                   content: `Error: ${fnErrorMsg}`,
                 };
 
-                return await this.send(fnResult, options);
+                return await this.send(message, options);
               }
             }
           }
@@ -161,14 +184,14 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       // Transform messages to Anthropic format
       const anthropicMessages = transformToAnthropicMessages(conversationMessages);
 
-      this._log.log('debug', `Sending ${anthropicMessages.length} messages to Anthropic API`);
+      this.#log.log('debug', `Sending ${anthropicMessages.length} messages to Anthropic API`);
 
       // Build API request parameters
       const requestParams: Anthropic.MessageCreateParams = {
-        model: this._model,
+        model: this.#model,
         messages: anthropicMessages,
-        max_tokens: options?.request?.max_tokens || this._requestOptions?.max_tokens || 4096,
-        ...this._requestOptions,
+        max_tokens: options?.request?.max_tokens || this.#requestOptions?.max_tokens || 4096,
+        ...this.#requestOptions,
         ...options?.request,
       };
 
@@ -181,10 +204,10 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       if (options?.functions) {
         requestParams.tools = Object.entries(options.functions).map(([name, fn]) => ({
           name,
-          description: (fn as { description?: string }).description || `Function: ${name}`,
+          description: isFunctionWithDescription(fn) ? fn.description : `Function: ${name}`,
           input_schema: {
             type: 'object' as const,
-            properties: (fn as { parameters?: Record<string, unknown> }).parameters || {},
+            properties: isFunctionWithParameters(fn) ? fn.parameters : {},
             required: [],
           },
         }));
@@ -195,7 +218,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
 
       if (isStreaming) {
         // Streaming mode
-        const stream = this._anthropic.messages.stream({
+        const stream = this.#anthropic.messages.stream({
           ...requestParams,
           stream: true,
         });
@@ -252,9 +275,9 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       }
 
       // Non-streaming mode
-      const response = (await this._anthropic.messages.create(requestParams)) as Anthropic.Message;
+      const response = (await this.#anthropic.messages.create(requestParams)) as Anthropic.Message;
 
-      this._log.log('debug', `Received response from Anthropic API: ${response.id}`);
+      this.#log.log('debug', `Received response from Anthropic API: ${response.id}`);
 
       // Transform response to ModelMessage
       const modelMessage = transformFromAnthropicMessage(response);
@@ -270,7 +293,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       return modelMessage;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      this._log.log('error', `AnthropicChatModel.send failed: ${errorMessage}`);
+      this.#log.log('error', `AnthropicChatModel.send failed: ${errorMessage}`);
 
       // Return error as ModelMessage
       return {

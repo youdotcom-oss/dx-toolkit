@@ -24,23 +24,17 @@
  */
 
 // Core class
-export { AnthropicChatModel } from './models/anthropic-chat-model.ts';
-
+export { AnthropicChatModel } from './chat-model.ts';
+// Types
+export type { AnthropicChatModelOptions, AnthropicRequestOptions } from './teams-anthropic.types.ts';
 // Model enum and helpers
 export {
   AnthropicModel,
+  extractSystemMessage,
   getAllModels,
   getModelDisplayName,
   getModelFamily,
   isValidModel,
-} from './models/anthropic-model.enum.ts';
-
-// Types
-export type { AnthropicChatModelOptions, AnthropicRequestOptions } from './types/options.ts';
-
-// Utils (for advanced users)
-export {
-  extractSystemMessage,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
-} from './utils/message-transformer.ts';
+} from './teams-anthropic.utils.ts';
