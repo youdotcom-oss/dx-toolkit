@@ -101,8 +101,6 @@ packages/ai-sdk-plugin/
 └── README.md                        # User documentation
 ```
 
-**Note**: Performance monitoring is centralized at the monorepo level. See `scripts/performance/` and root `AGENTS.md` for details.
-
 ## AI SDK Tool Pattern
 
 ### Tool Function Structure
@@ -344,8 +342,6 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 3. **Add example in examples/**
 4. **Update README.md and API.md**
 
-**Note**: Performance is monitored centrally. See "Performance" section below.
-
 ### Testing Strategy
 
 **Integration Tests** (`src/tests/integration.spec.ts`):
@@ -385,8 +381,6 @@ bun test:coverage
 # Watch mode
 bun test:watch
 ```
-
-**Note**: Performance measurements are run centrally via `scripts/performance/measure.ts`. See "Performance" section for details.
 
 **Prerequisites**:
 - `YDC_API_KEY` environment variable
