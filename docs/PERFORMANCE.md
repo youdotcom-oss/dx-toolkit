@@ -213,10 +213,72 @@ Aim for thresholds that keep total lag below perception thresholds.
 <!-- BEGIN AUTO-GENERATED RESULTS -->
 ## Latest Test Results
 
-**Last Updated**: Not yet measured
-**Workflow Run**: [Pending first run](https://github.com/youdotcom-oss/dx-toolkit/actions)
+**Last Updated**: 2025-12-13T00:06:05.991Z
+**Workflow Run**: [View Results](https://github.com/youdotcom-oss/dx-toolkit/actions/runs/20183397500)
 
-Results will be populated automatically by the weekly performance monitoring workflow.
+| Package | Processing Lag | Overhead % | Memory | Status |
+|---------|---------------|------------|--------|--------|
+| @youdotcom-oss/mcp | ✅ 2.07ms (< 100.00ms) | ✅ 2.96% (< 50.00%) | ✅ 65.41KB (< 400.00KB) | ✅ Pass |
+| @youdotcom-oss/ai-sdk-plugin | ✅ 1.02ms (< 80.00ms) | ✅ 1.46% (< 35.00%) | ✅ -55.27KB (< 350.00KB) | ✅ Pass |
+
+<details>
+<summary>View detailed metrics</summary>
+
+
+### @youdotcom-oss/mcp
+
+**Timestamp**: 2025-12-13T00:06:05.939Z
+
+**Processing Lag**:
+- Raw API avg: 69.78ms
+- Wrapper avg: 71.85ms
+- Processing lag: 2.07ms
+- Threshold: < 100.00ms
+- Status: ✅ Pass
+
+**Overhead**:
+- Percentage: 2.96%
+- Threshold: < 50.00%
+- Status: ✅ Pass
+
+**Memory**:
+- Heap before: 10230.14KB
+- Heap after: 10295.55KB
+- Growth: 65.41KB
+- Threshold: < 400.00KB
+- Status: ✅ Pass
+
+**Test Configuration**:
+- Iterations: 20
+
+
+### @youdotcom-oss/ai-sdk-plugin
+
+**Timestamp**: 2025-12-13T00:06:01.296Z
+
+**Processing Lag**:
+- Raw API avg: 69.90ms
+- Wrapper avg: 70.92ms
+- Processing lag: 1.02ms
+- Threshold: < 80.00ms
+- Status: ✅ Pass
+
+**Overhead**:
+- Percentage: 1.46%
+- Threshold: < 35.00%
+- Status: ✅ Pass
+
+**Memory**:
+- Heap before: 10497.24KB
+- Heap after: 10441.97KB
+- Growth: -55.27KB
+- Threshold: < 350.00KB
+- Status: ✅ Pass
+
+**Test Configuration**:
+- Iterations: 20
+
+</details>
 <!-- END AUTO-GENERATED RESULTS -->
 
 ## Package Performance Thresholds
