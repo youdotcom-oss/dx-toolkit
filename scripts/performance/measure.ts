@@ -140,7 +140,7 @@ const measureMcp = async (): Promise<PerformanceResult> => {
     throw new Error(`MCP build failed: ${buildResult.stderr}`);
   }
 
-  const stdioPath = Bun.resolveSync('./packages/mcp/bin/stdio', import.meta.dir);
+  const stdioPath = Bun.resolveSync('../../packages/mcp/bin/stdio', import.meta.dir);
   const USER_AGENT = 'MCP/measurement (You.com; performance-monitoring)';
 
   // Create client for measurements
