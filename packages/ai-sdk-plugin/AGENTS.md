@@ -351,21 +351,6 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 - Test with different AI models
 - Test streaming responses
 
-**Test Configuration**:
-
-```typescript
-// ✅ Always use retry for API tests
-test('API test', async () => {
-  // Test implementation
-}, { timeout: 60_000, retry: 2 });
-
-// ✅ Use numeric separators for large numbers
-{ timeout: 60_000, retry: 2 }
-
-// ❌ Don't omit retry
-{ timeout: 60000 } // No retry, may fail on network issues
-```
-
 ### Running Tests
 
 ```bash
@@ -386,6 +371,8 @@ bun test:watch
 - `YDC_API_KEY` environment variable
 - `ANTHROPIC_API_KEY` environment variable
 - Stable network connection
+
+**For universal test patterns** (test() vs it(), retry configuration, error handling, assertion anti-patterns), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
 
 ## Code Quality
 

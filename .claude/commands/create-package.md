@@ -411,6 +411,25 @@ All packages maintain two distinct documentation files with different tones:
 
 See root [AGENTS.md → Documentation Standards](../../AGENTS.md#documentation-standards) for complete guidelines.
 
+#### Package-Specific vs Universal Patterns
+
+**Package-Specific Patterns** (include in package AGENTS.md):
+- Framework integration patterns (e.g., Teams.ai Memory API, Anthropic SDK patterns)
+- Domain-specific validation or transformation rules
+- API client patterns unique to your integration
+- Package-specific error handling or logging patterns
+- Testing patterns that only apply to this package's architecture
+
+**Universal Patterns** (already in root AGENTS.md, just reference them):
+- Arrow functions, numeric separators, Bun APIs
+- Error handling with typed catch (`err: unknown`)
+- Test retry configuration (`{ timeout, retry: 2 }`)
+- Test assertion anti-patterns (early returns, redundant conditionals)
+- Import extensions (.ts, .js conventions)
+- No unused exports
+
+**When in doubt**: If the pattern applies to TypeScript/Bun development in general, it's universal. If it's specific to your package's domain or framework, it's package-specific.
+
 #### Tone-Specific Writing Rules
 
 **README.md (5 rules):**
@@ -556,33 +575,92 @@ bun run check:write      # Auto-fix all issues
 
 ## Code Style
 
-This package uses [Biome](https://biomejs.dev/) for automated formatting and linting.
+This package uses [Biome](https://biomejs.dev/) for automated code formatting and linting. Most style rules are enforced automatically via git hooks.
+
+**For universal code patterns** (Arrow Functions, Numeric Separators, Bun APIs, Error Handling, Test Patterns, etc.), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
 
 ### Package-Specific Patterns
 
-**Arrow Functions**: Always use arrow functions for declarations
+Add package-specific patterns here that are unique to this package's domain or framework integration. Examples:
+
+- API client patterns specific to your integration
+- Framework-specific conventions (e.g., Teams.ai Memory API usage)
+- Domain-specific validation or transformation patterns
+- Logging or error reporting patterns unique to this package
+
+**Example pattern structure:**
 
 \`\`\`ts
-// ✅ Preferred
-export const fetchData = async (params: Params) => { ... };
+// ✅ Preferred - package-specific best practice
+[your package-specific pattern]
 
-// ❌ Avoid
-export async function fetchData(params: Params) { ... }
+// ❌ Avoid - problematic pattern for this package
+[anti-pattern specific to this package]
 \`\`\`
 
-**[Add more package-specific coding patterns here]**
+**What NOT to include here:**
+- Universal TypeScript/Bun patterns (those belong in root AGENTS.md)
+- General testing patterns (those belong in root AGENTS.md)
+- Code style rules enforced by Biome (automatic)
+
+## Testing
+
+### Test Organization
+
+- **Unit Tests**: \`src/*/tests/*.spec.ts\` - Test individual utilities
+- **Integration Tests**: \`src/tests/*.spec.ts\` - Test package functionality end-to-end
+- **Coverage Target**: >80% for core utilities
+- **API Key Required**: [Only include if your package requires API keys for testing]
+
+### Running Tests
+
+\`\`\`bash
+bun test                       # All tests
+bun test:watch                 # Run tests in watch mode
+bun test:coverage              # With coverage report
+bun test src/tests/specific.spec.ts  # Specific file
+\`\`\`
+
+**For universal test patterns** (test() vs it(), retry configuration, error handling, assertion anti-patterns), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+
+### Package-Specific Testing Patterns
+
+[Only add patterns here that are unique to this package's testing needs]
+
+**Example - API Key-Dependent Tests:**
+\`\`\`ts
+const API_KEY = process.env.YOUR_API_KEY;
+const describeWithApiKey = API_KEY ? describe : describe.skip;
+
+describeWithApiKey('Integration Tests', () => {
+  // Tests only run if API key is set
+});
+\`\`\`
 
 ## Contributing
 
-For contribution guidelines, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
+See [root AGENTS.md](../../AGENTS.md#contributing) for contribution guidelines.
+
+**Package-specific scope**: Use \`{package-name}\` scope in commit messages:
+
+\`\`\`bash
+feat({package-name}): add new feature
+fix({package-name}): resolve issue
+\`\`\`
 
 ## Publishing
 
-This package is published to npm via \`.github/workflows/publish-{package-name}.yml\`.
+See [root AGENTS.md](../../AGENTS.md#publishing) for the package publishing process.
 
-**Version Format**: Exact versions only (no ^ or ~ prefixes)
+**Package-specific**: Workflow name is "Publish {package-name} Release"
 
-See monorepo root [AGENTS.md](../../AGENTS.md) for publishing details.
+## Support
+
+See [root AGENTS.md](../../AGENTS.md#support) for general support resources.
+
+**Package-Specific Resources**:
+- **API Documentation**: [docs/API.md](./docs/API.md)
+- **Troubleshooting**: [README.md](./README.md#troubleshooting)
 
 ## Troubleshooting
 
@@ -654,13 +732,16 @@ Use these indicators to verify correct tone:
 - ❌ "Configure the following parameters..."
 
 **AGENTS.md indicators:**
-- ✅ "Always use arrow functions"
+- ✅ "For universal patterns, see root AGENTS.md"
+- ✅ "Package-specific pattern: [framework] Memory API"
+- ✅ "MCP client connection patterns"
 - ✅ "NEVER bypass git hooks"
-- ✅ "All exports must be used"
 - ✅ "Check pattern: \`^[a-z]+$\`"
-- ❌ "We recommend arrow functions"
-- ❌ "Consider keeping hooks enabled"
-- ❌ "Try to avoid unused exports"
+- ❌ "Always use arrow functions" (that's universal, not package-specific)
+- ❌ "Use numeric separators for large numbers" (universal)
+- ❌ Extensive test code examples (keep it concise, reference root for universal patterns)
+- ❌ "We recommend..." (too soft, use directive language)
+- ❌ "Consider keeping hooks enabled" (too soft)
 
 #### Common Creation Mistakes
 
@@ -669,6 +750,9 @@ Use these indicators to verify correct tone:
 3. **Structure deviation** - Maintain exact template structure
 4. **Jargon in README** - Keep technical details in AGENTS.md
 5. **Missing validation** - Always apply checklist before completion
+6. **Universal patterns in package AGENTS.md** - Don't duplicate universal patterns, reference root AGENTS.md instead
+7. **Excessive test examples** - Keep testing section concise, focus on package-specific patterns only
+8. **Missing references to root** - Always include "For universal patterns, see root AGENTS.md"
 
 **Note**: Remember that the root \`README.md\` (monorepo level) is an exception and does not follow package README tone guidelines. Only package-level READMEs (e.g., \`packages/*/README.md\`) use the consumption-focused tone.
 
@@ -1028,7 +1112,18 @@ Now implement your package:
 4. Update `docs/API.md` with API documentation
 5. Run `bun run check` to verify code quality
 
-### 2. Test Publish Workflow
+### 2. Register Package in CLAUDE.md
+
+Add a reference to your package AGENTS.md in the root CLAUDE.md file:
+
+1. Open `CLAUDE.md` at the monorepo root
+2. Add your package reference after the existing package references:
+   ```
+   @packages/{package-name}/AGENTS.md
+   ```
+3. This ensures Claude Code can access your package's development guide
+
+### 3. Test Publish Workflow
 
 Before going live, test the publish workflow with a prerelease:
 
@@ -1047,7 +1142,7 @@ Before going live, test the publish workflow with a prerelease:
    - npm: `npm view {npm-package-name}@next`
    - Should show version `0.1.0-next.1`
 
-### 3. First Stable Release
+### 4. First Stable Release
 
 When ready for first public release:
 1. Push package code to main branch

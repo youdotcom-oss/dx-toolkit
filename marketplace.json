@@ -1,0 +1,29 @@
+{
+  "$schema": "https://code.claude.com/schema/marketplace.json",
+  "name": "youdotcom-oss/dx-toolkit",
+  "version": "1.0.0",
+  "description": "Claude Code Plugin Marketplace for You.com developer tools - MCP servers, AI SDK plugins, and enterprise integrations",
+  "author": {
+    "name": "You.com",
+    "email": "support@you.com",
+    "url": "https://you.com"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youdotcom-oss/dx-toolkit.git"
+  },
+  "license": "MIT",
+  "categories": ["enterprise-integration", "workflow", "deployment"],
+  "plugins": [
+    {
+      "name": "teams-mcp-integration",
+      "version": "1.0.0",
+      "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
+      "category": "enterprise-integration",
+      "path": "./plugins/teams-mcp-integration",
+      "publicUrl": "https://api.you.com/plugins/teams-mcp-integration/",
+      "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
+    }
+  ]
+}

@@ -28,6 +28,65 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 
 AI SDK for building custom integrations with You.com's APIs.
 
+## Claude Code Plugin Marketplace
+
+This repository also serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
+
+### Available Plugins
+
+#### teams-mcp-integration
+
+Integrate Microsoft Teams apps with You.com MCP server using the `@youdotcom-oss/teams-anthropic` package.
+
+- **Category**: enterprise-integration
+- **Version**: 1.0.0
+- **Public URL**: https://api.you.com/plugins/teams-mcp-integration/
+- **Package**: `@youdotcom-oss/teams-anthropic`
+
+**Features**:
+- Orchestrates package installation workflow
+- Guides new app vs existing app setup
+- Template-based integration with inline markers
+- Environment configuration guidance
+- Cross-platform AI agent support
+
+### Installation
+
+**Claude Code users:**
+```bash
+/plugin marketplace add youdotcom-oss/dx-toolkit
+/plugin install teams-mcp-integration
+/generate-teams-app
+```
+
+**Cursor/Windsurf users:**
+```bash
+curl -o teams-mcp-integration.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
+mv teams-mcp-integration.md .cursor/rules/  # or .windsurf/rules/
+```
+
+**Other AI agents (Cody, Continue, etc.):**
+```bash
+curl -o AGENTS.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
+```
+
+**Manual usage:**
+```bash
+curl https://api.you.com/plugins/teams-mcp-integration/README.md
+```
+
+**[View full marketplace documentation →](./docs/MARKETPLACE.md)**
+
+### Future Plugins (Q1 2026)
+
+- **google-chat-mcp-integration** - Google Chat apps with You.com MCP
+- **eval-harness** - Evaluation harness for MCP tools
+- **local-rag-sqlite** - Local RAG with SQLite
+- **cloud-deployment** - Cloud-agnostic deployment
+- **rl-pipeline** - RL pipeline starter
+
+See [marketplace.json](./marketplace.json) for complete roadmap.
+
 ## Quick Start
 
 ### For MCP Server Users
@@ -202,6 +261,7 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 
 ```
 dx-toolkit/
+├── marketplace.json       # Plugin marketplace manifest
 ├── packages/
 │   └── mcp/               # MCP Server package
 │       ├── src/           # Source code
@@ -210,8 +270,19 @@ dx-toolkit/
 │       ├── README.md      # User documentation
 │       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
+├── plugins/               # Claude Code plugins
+│   └── teams-mcp-integration/
+│       ├── .claude-plugin/
+│       ├── commands/
+│       ├── src/
+│       ├── templates/
+│       ├── AGENTS.md      # Plugin instructions
+│       └── README.md      # Plugin docs
+├── tests/                 # Marketplace validation tests
 ├── .github/
 │   └── workflows/         # CI/CD workflows
+├── docs/
+│   └── MARKETPLACE.md     # Marketplace documentation
 ├── AGENTS.md              # Monorepo dev guide
 ├── package.json           # Workspace root config
 └── README.md              # This file

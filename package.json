@@ -8,6 +8,7 @@
   },
   "workspaces": [
     "packages/*",
+    "plugins/*",
     "scripts/*"
   ],
   "scripts": {
@@ -45,6 +46,7 @@
     "@types/bun": "latest",
     "format-package": "^7.0.0",
     "lint-staged": "^16.2.7",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "zod": "^4.1.13"
   }
 }

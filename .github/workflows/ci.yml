@@ -25,7 +25,13 @@ jobs:
       - name: Run lint
         run: bun run check
 
-      - name: Run tests
-        run: bun test
+      - name: Run marketplace validation tests
+        run: bun test tests/
+
+      - name: Run package tests
+        run: bun run --filter 'packages/*' test
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
+
+      - name: Run plugin tests
+        run: bun run --filter 'plugins/*' test

@@ -16,6 +16,7 @@ Open-source toolkit enabling developers to integrate You.com's AI capabilities i
 
 ```
 dx-toolkit/
+├── marketplace.json       # Plugin marketplace manifest
 ├── packages/
 │   └── mcp/               # MCP Server package (@youdotcom-oss/mcp)
 │       ├── src/           # Source code
@@ -25,14 +26,29 @@ dx-toolkit/
 │       ├── README.md      # User documentation
 │       ├── AGENTS.md      # Package-specific dev guide
 │       └── package.json   # Package config
+├── plugins/               # Claude Code plugins (NOT published to npm)
+│   └── teams-mcp-integration/
+│       ├── .claude-plugin/
+│       ├── commands/
+│       ├── src/
+│       ├── tests/
+│       ├── templates/
+│       ├── reference/
+│       ├── AGENTS.md      # Plugin instructions
+│       ├── README.md      # Plugin docs
+│       └── package.json   # private: true
+├── tests/                 # Root-level marketplace validation
 ├── .github/
 │   └── workflows/         # CI/CD workflows
-│       ├── _publish-package.yml     # Reusable workflow for publishing packages
-│       ├── ci.yml                   # Run lint test to validate libraries
-│       ├── code-review.yml          # Agentic code for internal contributors
-│       ├── external-code-review.yml # Agentic code for external contributors
-│       └── publish-mcp.yml          # Publish mcp server and trigger remote deployment
+│       ├── _publish-package.yml        # Reusable workflow for publishing packages
+│       ├── ci.yml                      # Run lint test to validate libraries
+│       ├── code-review.yml             # Agentic code for internal contributors
+│       ├── external-code-review.yml    # Agentic code for external contributors
+│       ├── publish-mcp.yml             # Publish mcp server and trigger remote deployment
+│       └── validate-marketplace.yml    # Weekly plugin marketplace validation
 ├── scripts/               # CI scripts
+├── docs/
+│   └── MARKETPLACE.md     # Plugin marketplace documentation
 ├── package.json           # Workspace root config
 ├── bun.lock              # Workspace lock file (root only)
 └── AGENTS.md             # This file (monorepo dev guide)
@@ -53,6 +69,137 @@ All packages must follow this naming rule:
 
 **Current packages**:
 - `@youdotcom-oss/mcp` in `packages/mcp/`
+
+## Claude Code Plugin Marketplace
+
+This repository serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
+
+### Marketplace vs Packages
+
+**Key Distinction**:
+- **`packages/`** - npm packages (published to npm registry)
+- **`plugins/`** - Claude Code plugins (distributed via GitHub/api.you.com, NOT published to npm)
+
+### Plugin Architecture
+
+```
+plugins/{plugin-name}/
+├── .claude-plugin/
+│   └── plugin.json                     # Claude Code manifest
+├── AGENTS.md                           # Universal AI agent instructions
+├── commands/
+│   └── {command}.md                    # Claude Code slash commands
+├── src/
+│   └── integration.ts                  # Core integration code (validated)
+├── tests/
+│   └── integration.spec.ts             # Bun tests (runs in CI)
+├── templates/
+│   └── *.ts                            # Code templates (shipped as-is)
+├── reference/
+│   └── *.md                            # Reference documentation
+├── .mcp.json                           # Optional: MCP server config
+├── package.json                        # private: true, Bun workspace
+├── tsconfig.json                       # TypeScript config
+├── README.md                           # Human-readable docs
+└── LICENSE                             # MIT license
+```
+
+### Plugin AGENTS.md vs Package AGENTS.md
+
+**Important Distinction**: Plugin AGENTS.md files serve a fundamentally different purpose than package AGENTS.md files.
+
+**Package AGENTS.md** (e.g., `packages/mcp/AGENTS.md`):
+- **Audience**: Developers contributing to the package
+- **Purpose**: Development environment setup, codebase architecture
+- **Tone**: Directive and technical ("Always use...", "NEVER bypass...")
+- **Content**: Package-specific patterns, testing setup, build configuration
+- **Distribution**: Included in npm package, primarily for internal use
+- **Reference**: Links to root AGENTS.md for universal patterns
+
+**Plugin AGENTS.md** (e.g., `plugins/teams-mcp-integration/AGENTS.md`):
+- **Audience**: Universal AI agents (Claude, Cursor, Windsurf, etc.) that don't support Claude Code plugins
+- **Purpose**: Lightweight file that aliases commands for cross-agent compatibility
+- **Pattern**: References command files to avoid duplication
+- **Content**: When to trigger, command file path to fetch
+- **Distribution**: Publicly hosted at `https://api.you.com/plugins/{plugin-name}/AGENTS.md`
+- **Example**: `Fetch and follow: plugins/teams-mcp-integration/commands/generate-teams-app.md`
+
+**Why this pattern**:
+- ✅ Single source of truth - Detailed instructions in commands/
+- ✅ Never out of sync - AGENTS.md just points to command file
+- ✅ Cross-agent compatibility - Works with Cursor, Windsurf, Cody, etc.
+- ✅ Simple maintenance - Update command once, AGENTS.md unchanged
+
+### Plugin Workspace Integration
+
+Plugins are part of the Bun workspace for local validation:
+
+```json
+// Root package.json
+{
+  "workspaces": ["packages/*", "plugins/*"]
+}
+```
+
+**Benefits**:
+- ✅ Validate core integration code works locally
+- ✅ Run Bun tests in CI to ensure integration pattern is correct
+- ✅ Apply same quality checks (Biome, TypeScript)
+- ✅ Plugin still distributed via GitHub (not npm)
+- ✅ Templates shipped as-is (not individually validated)
+
+### Plugin Naming Convention
+
+Plugin directories must follow this naming rule:
+
+**Rule**: Plugin directory name MUST match the plugin name in `.claude-plugin/plugin.json`
+
+**Examples**:
+- Plugin name: `teams-mcp-integration` → Directory: `plugins/teams-mcp-integration` ✅
+- Plugin name: `google-chat-mcp-integration` → Directory: `plugins/google-chat-mcp-integration` ✅
+
+**Validation**: Marketplace tests validate plugin names match directory names.
+
+**Current plugins**:
+- `teams-mcp-integration` in `plugins/teams-mcp-integration/`
+
+### Plugin Commands
+
+```bash
+# From root - test specific plugin
+bun --cwd plugins/teams-mcp-integration test
+
+# From root - check specific plugin
+bun --cwd plugins/teams-mcp-integration run check
+
+# From root - test all plugins
+bun run --filter 'plugins/*' test
+
+# From plugin directory
+cd plugins/teams-mcp-integration
+bun test
+bun run check
+```
+
+### Distribution Strategy
+
+**Primary Distribution**: Plugins are publicly hosted at `https://api.you.com/plugins/`
+
+**Canonical URLs**:
+- Plugin home: `https://api.you.com/plugins/teams-mcp-integration/`
+- AGENTS.md: `https://api.you.com/plugins/teams-mcp-integration/AGENTS.md`
+- Templates: `https://api.you.com/plugins/teams-mcp-integration/templates/`
+- README: `https://api.you.com/plugins/teams-mcp-integration/README.md`
+
+**Source Repository**: GitHub (`youdotcom-oss/dx-toolkit`) for development and CI/CD
+
+**Deployment Flow**:
+1. Develop in `dx-toolkit/plugins/teams-mcp-integration/`
+2. Test locally with Bun workspace
+3. CI validates and tests on PR
+4. On merge to main, deploy to `https://api.you.com/plugins/teams-mcp-integration/`
+
+See [docs/MARKETPLACE.md](./docs/MARKETPLACE.md) for complete marketplace documentation.
 
 ## Tech Stack
 
@@ -268,7 +415,6 @@ Packages depending on other workspace packages should use the **bundled pattern*
 **Lock Files**: Only root `bun.lock` is committed
 
 - Root `.gitignore` allows root `bun.lock`
-- Package `.gitignore` files ignore all lock files (including `bun.lock`)
 - Workspace manages all dependencies via root lock file
 
 ### Universal Code Patterns
@@ -342,9 +488,138 @@ await new Promise(resolve => setTimeout(resolve, 100));
 - Compatibility with Node.js runtime required
 - Third-party package dependency requires it
 
+**Bun Test Patterns**: Always use `test()` in Bun tests, never `it()`
+
+```ts
+// ✅ Preferred - Bun test API
+import { test, expect } from 'bun:test';
+
+test('should validate input', () => {
+  expect(true).toBe(true);
+});
+
+test('async operation', async () => {
+  const result = await fetchData();
+  expect(result).toBeDefined();
+});
+
+// ❌ Avoid - Jest/Vitest syntax
+import { it, expect } from 'bun:test';
+
+it('should validate input', () => {  // Don't use it()
+  expect(true).toBe(true);
+});
+```
+
+**Why use test() not it()?**
+- `test()` is Bun's native test API
+- Consistent with Bun documentation and examples
+- Clearer intent (explicitly testing)
+- `it()` is compatibility alias from Jest/Vitest
+
+**Error Handling**: Always use try/catch with typed error handling
+
+```ts
+// ✅ Preferred - typed error handling
+try {
+  const response = await apiCall();
+  return formatResponse(response);
+} catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : String(err);
+  console.error(`API call failed: ${errorMessage}`);
+  throw new Error(`Failed to process request: ${errorMessage}`);
+}
+
+// ❌ Avoid - untyped catch
+try {
+  const response = await apiCall();
+  return formatResponse(response);
+} catch (err) {  // Implicit 'any' type
+  console.error(err.message);  // Unsafe property access
+}
+
+// ❌ Avoid - catch without type checking
+catch (err: any) {
+  console.error(err.message);  // 'any' defeats type safety
+}
+```
+
+**Why typed error handling?**
+- TypeScript requires explicit typing for catch clauses
+- Prevents unsafe property access on unknown error types
+- Forces proper type narrowing (instanceof Error check)
+- Better error messages and debugging
+
+**Test Retry Configuration**: Use retry for API-dependent tests
+
+```ts
+// ✅ Preferred - API tests with retry
+test('should fetch data from API', async () => {
+  const response = await apiCall();
+  expect(response).toBeDefined();
+}, { timeout: 60_000, retry: 2 });
+
+// ❌ Avoid - no retry for flaky API tests
+test('should fetch data from API', async () => {
+  const response = await apiCall();
+  expect(response).toBeDefined();
+}, { timeout: 60_000 });  // May fail on transient network issues
+```
+
+**Why use retry?**
+- Handles transient network issues, rate limiting, intermittent failures
+- Tests pass if any of 3 attempts succeed (1 initial + 2 retries)
+- Low cost: only runs extra attempts on failure
+- Standard pattern: `{ timeout: X, retry: 2 }`
+
+**Considerations**:
+- Total test time = iterations × max_attempts × time_per_iteration
+- Use for API integration tests, not for unit tests
+- Example: 5 iterations × 3 attempts × 7s/call = 105s max
+
+**Test Assertion Anti-Patterns**: Avoid patterns that silently skip assertions
+
+```ts
+// ❌ Avoid - early returns silently exit test
+test('should validate item', () => {
+  const item = getItem();
+  if (!item) return;  // Test passes even if item is undefined!
+  expect(item.name).toBe('test');
+});
+
+// ❌ Avoid - redundant conditionals
+test('should have markdown property', () => {
+  expect(item?.markdown).toBeDefined();
+  if (item?.markdown) {  // Redundant check
+    expect(typeof item.markdown).toBe('string');
+  }
+});
+
+// ✅ Preferred - let tests fail naturally
+test('should validate item', () => {
+  const item = getItem();
+  expect(item).toBeDefined();
+  expect(item).toHaveProperty('name');
+  expect(item?.name).toBe('test');
+});
+
+test('should have markdown property', () => {
+  expect(item).toBeDefined();
+  expect(item).toHaveProperty('markdown');  // Fails clearly if undefined
+  expect(typeof item?.markdown).toBe('string');
+});
+```
+
+**Why avoid these patterns?**
+- Early returns make tests pass when they should fail
+- Redundant conditionals create false confidence
+- Tests should fail with clear error messages
+- Use optional chaining with direct assertions
+
 **Resources:**
 - [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
 - [Bun Shell](https://bun.sh/docs/runtime/shell)
+- [Bun Test](https://bun.sh/docs/cli/test)
 
 ## Git Workflow
 
@@ -527,7 +802,7 @@ The command will guide you through:
 2. **Metadata** - Description and keywords
 3. **Automatic setup**:
    - Creates package directory structure
-   - Generates all configuration files (package.json, tsconfig.json, biome.json, .gitignore)
+   - Generates all configuration files (package.json, tsconfig.json, biome.json)
    - Creates source files with templates
    - Generates documentation (README.md, AGENTS.md)
    - Creates publish workflow (`.github/workflows/publish-{package}.yml`)
@@ -544,7 +819,7 @@ cd packages/new-package
 bun init
 
 # Copy configuration from existing package
-cp ../mcp/{.gitignore,tsconfig.json,biome.json} .
+cp ../mcp/{tsconfig.json,biome.json} .
 
 # Update root package.json workspaces (if needed)
 # Workspaces already includes "packages/*"
@@ -887,8 +1162,54 @@ bun run build    # Build all packages
 - NPM packages: `.js` extension
 - JSON files: `.json` with import assertion
 
+## Publishing
+
+### Package Publishing Process
+
+All packages in this monorepo are published to npm via GitHub Actions workflows.
+
+**Standard Workflow** (most packages):
+1. Updates version in `packages/{package}/package.json`
+2. Scans all workspace packages for dependencies on the published package
+3. Updates dependent packages with exact version (e.g., "1.4.0", no `^` or `~`)
+4. Commits all version updates together
+5. Creates GitHub release with tag `v{version}`
+6. Publishes to npm using NPM Trusted Publishing (OIDC)
+7. No manual npm tokens required
+
+**Package-Specific Workflows**:
+- Each package has its own workflow: `.github/workflows/publish-{package}.yml`
+- Some packages may have additional deployment steps (see package-specific AGENTS.md)
+- Example: MCP package triggers remote deployment and Anthropic MCP Registry update
+
+**Version Format**:
+- Git tags: `v{version}` (e.g., `v1.3.4`)
+- package.json: `{version}` (no "v" prefix, e.g., `1.3.4`)
+- npm: `{version}` (e.g., `@youdotcom-oss/mcp@1.3.4`)
+
+**Triggering a Release**:
+1. Go to: Actions → Publish {package} Release → Run workflow
+2. Enter version WITHOUT "v" prefix: `1.3.4`
+3. Optional: Enter `next` value for prereleases (e.g., `1` creates `1.3.4-next.1`)
+4. The workflow automatically adds "v" for Git tags
+
+**Cross-Package Dependencies**:
+- Always use exact versions (no `^` or `~` prefixes)
+- The publish workflow automatically updates dependent packages
+- Example: Publishing `@youdotcom-oss/mcp@1.4.0` updates all packages that depend on it
+
+**Authentication**:
+- Uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) (OIDC)
+- No npm tokens required - GitHub Actions authenticates automatically
+- Automatic provenance generation for supply chain security
+- Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
+
+For package-specific publishing details (deployment steps, registry updates), see the package's AGENTS.md file.
+
 ## Support
 
-- **Package Issues**: See package-specific AGENTS.md
-- **Issues and Contributions**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Package Issues**: See package-specific AGENTS.md for troubleshooting, then create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Performance Issues**: See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md)
+- **API Keys**: [you.com/platform/api-keys](https://you.com/platform/api-keys)
+- **Contributions**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
 - **Email**: support@you.com
