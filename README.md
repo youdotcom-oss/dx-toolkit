@@ -94,7 +94,7 @@ bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
-# Future packages will follow same pattern:
+# All packages follow this pattern:
 # bun run dev:<package>
 # bun run start:<package>
 # bun run test:<package>
