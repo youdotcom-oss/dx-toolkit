@@ -69,7 +69,7 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/mcp": "1.3.9"
+    "@youdotcom-oss/mcp": "1.3.10"
   },
   "peerDependencies": {
     "ai": "^5.0.0"
