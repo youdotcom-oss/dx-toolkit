@@ -100,20 +100,6 @@ bun run test:mcp         # Test MCP server only
 # bun run test:<package>
 ```
 
-**From Package Directory** (standard commands all packages support):
-
-```bash
-cd packages/<package-name>
-
-bun run dev              # Start package in development mode
-bun start                # Start package in production mode
-bun test                 # Run package tests
-bun run check            # Check package code quality
-bun run check:write      # Auto-fix package issues
-```
-
-For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-specific-commands).
-
 ## Documentation
 
 ### Package Documentation
