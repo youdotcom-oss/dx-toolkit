@@ -58,7 +58,8 @@ cd dx-toolkit
 bun install
 
 # Set up environment variables
-echo "export YDC_API_KEY=your-actual-api-key-here" > .env
+cp .env.example .env
+# Edit .env and add your YDC_API_KEY
 source .env
 
 # Authenticate with GitHub (if using gh CLI)
