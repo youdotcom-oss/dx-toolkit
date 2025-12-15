@@ -46,6 +46,8 @@ jobs:
       version: ${{ steps.set_version.outputs.version }}
       is_prerelease: ${{ steps.set_version.outputs.is_prerelease }}
       package_name: ${{ steps.derive_package.outputs.package_name }}
+      has_dependents: ${{ steps.check_dependents.outputs.has_dependents }}
+      dependents: ${{ steps.check_dependents.outputs.dependents }}
     steps:
       - name: Validate inputs
         env:
@@ -65,7 +67,7 @@ jobs:
           # Validate npm package name format (@scope/package-name)
           if ! echo "$INPUT_NPM_PACKAGE_NAME" | grep -qE '^@[a-z0-9-]+/[a-z0-9-]+$'; then
             echo "::error::Invalid npm package name: $INPUT_NPM_PACKAGE_NAME"
-            echo "::error::Expected: @scope/package-name (lowercase, hyphens allowed)"
+            echo "::error::Expected: @scope/package-name (lowercase, numbers, hyphens allowed)"
             exit 1
           fi
 
@@ -191,7 +193,7 @@ jobs:
 
           echo "package_name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
-      - name: Update package.json version and workspace dependencies
+      - name: Update package.json version
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           VERSION: ${{ steps.set_version.outputs.version }}
@@ -219,48 +221,11 @@ jobs:
           echo "Updated package.json version to $VERSION"
           cd ../..
 
-          # Find and update workspace dependencies
-          echo "Checking for workspace packages that depend on $PACKAGE_NAME..."
-          UPDATED_PACKAGES=0
-
-          for pkg_json in packages/*/package.json; do
-            # Skip the package we just updated
-            if [[ "$pkg_json" == "${PACKAGE_DIR}/package.json" ]]; then
-              continue
-            fi
-
-            # Check if this package depends on the updated package using jq
-            # Use jq --arg to safely pass variables (prevents injection)
-            HAS_DEP=$(jq -e --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json" > /dev/null 2>&1 && echo "true" || echo "false")
-
-            if [[ "$HAS_DEP" == "true" ]]; then
-              echo "Updating dependency in $pkg_json to version $VERSION"
-
-              # Update dependencies with exact version (no ^ prefix) using jq
-              if jq -e --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg]' "$pkg_json" > /dev/null 2>&1; then
-                jq --arg pkg "$PACKAGE_NAME" --arg ver "$VERSION" '.dependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp" && mv "${pkg_json}.tmp" "$pkg_json"
-                echo "  ✓ Updated dependencies"
-              fi
-
-              # Update devDependencies with exact version (no ^ prefix) using jq
-              if jq -e --arg pkg "$PACKAGE_NAME" '.devDependencies[$pkg]' "$pkg_json" > /dev/null 2>&1; then
-                jq --arg pkg "$PACKAGE_NAME" --arg ver "$VERSION" '.devDependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp" && mv "${pkg_json}.tmp" "$pkg_json"
-                echo "  ✓ Updated devDependencies"
-              fi
-
-              # Validate exact version format (no ^ or ~ prefix)
-              ACTUAL_VERSION=$(jq -r --arg pkg "$PACKAGE_NAME" '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
-              if [[ "$ACTUAL_VERSION" != "$VERSION" ]]; then
-                echo "::error::Failed to update to exact version in $pkg_json"
-                echo "::error::Expected: $VERSION"
-                echo "::error::Got: $ACTUAL_VERSION"
-                exit 1
-              fi
-
-              git add "$pkg_json"
-              UPDATED_PACKAGES=$((UPDATED_PACKAGES + 1))
-            fi
-          done
+          # Update lock file to reflect new version
+          echo "Updating bun.lock..."
+          rm -rf bun.lock node_modules
+          bun install
+          echo "✅ Lock file updated"
 
           # Verify version sync BEFORE committing
           cd "$PACKAGE_DIR"
@@ -268,7 +233,7 @@ jobs:
 
           # Validate versions match (both without 'v' prefix)
           if [[ "$PACKAGE_VERSION" != "$VERSION" ]]; then
-            echo "::error::Version mismatch after npm version!"
+            echo "::error::Version mismatch after version update!"
             echo "::error::package.json: $PACKAGE_VERSION"
             echo "::error::Expected: $VERSION"
             exit 1
@@ -285,19 +250,99 @@ jobs:
           echo "✅ Git tag will be: ${PACKAGE_NAME}@v$PACKAGE_VERSION"
           cd ../..
 
-          # Commit all changes (if any)
-          git add "${PACKAGE_DIR}/package.json"
+          # Commit version change and lock file
+          git add "${PACKAGE_DIR}/package.json" bun.lock
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "::notice::No version changes to commit (already at ${PACKAGE_NAME}@v$VERSION)"
           else
-            if [[ $UPDATED_PACKAGES -gt 0 ]]; then
-              git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION and update $UPDATED_PACKAGES dependent package(s) [skip ci]"
-            else
-              git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION [skip ci]"
-            fi
+            git commit -m "ci: publish ${PACKAGE_NAME} v$VERSION [skip ci]"
             git push origin "$BRANCH_NAME"
+          fi
+
+      - name: Check for dependent packages and plugins
+        id: check_dependents
+        env:
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          PACKAGE_NAME: ${{ steps.derive_package.outputs.package_name }}
+        run: |
+          # Find packages and plugins that depend on this package
+          echo "Checking for workspace packages and plugins that depend on ${NPM_PACKAGE_NAME}..."
+
+          DEPENDENTS=""
+
+          # Check packages/ directory
+          for pkg_json in packages/*/package.json; do
+            # Skip the package we just published
+            if [[ "$pkg_json" == "packages/${PACKAGE_NAME}/package.json" ]]; then
+              continue
+            fi
+
+            # Check if this package depends on the published package
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+              '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
+              "$pkg_json" >/dev/null 2>&1; then
+              HAS_DEP="true"
+            else
+              HAS_DEP="false"
+            fi
+
+            if [[ "$HAS_DEP" == "true" ]]; then
+              PKG_NAME=$(jq -r '.name' "$pkg_json")
+              CURRENT_VER=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
+              DEP_TYPE=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                'if .dependencies[$pkg] then "dependencies" else "devDependencies" end' "$pkg_json")
+
+              if [[ -n "$DEPENDENTS" ]]; then
+                DEPENDENTS="${DEPENDENTS}"$'\n'
+              fi
+              DEPENDENTS="${DEPENDENTS}- **${PKG_NAME}** (package): Currently using \`${CURRENT_VER}\` in ${DEP_TYPE}"
+            fi
+          done
+
+          # Check plugins/ directory
+          for pkg_json in plugins/*/package.json; do
+            if [[ ! -f "$pkg_json" ]]; then
+              continue
+            fi
+
+            # Check if this plugin depends on the published package
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+              '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
+              "$pkg_json" >/dev/null 2>&1; then
+              HAS_DEP="true"
+            else
+              HAS_DEP="false"
+            fi
+
+            if [[ "$HAS_DEP" == "true" ]]; then
+              PLUGIN_DIR=$(dirname "$pkg_json")
+              PLUGIN_NAME=$(basename "$PLUGIN_DIR")
+              CURRENT_VER=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
+              DEP_TYPE=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                'if .dependencies[$pkg] then "dependencies" else "devDependencies" end' "$pkg_json")
+
+              if [[ -n "$DEPENDENTS" ]]; then
+                DEPENDENTS="${DEPENDENTS}"$'\n'
+              fi
+              DEPENDENTS="${DEPENDENTS}- **${PLUGIN_NAME}** (plugin): Currently using \`${CURRENT_VER}\` in ${DEP_TYPE}"
+            fi
+          done
+
+          if [[ -n "$DEPENDENTS" ]]; then
+            echo "has_dependents=true" >> $GITHUB_OUTPUT
+            # Use heredoc to safely pass multiline string
+            echo "dependents<<EOF" >> $GITHUB_OUTPUT
+            echo "$DEPENDENTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "Found dependent packages/plugins:"
+            echo "$DEPENDENTS"
+          else
+            echo "has_dependents=false" >> $GITHUB_OUTPUT
+            echo "No dependent packages or plugins found"
           fi
 
   npm-publish:
@@ -389,3 +434,100 @@ jobs:
           echo "release_notes<<EOF" >> $GITHUB_OUTPUT
           echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+  create-dependency-update-issue:
+    if: needs.update-version.outputs.has_dependents == 'true'
+    runs-on: ubuntu-latest
+    name: Create Dependency Update Issue
+    needs: [update-version, npm-publish, create-release]
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create dependency update issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.update-version.outputs.version }}
+          PACKAGE_NAME: ${{ needs.update-version.outputs.package_name }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          IS_PRERELEASE: ${{ needs.update-version.outputs.is_prerelease }}
+          DEPENDENTS: ${{ needs.update-version.outputs.dependents }}
+        run: |
+          # Create issue body with dependency update instructions
+          {
+            echo "## 📦 Dependency Update Required"
+            echo ""
+            echo "Successfully published **${NPM_PACKAGE_NAME}@${VERSION}**"
+            echo ""
+            echo "### Packages and Plugins That Depend on This Package"
+            echo ""
+            echo "${DEPENDENTS}"
+            echo ""
+            echo "### Action Required"
+            echo ""
+            echo "Review the changes in this release and update dependent packages/plugins:"
+            echo ""
+            echo "1. **Review Changes**: Check the [release notes](https://github.com/youdotcom-oss/dx-toolkit/releases/tag/${PACKAGE_NAME}@v${VERSION})"
+            echo "2. **Test Compatibility**: Verify dependent packages work with the new version"
+            echo "3. **Update Dependencies**: Update package.json files in dependent packages/plugins"
+            echo "4. **Publish Updates**: Release new versions of affected packages"
+            echo ""
+            echo "### For Prerelease Testing"
+            echo ""
+          } > issue_body.md
+
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            {
+              echo "This is a **prerelease** version. Consider publishing coordinated prereleases for testing:"
+              echo ""
+              echo '```bash'
+              echo "# Example: Test ai-sdk-plugin with mcp prerelease"
+              echo "# 1. Update packages/ai-sdk-plugin/package.json dependency"
+              echo "# 2. Test locally: cd packages/ai-sdk-plugin && bun test"
+              echo "# 3. Publish prerelease: trigger workflow with next parameter"
+              echo '```'
+              echo ""
+              echo "Once testing is complete and ready for stable release, update to this version and publish stable releases."
+              echo ""
+            } >> issue_body.md
+          else
+            {
+              echo "This is a **stable release**. Update dependent packages to this version:"
+              echo ""
+              echo '```bash'
+              echo "# Example: Update ai-sdk-plugin to use mcp@${VERSION}"
+              echo "# 1. Edit packages/ai-sdk-plugin/package.json"
+              echo "# 2. Change \"@youdotcom-oss/mcp\": \"${VERSION}\""
+              echo "# 3. Test: cd packages/ai-sdk-plugin && bun test"
+              echo "# 4. Commit: git add . && git commit -m \"chore: update mcp to ${VERSION}\""
+              echo "# 5. Publish: trigger publish-ai-sdk-plugin workflow"
+              echo '```'
+              echo ""
+            } >> issue_body.md
+          fi
+
+          {
+            echo "### Checklist"
+            echo ""
+            echo "- [ ] Review release notes and changes"
+            echo "- [ ] Test dependent packages with new version locally"
+            echo "- [ ] Update package.json files with new version (exact version, no \`^\` or \`~\`)"
+            echo "- [ ] Run tests for dependent packages"
+            echo "- [ ] Publish updated packages (patch/minor version bump)"
+            echo "- [ ] Close this issue"
+            echo ""
+            echo "---"
+            echo ""
+            echo "🤖 *This issue was automatically created by the publish workflow*"
+          } >> issue_body.md
+
+          # Create the issue
+          gh issue create \
+            --title "Update dependencies on ${NPM_PACKAGE_NAME}@${VERSION}" \
+            --label "dependencies" \
+            --label "maintenance" \
+            --body-file issue_body.md
+
+          echo "✅ Created dependency update issue"

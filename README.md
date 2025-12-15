@@ -1,109 +1,39 @@
 # You.com DX Toolkit
 
-**Open-source toolkit enabling developers to integrate You.com's AI capabilities into their workflows.**
+**Open-source toolkit for AI-powered development - npm packages, plugins, and skills that work with Claude Code, Cursor, and 20+ AI coding assistants.**
 
-This workspace contains packages for building, testing, and shipping agentic workflows:
+Build with You.com's AI capabilities across your entire workflow:
 
-- **[@youdotcom-oss/mcp](./packages/mcp/)** - MCP Server providing web search, AI agents, and content extraction
-- **AI SDK Plugins** *(coming soon)* - Integrations for Vercel AI SDK, OpenAI SDK, Gemini SDK
-- **Evaluation Harness** *(coming soon)* - Tools for testing and evaluating agentic workflows
-- **Claude Code Skills** *(coming soon)* - RAG, context engineering, and workflow patterns for Claude Code
+- **📦 NPM Packages** - Ready-to-use integrations for popular frameworks
+- **🔌 Universal Plugins** - Cross-platform plugins for AI coding assistants
+- **🎯 Claude Code Skills** - Context-aware development patterns
 
-## Packages
+---
+
+## NPM Packages
+
+Production-ready packages for building, testing, and shipping agentic workflows:
 
 ### [@youdotcom-oss/mcp](./packages/mcp/)
+MCP Server giving AI agents real-time web search, AI answers, and content extraction via Model Context Protocol. **[Documentation →](./packages/mcp/README.md)**
 
-The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/).
+### [@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)
+Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, works with any model provider. **[Documentation →](./packages/ai-sdk-plugin/README.md)**
 
-**Features:**
-- Web and news search using You.com's Search API
-- AI-powered Express Agent for fast responses
-- Content extraction from web pages (markdown/HTML)
-- Multiple transport protocols (STDIO and HTTP)
-- Full TypeScript support with Zod schemas
+### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
+Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
-**[View full documentation →](./packages/mcp/README.md)**
+## Marketplace
 
-### @youdotcom-oss/ai-sdk-plugin *(coming soon)*
+Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI workflows, and deployment automation.
 
-AI SDK for building custom integrations with You.com's APIs.
+### [ai-sdk-integration](./plugins/ai-sdk-integration/)
+Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK applications - interactive setup workflow with smart integration. **[Documentation →](./plugins/ai-sdk-integration/README.md)**
 
-## Claude Code Plugin Marketplace
-
-This repository also serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
-
-### Available Plugins
-
-#### teams-mcp-integration
-
-Integrate Microsoft Teams apps with You.com MCP server using the `@youdotcom-oss/teams-anthropic` package.
-
-- **Category**: enterprise-integration
-- **Version**: 1.0.0
-- **Public URL**: https://api.you.com/plugins/teams-mcp-integration/
-- **Package**: `@youdotcom-oss/teams-anthropic`
-
-**Features**:
-- Orchestrates package installation workflow
-- Guides new app vs existing app setup
-- Template-based integration with inline markers
-- Environment configuration guidance
-- Cross-platform AI agent support
-
-### Installation
-
-**Claude Code users:**
-```bash
-/plugin marketplace add youdotcom-oss/dx-toolkit
-/plugin install teams-mcp-integration
-/generate-teams-app
-```
-
-**Cursor/Windsurf users:**
-```bash
-curl -o teams-mcp-integration.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-mv teams-mcp-integration.md .cursor/rules/  # or .windsurf/rules/
-```
-
-**Other AI agents (Cody, Continue, etc.):**
-```bash
-curl -o AGENTS.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-```
-
-**Manual usage:**
-```bash
-curl https://api.you.com/plugins/teams-mcp-integration/README.md
-```
-
-**[View full marketplace documentation →](./docs/MARKETPLACE.md)**
-
-### Future Plugins (Q1 2026)
-
-- **google-chat-mcp-integration** - Google Chat apps with You.com MCP
-- **eval-harness** - Evaluation harness for MCP tools
-- **local-rag-sqlite** - Local RAG with SQLite
-- **cloud-deployment** - Cloud-agnostic deployment
-- **rl-pipeline** - RL pipeline starter
-
-See [marketplace.json](./marketplace.json) for complete roadmap.
+### [teams-mcp-integration](./plugins/teams-mcp-integration/)
+Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
 
 ## Quick Start
-
-### For MCP Server Users
-
-If you want to use the You.com MCP Server with your AI agent (Claude, Cursor, etc.):
-
-**👉 [See the MCP Server documentation](./packages/mcp/README.md)**
-
-The MCP Server README contains:
-- Setup instructions for all MCP clients
-- Configuration examples
-- Available tools and usage
-- Troubleshooting guide
-
-### For Contributors
-
-If you want to contribute code or report issues:
 
 **Prerequisites:**
 - Bun >= 1.2.21: [Installation guide](https://bun.sh/docs/installation)
@@ -119,14 +49,15 @@ cd dx-toolkit
 bun install
 
 # Set up environment variables
-echo "export YDC_API_KEY=your-actual-api-key-here" > .env
+cp .env.example .env
+# Edit .env and add your YDC_API_KEY and ANTHROPIC_API_KEY
 source .env
 
 # Authenticate with GitHub (if using gh CLI)
 gh auth login
 
-# Run MCP server in development
-bun run dev:mcp
+# Build all packages
+bun run build
 
 # Run all tests
 bun test
@@ -135,74 +66,7 @@ bun test
 bun run check
 ```
 
-For comprehensive development guidelines including code patterns, testing, git workflow, and troubleshooting, see [AGENTS.md](./AGENTS.md).
-
-## Working with AI Agents on This Project
-
-### Using Claude Code or Other AI Assistants
-
-This project is designed to work seamlessly with AI coding agents like Claude Code. We provide specialized context files to help AI agents understand our patterns and architecture:
-
-**📋 CLAUDE.md** - Entry point that references AGENTS.md files
-
-**🛠️ AGENTS.md** - Comprehensive development guidelines including:
-  - Monorepo structure and architecture
-  - Code style patterns (arrow functions, Zod schemas, MCP-specific patterns)
-  - Testing patterns and anti-patterns
-  - Git workflow and commit conventions
-  - Troubleshooting guides
-
-**⚙️ .mcp.example.json** - MCP server configuration for AI agents
-
-#### Recommended Workflow
-
-1. **Initial context**: Reference `@AGENTS.md` or `@CLAUDE.md` in your prompt
-2. **Understand architecture**: Ask agent to read relevant sections
-3. **Make changes**: Agent follows documented patterns automatically
-4. **Quality checks**: `bun run check` ensures code quality
-5. **Testing**: `bun test` validates changes
-
-#### Example Prompts
-
-```
-"Following @AGENTS.md patterns, add a new MCP tool for X"
-"Review @packages/mcp/AGENTS.md and refactor Y"
-"Using patterns from @AGENTS.md, write tests for Z"
-```
-
-## GitHub Workflows
-
-This project uses automated workflows for code quality, releases, and deployments.
-
-### Continuous Integration
-
-**Code Quality Checks**
-- Workflow: `.github/workflows/ci.yml`
-- Trigger: Pull requests and pushes to main
-- Purpose: Validates code quality and tests for all packages
-- Runs: Biome linting, TypeScript type checking, and test suite
-
-**Code Review**
-- Internal: `.github/workflows/code-review.yml` (automatic on PR)
-- External: `.github/workflows/external-code-review.yml` (manual trigger)
-- Purpose: AI-powered code analysis and suggestions
-
-### Publishing and Deployment
-
-**Publishing Packages**
-- Workflow: `.github/workflows/publish-mcp.yml` (example for MCP package)
-- Trigger: Manual via GitHub Actions UI
-- Purpose: Update version, create GitHub release, publish to npm
-- Process:
-  1. Updates package.json version
-  2. Updates workspace dependencies
-  3. Creates GitHub release
-  4. Publishes to npm
-  5. (MCP only) Triggers remote deployment via repository_dispatch
-
-**Note**: The MCP package includes additional deployment steps to trigger remote infrastructure updates. Other packages in this monorepo have simpler publish workflows without deployment.
-
-For comprehensive workflow documentation, see [AGENTS.md](./AGENTS.md#monorepo-architecture).
+**For comprehensive development guidelines**, see [AGENTS.md](./AGENTS.md).
 
 ## Monorepo Commands
 
@@ -225,35 +89,30 @@ bun run check:write      # Auto-fix all issues across all packages
 **From Root** (run specific package commands):
 
 ```bash
-# MCP Server
+# MCP Server (using root shortcuts)
 bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
-# Future packages will follow same pattern:
-# bun run dev:<package>
-# bun run start:<package>
-# bun run test:<package>
+# Or call package scripts directly:
+bun --cwd packages/mcp dev
+bun --cwd packages/mcp start
+bun --cwd packages/mcp test
+
+# All packages follow this pattern:
+# bun run <command>:<package>
+# bun --cwd packages/<package> <command>
 ```
-
-**From Package Directory** (standard commands all packages support):
-
-```bash
-cd packages/<package-name>
-
-bun run dev              # Start package in development mode
-bun start                # Start package in production mode
-bun test                 # Run package tests
-bun run check            # Check package code quality
-bun run check:write      # Auto-fix package issues
-```
-
-For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-specific-commands).
 
 ## Documentation
 
+### Package Documentation
 - **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide with API examples
-- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers
+- **[AI SDK Plugin README](./packages/ai-sdk-plugin/README.md)** - Vercel AI SDK integration guide
+- **[Teams Anthropic README](./packages/teams-anthropic/README.md)** - Microsoft Teams.ai integration guide
+
+### Contributor Documentation
+- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers and agentic IDEs
 - **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
 
 ## Directory Structure
@@ -262,10 +121,12 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 dx-toolkit/
 ├── marketplace.json       # Plugin marketplace manifest
 ├── packages/
-│   └── mcp/               # MCP Server package
+│   ├── mcp/               # MCP Server package
+│   ├── ai-sdk-plugin/     # Vercel AI SDK plugin
+│   └── teams-anthropic/   # Teams.ai Anthropic integration
 │       ├── src/           # Source code
-│       ├── bin/           # Compiled output
-│       ├── docs/          # API documentation
+│       ├── dist/          # Compiled output
+│       ├── templates/     # Code templates
 │       ├── README.md      # User documentation
 │       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
@@ -277,7 +138,6 @@ dx-toolkit/
 │       ├── templates/
 │       ├── AGENTS.md      # Plugin instructions
 │       └── README.md      # Plugin docs
-├── tests/                 # Marketplace validation tests
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 ├── docs/
@@ -287,51 +147,24 @@ dx-toolkit/
 └── README.md              # This file
 ```
 
+## Roadmap
+
+**Packages in Development** (Target: 12/16/2025)
+- **@youdotcom-oss/openai-sdk-plugin** - OpenAI SDK integration for web search and AI agents
+- **@youdotcom-oss/claude-agent-sdk** - Claude Agent SDK patterns and orchestration utilities
+
+**Plugins in Development** (Target: Q1 2026)
+- **google-chat-mcp-integration** - Google Chat apps with You.com MCP server
+- **eval-harness** - Evaluation harness for MCP tools (includes skills)
+- **local-rag-sqlite** - Local RAG with SQLite backend (includes skills)
+- **cloud-deployment** - Cloud-agnostic deployment automation (includes skills)
+- **rl-pipeline** - Reinforcement learning pipeline starter (includes skills)
+
+**[View complete roadmap →](./docs/ROADMAP.md)**
+
 ## Contributing
 
-Contributions are welcome! Each open source package includes its own contribution guidelines:
-
-- **MCP Server**: See [packages/mcp/README.md](./packages/mcp/README.md) and [packages/mcp/CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)
-- Future packages will include their own documentation
-
-For internal maintainers, see [AGENTS.md](./AGENTS.md) for comprehensive development details.
-
-## Testing
-
-```bash
-# Run all tests
-bun test
-
-# Test specific package
-bun run test:mcp         # MCP server only
-
-# Run tests with coverage
-bun test:coverage
-
-# Run tests in watch mode
-bun test:watch
-```
-
-Requires `YDC_API_KEY` environment variable for API tests.
-
-## Code Quality
-
-This project uses [Biome](https://biomejs.dev/) for code formatting and linting:
-
-```bash
-# Check all packages
-bun run check
-
-# Auto-fix all issues
-bun run check:write
-
-# Individual checks
-bun run check:biome       # Lint and format
-bun run check:types       # TypeScript
-bun run check:package     # package.json format
-```
-
-Git hooks automatically enforce code quality on commit.
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 
