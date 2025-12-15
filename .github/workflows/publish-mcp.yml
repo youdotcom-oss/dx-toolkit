@@ -1,4 +1,4 @@
-name: Publish mcp Release
+name: "Package: publish @youdotcom-oss/mcp"
 
 on:
   workflow_dispatch:

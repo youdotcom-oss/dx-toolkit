@@ -1,4 +1,4 @@
-name: Publish teams-anthropic Release
+name: "Package: publish @youdotcom-oss/teams-anthropic"
 
 on:
   workflow_dispatch:

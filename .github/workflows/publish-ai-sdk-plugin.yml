@@ -1,4 +1,4 @@
-name: Publish ai-sdk-plugin Release
+name: "Package: publish @youdotcom-oss/ai-sdk-plugin"
 
 on:
   workflow_dispatch:

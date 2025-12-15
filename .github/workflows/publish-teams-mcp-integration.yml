@@ -1,4 +1,4 @@
-name: Plugin: Publish teams-mcp-integration
+name: "Plugin: publish teams-mcp integration"
 
 on:
   workflow_dispatch:

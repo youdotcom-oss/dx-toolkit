@@ -1,4 +1,4 @@
-name: Plugin: Publish ai-sdk-integration
+name: "Plugin: publish ai-sdk integration"
 
 on:
   workflow_dispatch:
