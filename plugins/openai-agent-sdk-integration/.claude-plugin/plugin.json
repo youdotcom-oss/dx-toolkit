@@ -9,7 +9,11 @@
       "path": "commands/integrate-openai-agent.md"
     }
   ],
-  "author": "You.com",
+  "author": {
+    "name": "You.com",
+    "email": "support@you.com",
+    "url": "https://you.com"
+  },
   "license": "MIT",
   "repository": "https://github.com/youdotcom-oss/dx-toolkit"
 }
