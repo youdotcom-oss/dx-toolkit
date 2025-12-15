@@ -32,5 +32,17 @@
     ]
   },
   "enabledMcpjsonServers": ["ydc-server", "linear-server", "notion"],
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/UserPromptSubmit"
+          }
+        ]
+      }
+    ]
+  }
 }
