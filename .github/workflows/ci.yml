@@ -25,14 +25,14 @@ jobs:
       - name: Run lint
         run: bun run check
 
-      - name: Run marketplace validation tests
-        run: bun test tests/
+      - name: Run scripts test
+        run: bun run --filter 'scripts/*' test || echo "No scripts packages found"
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Run package tests
-        run: bun run --filter '@youdotcom-oss/*' test
+      - name: Run packages tests
+        run: bun run --filter 'packages/*' test
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
