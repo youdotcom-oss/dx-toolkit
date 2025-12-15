@@ -442,7 +442,7 @@ import { hostedMcpTool } from '@openai/agents';
 
 tools: [
   hostedMcpTool({
-    serverLabel: 'you',
+    serverLabel: 'ydc',
     serverUrl: 'https://api.you.com/mcp',
     headers: {
       Authorization: `Bearer ${process.env.YDC_API_KEY}`,
