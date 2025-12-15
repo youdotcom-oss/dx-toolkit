@@ -23,68 +23,24 @@ Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, w
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
 Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
-## Universal Plugin Marketplace
+## Marketplace
 
-**Cross-platform plugins** that work with Claude Code, Cursor, Windsurf, and other AI coding assistants. Install once, use everywhere.
+Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI workflows, and deployment automation.
 
-These plugins provide guided workflows for enterprise integrations, AI workflows, and deployment automation.
+### [teams-mcp-integration](./plugins/teams-mcp-integration/) v1.0.0
+Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Plugin Docs →](./plugins/teams-mcp-integration/README.md)** • **[Marketplace Docs →](./docs/MARKETPLACE.md)**
 
-### Available Plugins
-
-#### teams-mcp-integration
-
-Integrate Microsoft Teams apps with You.com MCP server using the `@youdotcom-oss/teams-anthropic` package.
-
-- **Category**: enterprise-integration
-- **Version**: 1.0.0
-- **Public URL**: https://api.you.com/plugins/teams-mcp-integration/
-- **Package**: `@youdotcom-oss/teams-anthropic`
-
-**Features**:
-- Orchestrates package installation workflow
-- Guides new app vs existing app setup
-- Template-based integration with inline markers
-- Environment configuration guidance
-- Cross-platform AI agent support
-
-### Installation
-
-**One-command install** for any platform:
-
+**Quick install:**
 ```bash
-# Claude Code (adds to marketplace, installs plugin)
+# Claude Code
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
 
-# Cursor (installs to .claude/plugins/, enable in Settings → Rules)
+# Cursor
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
 
-# Other AI agents - Cody, Windsurf, Continue, etc. (adds to AGENTS.md)
+# Other AI agents (Cody, Windsurf, Continue, etc.)
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
 ```
-
-**Claude Code marketplace method:**
-```bash
-/plugin marketplace add youdotcom-oss/dx-toolkit
-/plugin install teams-mcp-integration
-/generate-teams-app
-```
-
-**[View full marketplace documentation →](./docs/MARKETPLACE.md)**
-
-### Plugin Roadmap
-
-**In Development (Target: 12/16/2025)**
-- OpenAI SDK Plugin - Web search integration for OpenAI SDK
-- Claude Agent SDK Plugin - Agent orchestration patterns
-
-**Coming Q1 2026**
-- Google Chat MCP Integration
-- Evaluation Harness
-- Local RAG with SQLite
-- Cloud Deployment Automation
-- RL Pipeline Starter
-
-**[View complete roadmap →](./docs/ROADMAP.md)**
 
 ## Quick Start
 
@@ -291,6 +247,21 @@ dx-toolkit/
 ├── package.json           # Workspace root config
 └── README.md              # This file
 ```
+
+## Roadmap
+
+**In Development (Target: 12/16/2025)**
+- **OpenAI SDK Plugin** - Web search integration for OpenAI SDK
+- **Claude Agent SDK Plugin** - Agent orchestration patterns
+
+**Coming Q1 2026**
+- Google Chat MCP Integration
+- Evaluation Harness
+- Local RAG with SQLite
+- Cloud Deployment Automation
+- RL Pipeline Starter
+
+**[View complete roadmap →](./docs/ROADMAP.md)**
 
 ## Contributing
 
