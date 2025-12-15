@@ -21,8 +21,11 @@ import { App } from '@microsoft/teams.apps'; // ← EXISTING APP: SKIP THIS LINE
 import { ChatPrompt } from '@microsoft/teams.ai'; // ← EXISTING APP: START HERE
 import { ConsoleLogger } from '@microsoft/teams.common';
 import { McpClientPlugin } from '@microsoft/teams.mcpclient';
-import { AnthropicChatModel, AnthropicModel } from '@youdotcom-oss/teams-anthropic';
-import packageJson from '@youdotcom-oss/teams-anthropic/package' with { type: 'json' };
+import {
+  AnthropicChatModel,
+  AnthropicModel,
+  getYouMcpConfig,
+} from '@youdotcom-oss/teams-anthropic';
 
 // ============================================================================
 // Environment Validation & Configuration
@@ -61,17 +64,12 @@ const prompt = new ChatPrompt(
     }),
   },
   [new McpClientPlugin({ logger })]
-).usePlugin('mcpClient', {
-  url: 'https://api.you.com/mcp',
-  params: {
-    headers: {
-      // Custom user agent for server telemetry
-      'User-Agent': `TEAMS-MCP-CLIENT/${packageJson.version} (You.com; microsoft-teams)`,
-      // Bearer token authentication
-      Authorization: `Bearer ${process.env.YDC_API_KEY}`,
-    },
-  },
-});
+).usePlugin(
+  'mcpClient',
+  getYouMcpConfig({
+    // apiKey: 'your-api-key-here', // Optional: falls back to YDC_API_KEY env var
+  })
+);
 
 // ============================================================================
 // Teams App Setup (for standalone usage)

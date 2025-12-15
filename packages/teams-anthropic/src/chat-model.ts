@@ -134,9 +134,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
 
       // Handle function execution if input is a model message with function calls
       if (isInputModelMessage(input)) {
-        const shouldAutoExecute = options?.autoFunctionCalling !== false;
-
-        if (shouldAutoExecute && input.function_calls && options?.functions) {
+        if (options?.autoFunctionCalling !== false && input.function_calls && options?.functions) {
           this.#log.log('debug', `Auto-executing ${input.function_calls.length} function calls`);
 
           // Execute all function calls
@@ -206,17 +204,16 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
           name,
           description: isFunctionWithDescription(fn) ? fn.description : `Function: ${name}`,
           input_schema: {
-            type: 'object' as const,
+            type: 'object',
             properties: isFunctionWithParameters(fn) ? fn.parameters : {},
+            // Makes it clear that no parameters are required (all are optional)
             required: [],
           },
         }));
       }
 
       // Check if streaming is enabled
-      const isStreaming = !!options?.onChunk;
-
-      if (isStreaming) {
+      if (options?.onChunk) {
         // Streaming mode
         const stream = this.#anthropic.messages.stream({
           ...requestParams,
@@ -259,7 +256,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
           modelMessage.function_calls = toolUses.map((tool) => ({
             id: tool.id,
             name: tool.name,
-            arguments: tool.input as { [key: string]: unknown },
+            arguments: tool.input,
           }));
         }
 
@@ -275,7 +272,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       }
 
       // Non-streaming mode
-      const response = (await this.#anthropic.messages.create(requestParams)) as Anthropic.Message;
+      const response = await this.#anthropic.messages.create(requestParams);
 
       this.#log.log('debug', `Received response from Anthropic API: ${response.id}`);
 

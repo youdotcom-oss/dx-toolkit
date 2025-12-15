@@ -159,13 +159,3 @@ export const youContents = (config: YouToolsConfig = {}) => {
     },
   });
 };
-
-// Export types for users
-export type {
-  ContentsApiResponse,
-  ContentsQuery,
-  ExpressAgentInput,
-  ExpressAgentMcpResponse,
-  SearchQuery,
-  SearchResponse,
-} from '@youdotcom-oss/mcp';

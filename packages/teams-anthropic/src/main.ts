@@ -23,18 +23,7 @@
  * @packageDocumentation
  */
 
-// Core class
-export { AnthropicChatModel } from './chat-model.ts';
-// Types
-export type { AnthropicChatModelOptions, AnthropicRequestOptions } from './teams-anthropic.types.ts';
-// Model enum and helpers
-export {
-  AnthropicModel,
-  extractSystemMessage,
-  getAllModels,
-  getModelDisplayName,
-  getModelFamily,
-  isValidModel,
-  transformFromAnthropicMessage,
-  transformToAnthropicMessages,
-} from './teams-anthropic.utils.ts';
+// Re-export all public APIs
+export * from './chat-model.ts';
+export * from './teams-anthropic.types.ts';
+export * from './teams-anthropic.utils.ts';

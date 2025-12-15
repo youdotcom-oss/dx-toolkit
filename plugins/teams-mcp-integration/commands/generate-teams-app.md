@@ -55,8 +55,10 @@ The template has clear inline markers:
 **ChatPrompt Configuration (always needed):**
 * AnthropicChatModel with Claude Sonnet 4.5
 * McpClientPlugin for MCP support
-* usePlugin() with You.com MCP URL: `https://api.you.com/mcp`
-* Bearer authentication: `Authorization: Bearer ${YDC_API_KEY}`
+* `getYouMcpConfig()` utility - automatically configures:
+  * URL: `https://api.you.com/mcp`
+  * Bearer authentication with YDC_API_KEY
+  * User-Agent with package version
 
 **For Existing Apps:**
 * Add to your existing app structure
@@ -74,8 +76,7 @@ Before completing:
 - [ ] Environment variables set in .env
 - [ ] Imports match integration type (skip App import for existing apps)
 - [ ] ChatPrompt properly configured
-- [ ] MCP URL correct: `https://api.you.com/mcp`
-- [ ] Bearer token authentication configured
+- [ ] `getYouMcpConfig()` used (automatically handles URL and auth)
 
 ## Common Issues
 

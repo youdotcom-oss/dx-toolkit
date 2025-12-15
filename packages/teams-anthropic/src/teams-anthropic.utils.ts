@@ -1,5 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { FunctionMessage, Message, ModelMessage, SystemMessage, UserMessage } from '@microsoft/teams.ai';
+import packageJson from '../package.json' with { type: 'json' };
 
 /**
  * Type guard to check if a message is a UserMessage
@@ -321,4 +322,66 @@ export const transformFromAnthropicMessage = (response: Anthropic.Message): Mode
   }
 
   return modelMessage;
+};
+
+/**
+ * Configuration options for You.com MCP server
+ */
+export interface YouMcpServerConfigOptions {
+  /**
+   * You.com API key for authentication
+   * Falls back to YDC_API_KEY environment variable if not provided
+   */
+  apiKey?: string;
+}
+
+/**
+ * Get configuration for You.com MCP server
+ *
+ * @remarks
+ * This utility generates the MCP client configuration for connecting to
+ * You.com's hosted MCP server with proper authentication and telemetry.
+ *
+ * The API key can be provided explicitly or will fall back to the
+ * YDC_API_KEY environment variable.
+ *
+ * The User-Agent automatically includes the package version for telemetry.
+ *
+ * @param options - Configuration options
+ * @returns MCP server configuration object
+ * @throws Error if no API key is provided and YDC_API_KEY env var is not set
+ *
+ * @example
+ * ```typescript
+ * // Using environment variable
+ * const config = getYouMcpConfig();
+ *
+ * // Using explicit API key
+ * const config = getYouMcpConfig({
+ *   apiKey: 'your-api-key-here',
+ * });
+ *
+ * // Use in ChatPrompt
+ * const prompt = new ChatPrompt(
+ *   { instructions, model },
+ *   [new McpClientPlugin({ logger })]
+ * ).usePlugin('mcpClient', config);
+ * ```
+ */
+export const getYouMcpConfig = (options: YouMcpServerConfigOptions = {}) => {
+  const apiKey = options.apiKey || process.env.YDC_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('You.com API key is required. Provide it via apiKey option or YDC_API_KEY environment variable.');
+  }
+
+  return {
+    url: 'https://api.you.com/mcp',
+    params: {
+      headers: {
+        'User-Agent': `TEAMS-MCP-CLIENT/${packageJson.version} (You.com; microsoft-teams)`,
+        Authorization: `Bearer ${apiKey}`,
+      },
+    },
+  };
 };
