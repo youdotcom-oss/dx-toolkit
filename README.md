@@ -1,8 +1,18 @@
 # You.com DX Toolkit
 
-**Open-source toolkit enabling developers to integrate You.com's AI capabilities into their workflows.**
+**Open-source toolkit for AI-powered development - npm packages, plugins, and skills that work with Claude Code, Cursor, and 20+ AI coding assistants.**
 
-This workspace contains packages for building, testing, and shipping agentic workflows:
+Build with You.com's AI capabilities across your entire workflow:
+
+- **📦 NPM Packages** - Ready-to-use integrations for popular frameworks
+- **🔌 Universal Plugins** - Cross-platform plugins for AI coding assistants
+- **🎯 Claude Code Skills** - Context-aware development patterns
+
+---
+
+## NPM Packages
+
+Production-ready packages for building, testing, and shipping agentic workflows:
 
 - **[@youdotcom-oss/mcp](./packages/mcp/)** - MCP Server providing web search, AI agents, and content extraction
 - **[@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)** - Vercel AI SDK plugin for You.com web search and AI agents
@@ -53,9 +63,11 @@ Anthropic SDK integration for Microsoft Teams.ai - Use **Claude models (Opus, So
 
 **[View full documentation →](./packages/teams-anthropic/README.md)**
 
-## Claude Code Plugin Marketplace
+## Universal Plugin Marketplace
 
-This repository also serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
+**Cross-platform plugins** that work with Claude Code, Cursor, Windsurf, and other AI coding assistants. Install once, use everywhere.
+
+These plugins provide guided workflows for enterprise integrations, AI workflows, and deployment automation.
 
 ### Available Plugins
 
@@ -77,40 +89,42 @@ Integrate Microsoft Teams apps with You.com MCP server using the `@youdotcom-oss
 
 ### Installation
 
-**Claude Code users:**
+**One-command install** for any platform:
+
+```bash
+# Claude Code (adds to marketplace, installs plugin)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
+
+# Cursor (installs to .claude/plugins/, enable in Settings → Rules)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+
+# Other AI agents - Cody, Windsurf, Continue, etc. (adds to AGENTS.md)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+```
+
+**Claude Code marketplace method:**
 ```bash
 /plugin marketplace add youdotcom-oss/dx-toolkit
 /plugin install teams-mcp-integration
 /generate-teams-app
 ```
 
-**Cursor/Windsurf users:**
-```bash
-curl -o teams-mcp-integration.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-mv teams-mcp-integration.md .cursor/rules/  # or .windsurf/rules/
-```
-
-**Other AI agents (Cody, Continue, etc.):**
-```bash
-curl -o AGENTS.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-```
-
-**Manual usage:**
-```bash
-curl https://api.you.com/plugins/teams-mcp-integration/README.md
-```
-
 **[View full marketplace documentation →](./docs/MARKETPLACE.md)**
 
-### Future Plugins (Q1 2026)
+### Plugin Roadmap
 
-- **google-chat-mcp-integration** - Google Chat apps with You.com MCP
-- **eval-harness** - Evaluation harness for MCP tools
-- **local-rag-sqlite** - Local RAG with SQLite
-- **cloud-deployment** - Cloud-agnostic deployment
-- **rl-pipeline** - RL pipeline starter
+**In Development (Target: 12/16/2025)**
+- OpenAI SDK Plugin - Web search integration for OpenAI SDK
+- Claude Agent SDK Plugin - Agent orchestration patterns
 
-See [marketplace.json](./marketplace.json) for complete roadmap.
+**Coming Q1 2026**
+- Google Chat MCP Integration
+- Evaluation Harness
+- Local RAG with SQLite
+- Cloud Deployment Automation
+- RL Pipeline Starter
+
+**[View complete roadmap →](./docs/ROADMAP.md)**
 
 ## Quick Start
 
@@ -309,7 +323,6 @@ dx-toolkit/
 │       ├── templates/
 │       ├── AGENTS.md      # Plugin instructions
 │       └── README.md      # Plugin docs
-├── tests/                 # Marketplace validation tests
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 ├── docs/
@@ -333,7 +346,7 @@ For internal maintainers, see [AGENTS.md](./AGENTS.md) for comprehensive develop
 
 ```bash
 # Run all tests
-bun test
+bun run test
 
 # Test specific package
 bun run test:mcp         # MCP server only
