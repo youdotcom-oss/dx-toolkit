@@ -44,22 +44,6 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 
 ## Quick Start
 
-### For MCP Server Users
-
-If you want to use the You.com MCP Server with your AI agent (Claude, Cursor, etc.):
-
-**👉 [See the MCP Server documentation](./packages/mcp/README.md)**
-
-The MCP Server README contains:
-- Setup instructions for all MCP clients
-- Configuration examples
-- Available tools and usage
-- Troubleshooting guide
-
-### For Contributors
-
-If you want to contribute code or report issues:
-
 **Prerequisites:**
 - Bun >= 1.2.21: [Installation guide](https://bun.sh/docs/installation)
 - GitHub CLI (recommended): `brew install gh` (macOS) or [other platforms](https://github.com/cli/cli#installation)
@@ -80,8 +64,8 @@ source .env
 # Authenticate with GitHub (if using gh CLI)
 gh auth login
 
-# Run MCP server in development
-bun run dev:mcp
+# Build all packages
+bun run build
 
 # Run all tests
 bun test
@@ -90,74 +74,7 @@ bun test
 bun run check
 ```
 
-For comprehensive development guidelines including code patterns, testing, git workflow, and troubleshooting, see [AGENTS.md](./AGENTS.md).
-
-## Working with AI Agents on This Project
-
-### Using Claude Code or Other AI Assistants
-
-This project is designed to work seamlessly with AI coding agents like Claude Code. We provide specialized context files to help AI agents understand our patterns and architecture:
-
-**📋 CLAUDE.md** - Entry point that references AGENTS.md files
-
-**🛠️ AGENTS.md** - Comprehensive development guidelines including:
-  - Monorepo structure and architecture
-  - Code style patterns (arrow functions, Zod schemas, MCP-specific patterns)
-  - Testing patterns and anti-patterns
-  - Git workflow and commit conventions
-  - Troubleshooting guides
-
-**⚙️ .mcp.example.json** - MCP server configuration for AI agents
-
-#### Recommended Workflow
-
-1. **Initial context**: Reference `@AGENTS.md` or `@CLAUDE.md` in your prompt
-2. **Understand architecture**: Ask agent to read relevant sections
-3. **Make changes**: Agent follows documented patterns automatically
-4. **Quality checks**: `bun run check` ensures code quality
-5. **Testing**: `bun test` validates changes
-
-#### Example Prompts
-
-```
-"Following @AGENTS.md patterns, add a new MCP tool for X"
-"Review @packages/mcp/AGENTS.md and refactor Y"
-"Using patterns from @AGENTS.md, write tests for Z"
-```
-
-## GitHub Workflows
-
-This project uses automated workflows for code quality, releases, and deployments.
-
-### Continuous Integration
-
-**Code Quality Checks**
-- Workflow: `.github/workflows/ci.yml`
-- Trigger: Pull requests and pushes to main
-- Purpose: Validates code quality and tests for all packages
-- Runs: Biome linting, TypeScript type checking, and test suite
-
-**Code Review**
-- Internal: `.github/workflows/code-review.yml` (automatic on PR)
-- External: `.github/workflows/external-code-review.yml` (manual trigger)
-- Purpose: AI-powered code analysis and suggestions
-
-### Publishing and Deployment
-
-**Publishing Packages**
-- Workflow: `.github/workflows/publish-mcp.yml` (example for MCP package)
-- Trigger: Manual via GitHub Actions UI
-- Purpose: Update version, create GitHub release, publish to npm
-- Process:
-  1. Updates package.json version
-  2. Updates workspace dependencies
-  3. Creates GitHub release
-  4. Publishes to npm
-  5. (MCP only) Triggers remote deployment via repository_dispatch
-
-**Note**: The MCP package includes additional deployment steps to trigger remote infrastructure updates. Other packages in this monorepo have simpler publish workflows without deployment.
-
-For comprehensive workflow documentation, see [AGENTS.md](./AGENTS.md#monorepo-architecture).
+**For comprehensive development guidelines**, see [AGENTS.md](./AGENTS.md).
 
 ## Monorepo Commands
 
@@ -213,7 +130,7 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 - **[Teams Anthropic README](./packages/teams-anthropic/README.md)** - Microsoft Teams.ai integration guide
 
 ### Contributor Documentation
-- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers
+- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers and agentic IDEs
 - **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
 
 ## Directory Structure
@@ -250,65 +167,22 @@ dx-toolkit/
 
 ## Roadmap
 
-**In Development (Target: 12/16/2025)**
-- **OpenAI SDK Plugin** - Web search integration for OpenAI SDK
-- **Claude Agent SDK Plugin** - Agent orchestration patterns
+**Packages in Development** (Target: 12/16/2025)
+- **@youdotcom-oss/openai-sdk-plugin** - OpenAI SDK integration for web search and AI agents
+- **@youdotcom-oss/claude-agent-sdk** - Claude Agent SDK patterns and orchestration utilities
 
-**Coming Q1 2026**
-- Google Chat MCP Integration
-- Evaluation Harness
-- Local RAG with SQLite
-- Cloud Deployment Automation
-- RL Pipeline Starter
+**Plugins in Development** (Target: Q1 2026)
+- **google-chat-mcp-integration** - Google Chat apps with You.com MCP server
+- **eval-harness** - Evaluation harness for MCP tools (includes skills)
+- **local-rag-sqlite** - Local RAG with SQLite backend (includes skills)
+- **cloud-deployment** - Cloud-agnostic deployment automation (includes skills)
+- **rl-pipeline** - Reinforcement learning pipeline starter (includes skills)
 
 **[View complete roadmap →](./docs/ROADMAP.md)**
 
 ## Contributing
 
-Contributions are welcome! Each open source package includes its own contribution guidelines:
-
-- **MCP Server**: See [packages/mcp/README.md](./packages/mcp/README.md) and [packages/mcp/CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)
-- **AI SDK Plugin**: See [packages/ai-sdk-plugin/README.md](./packages/ai-sdk-plugin/README.md)
-- **Teams Anthropic**: See [packages/teams-anthropic/README.md](./packages/teams-anthropic/README.md)
-
-For internal maintainers, see [AGENTS.md](./AGENTS.md) for comprehensive development details.
-
-## Testing
-
-```bash
-# Run all tests
-bun run test
-
-# Test specific package
-bun run test:mcp         # MCP server only
-
-# Run tests with coverage
-bun test:coverage
-
-# Run tests in watch mode
-bun test:watch
-```
-
-Requires `YDC_API_KEY` environment variable for API tests.
-
-## Code Quality
-
-This project uses [Biome](https://biomejs.dev/) for code formatting and linting:
-
-```bash
-# Check all packages
-bun run check
-
-# Auto-fix all issues
-bun run check:write
-
-# Individual checks
-bun run check:biome       # Lint and format
-bun run check:types       # TypeScript
-bun run check:package     # package.json format
-```
-
-Git hooks automatically enforce code quality on commit.
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 
