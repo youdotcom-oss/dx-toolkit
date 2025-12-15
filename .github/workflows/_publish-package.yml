@@ -221,6 +221,12 @@ jobs:
           echo "Updated package.json version to $VERSION"
           cd ../..
 
+          # Update lock file to reflect new version
+          echo "Updating bun.lock..."
+          rm -rf bun.lock node_modules
+          bun install
+          echo "✅ Lock file updated"
+
           # Verify version sync BEFORE committing
           cd "$PACKAGE_DIR"
           PACKAGE_VERSION=$(jq -r '.version' package.json)
@@ -244,8 +250,8 @@ jobs:
           echo "✅ Git tag will be: ${PACKAGE_NAME}@v$PACKAGE_VERSION"
           cd ../..
 
-          # Commit version change
-          git add "${PACKAGE_DIR}/package.json"
+          # Commit version change and lock file
+          git add "${PACKAGE_DIR}/package.json" bun.lock
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
