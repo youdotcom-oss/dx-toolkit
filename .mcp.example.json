@@ -6,10 +6,6 @@
       "env": {
         "YDC_API_KEY": "<you.com api key>"
       }
-    },
-    "linear-server": {
-      "type": "http",
-      "url": "https://mcp.linear.app/mcp"
     }
   }
 }
