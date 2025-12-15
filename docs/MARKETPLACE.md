@@ -143,6 +143,43 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 ### Workflow
 
 <details open>
+<summary><strong>ai-sdk-integration</strong></summary>
+
+**Integrate Vercel AI SDK with You.com tools**
+
+Add You.com's search, AI agent, and content extraction capabilities to your Vercel AI SDK applications. Works with both `generateText()` and `streamText()` patterns.
+
+**What you get:**
+- 🚀 Interactive setup workflow
+- 🛠️ Three powerful tools: web search, AI agent, content extraction
+- ⚙️ Smart integration with existing files or new templates
+- 📝 Support for both generateText and streamText patterns
+- 🌐 Universal compatibility across AI coding assistants
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install ai-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --agents.md
+```
+
+**Package:** [`@youdotcom-oss/ai-sdk-plugin`](https://www.npmjs.com/package/@youdotcom-oss/ai-sdk-plugin)
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration)
+- [Package README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/ai-sdk-plugin)
+- [Vercel AI SDK](https://sdk.vercel.ai/docs)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=ai-sdk-integration)
+
+</details>
+
+<details open>
 <summary><strong>claude-agent-sdk-integration</strong></summary>
 
 **Integrate Claude Agent SDK with You.com MCP server**
