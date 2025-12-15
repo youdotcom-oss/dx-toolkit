@@ -27,6 +27,9 @@ Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in rep
 
 Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI workflows, and deployment automation.
 
+### [ai-sdk-integration](./plugins/ai-sdk-integration/)
+Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK applications - interactive setup workflow with smart integration. **[Documentation →](./plugins/ai-sdk-integration/README.md)**
+
 ### [teams-mcp-integration](./plugins/teams-mcp-integration/)
 Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
 
