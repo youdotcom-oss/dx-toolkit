@@ -27,20 +27,8 @@ Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in rep
 
 Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI workflows, and deployment automation.
 
-### [teams-mcp-integration](./plugins/teams-mcp-integration/) v1.0.0
-Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Plugin Docs →](./plugins/teams-mcp-integration/README.md)** • **[Marketplace Docs →](./docs/MARKETPLACE.md)**
-
-**Quick install:**
-```bash
-# Claude Code
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
-
-# Cursor
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
-
-# Other AI agents (Cody, Windsurf, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
-```
+### [teams-mcp-integration](./plugins/teams-mcp-integration/)
+Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
 
 ## Quick Start
 
