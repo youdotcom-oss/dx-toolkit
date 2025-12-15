@@ -442,22 +442,22 @@ jobs:
           DEPENDENTS: ${{ needs.update-version.outputs.dependents }}
         run: |
           # Create issue body with dependency update instructions
-          cat > issue_body.md << 'EOF'
+          cat > issue_body.md << EOF
 ## 📦 Dependency Update Required
 
-Successfully published **${{ env.NPM_PACKAGE_NAME }}@${{ env.VERSION }}**
+Successfully published **${NPM_PACKAGE_NAME}@${VERSION}**
 
 ### Packages and Plugins That Depend on This Package
 
-${{ env.DEPENDENTS }}
+${DEPENDENTS}
 
 ### Action Required
 
 Review the changes in this release and update dependent packages/plugins:
 
-1. **Review Changes**: Check the [release notes](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.PACKAGE_NAME }}@v${{ env.VERSION }})
+1. **Review Changes**: Check the [release notes](https://github.com/youdotcom-oss/dx-toolkit/releases/tag/${PACKAGE_NAME}@v${VERSION})
 2. **Test Compatibility**: Verify dependent packages work with the new version
-3. **Update Dependencies**: Update `package.json` files in dependent packages/plugins
+3. **Update Dependencies**: Update \`package.json\` files in dependent packages/plugins
 4. **Publish Updates**: Release new versions of affected packages
 
 ### For Prerelease Testing
@@ -479,17 +479,17 @@ Once testing is complete and ready for stable release, update to this version an
 
 EOF
           else
-            cat >> issue_body.md << 'EOF'
+            cat >> issue_body.md << EOF
 This is a **stable release**. Update dependent packages to this version:
 
-```bash
-# Example: Update ai-sdk-plugin to use mcp@${{ env.VERSION }}
+\`\`\`bash
+# Example: Update ai-sdk-plugin to use mcp@${VERSION}
 # 1. Edit packages/ai-sdk-plugin/package.json
-# 2. Change "@youdotcom-oss/mcp": "${{ env.VERSION }}"
+# 2. Change "@youdotcom-oss/mcp": "${VERSION}"
 # 3. Test: cd packages/ai-sdk-plugin && bun test
-# 4. Commit: git add . && git commit -m "chore: update mcp to ${{ env.VERSION }}"
+# 4. Commit: git add . && git commit -m "chore: update mcp to ${VERSION}"
 # 5. Publish: trigger publish-ai-sdk-plugin workflow
-```
+\`\`\`
 
 EOF
           fi
