@@ -73,12 +73,12 @@
     },
     {
       "name": "openai-agent-sdk-integration",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "description": "Integrate OpenAI Agents SDK with You.com MCP server - Hosted and Streamable HTTP support",
       "category": "workflow",
       "path": "./plugins/openai-agent-sdk-integration",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/openai-agent-sdk-integration@v0.1.0",
-      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/openai-agent-sdk-integration@v0.1.0/openai-agent-sdk-integration-v0.1.0.tar.gz",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/openai-agent-sdk-integration@v1.0.0",
+      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/openai-agent-sdk-integration@v1.0.0/openai-agent-sdk-integration-v1.0.0.tar.gz",
       "keywords": [
         "openai",
         "agent-sdk",
