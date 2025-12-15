@@ -4,58 +4,79 @@ Packages and plugins planned for the dx-toolkit monorepo.
 
 ---
 
-## In Development (Target: 12/16/2025)
+## Packages in Development (Target: 12/16/2025)
 
-### SDK Integration Plugins
+### @youdotcom-oss/openai-sdk-plugin
 
-**openai-sdk-plugin**
-- OpenAI SDK plugin for You.com web search and AI agents
-- Similar API to ai-sdk-plugin but for OpenAI's official SDK
+**Type**: NPM Package
+
+OpenAI SDK integration for You.com web search and AI agents - similar API to ai-sdk-plugin but for OpenAI's official SDK.
+
+**Features**:
 - Real-time web search integration with OpenAI models
-- Status: In Development
+- AI-powered answers with web context
+- Content extraction from web pages
+- Works with all OpenAI SDK-compatible providers
 
-**claude-agent-sdk-plugin**
-- Claude Agent SDK integration patterns and utilities
+**Status**: In Development
+
+---
+
+### @youdotcom-oss/claude-agent-sdk
+
+**Type**: NPM Package
+
+Claude Agent SDK patterns and orchestration utilities for building production-ready AI agents.
+
+**Features**:
 - Agent orchestration patterns for Claude Code
 - MCP server integration helpers
-- Status: In Development
+- Type-safe agent configuration
+- Production-ready error handling and retry logic
 
-## Planned Plugins (Q1 2026)
+**Status**: In Development
 
-### Enterprise Integration
+---
 
-**google-chat-mcp-integration**
+## Plugins in Development (Q1 2026)
+
+**google-chat-mcp-integration** (Enterprise Integration)
+- **Type**: Plugin
 - Generate Google Chat apps with You.com MCP integration
 - Similar to teams-mcp-integration but for Google Chat
 - Template-based setup workflow
 - Status: Planned Q1 2026
 
-### Workflow
-
-**eval-harness**
+**eval-harness** (Workflow)
+- **Type**: Plugin + Skills
 - Evaluation harness for MCP tools
 - Benchmark and validate MCP tool performance
 - Automated testing framework
+- Includes Claude Code skills for evaluation patterns
 - Status: Planned Q1 2026
 
-**local-rag-sqlite**
+**local-rag-sqlite** (Workflow)
+- **Type**: Plugin + Skills
 - Local RAG with SQLite backend
 - Build retrieval-augmented generation workflows
 - Embedded database for fast local development
+- Includes Claude Code skills for RAG patterns
 - Status: Planned Q1 2026
 
-**rl-pipeline**
+**rl-pipeline** (Workflow)
+- **Type**: Plugin + Skills
 - Reinforcement learning pipeline starter
 - Production-ready RL templates
 - Training and evaluation workflows
+- Includes Claude Code skills for RL patterns
 - Status: Planned Q1 2026
 
-### Deployment
-
-**cloud-deployment**
+**cloud-deployment** (Deployment)
+- **Type**: Plugin + Skills
 - Cloud-agnostic deployment automation
 - Support for GCP, Azure, and Databricks
 - Unified deployment workflows
+- Includes Claude Code skills for deployment patterns
 - Status: Planned Q1 2026
 
 ---
