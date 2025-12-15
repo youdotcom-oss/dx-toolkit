@@ -59,7 +59,7 @@ bun install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your YDC_API_KEY
+# Edit .env and add your YDC_API_KEY and ANTHROPIC_API_KEY
 source .env
 
 # Authenticate with GitHub (if using gh CLI)
