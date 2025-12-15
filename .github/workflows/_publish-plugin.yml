@@ -310,12 +310,17 @@ jobs:
           VERSION: ${{ needs.validate-and-build.outputs.version }}
           DOWNLOAD_URL: ${{ needs.create-release.outputs.download_url }}
         run: |
-          # Update plugin version and download URL in marketplace.json
+          # Construct public URL (release tag page)
+          PUBLIC_URL="https://github.com/youdotcom-oss/dx-toolkit/releases/tag/${PLUGIN_NAME}@v${VERSION}"
+
+          # Update plugin version, publicUrl, and downloadUrl in marketplace.json
           jq --arg name "$PLUGIN_NAME" \
              --arg version "$VERSION" \
-             --arg url "$DOWNLOAD_URL" \
+             --arg publicUrl "$PUBLIC_URL" \
+             --arg downloadUrl "$DOWNLOAD_URL" \
              '(.plugins[] | select(.name == $name) | .version) = $version |
-              (.plugins[] | select(.name == $name) | .downloadUrl) = $url' \
+              (.plugins[] | select(.name == $name) | .publicUrl) = $publicUrl |
+              (.plugins[] | select(.name == $name) | .downloadUrl) = $downloadUrl' \
              marketplace.json > marketplace.json.tmp
 
           mv marketplace.json.tmp marketplace.json
@@ -327,7 +332,7 @@ jobs:
             exit 1
           fi
 
-          echo "✓ Updated plugin version in marketplace.json"
+          echo "✓ Updated plugin version, publicUrl, and downloadUrl in marketplace.json"
 
           # Auto-bump marketplace version to current date (YYYY.MM.DD)
           CURRENT_MARKETPLACE_VERSION=$(jq -r '.version' marketplace.json)

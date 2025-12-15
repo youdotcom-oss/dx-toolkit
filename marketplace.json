@@ -14,11 +14,7 @@
     "url": "https://github.com/youdotcom-oss/dx-toolkit.git"
   },
   "license": "MIT",
-  "categories": [
-    "enterprise-integration",
-    "workflow",
-    "deployment"
-  ],
+  "categories": ["enterprise-integration", "workflow", "deployment"],
   "plugins": [
     {
       "name": "teams-mcp-integration",
@@ -26,16 +22,9 @@
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
       "path": "./plugins/teams-mcp-integration",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-mcp-integration@v0.1.0",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-mcp-integration@v0.1.0-next.1",
       "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-mcp-integration@v0.1.0-next.1/teams-mcp-integration-v0.1.0-next.1.tar.gz",
-      "keywords": [
-        "microsoft-teams",
-        "mcp",
-        "you.com",
-        "integration",
-        "anthropic",
-        "claude"
-      ]
+      "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
     },
     {
       "name": "ai-sdk-integration",
@@ -45,14 +34,7 @@
       "path": "./plugins/ai-sdk-integration",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/ai-sdk-integration@v0.1.0",
       "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/ai-sdk-integration@v0.1.0/ai-sdk-integration-v0.1.0.tar.gz",
-      "keywords": [
-        "vercel",
-        "ai-sdk",
-        "you.com",
-        "integration",
-        "anthropic",
-        "openai"
-      ]
+      "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"]
     }
   ]
 }
