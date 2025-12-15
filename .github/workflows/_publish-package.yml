@@ -274,9 +274,13 @@ jobs:
             fi
 
             # Check if this package depends on the published package
-            HAS_DEP=$(jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
               '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
-              "$pkg_json" && echo "true" || echo "false")
+              "$pkg_json" >/dev/null 2>&1; then
+              HAS_DEP="true"
+            else
+              HAS_DEP="false"
+            fi
 
             if [[ "$HAS_DEP" == "true" ]]; then
               PKG_NAME=$(jq -r '.name' "$pkg_json")
@@ -299,9 +303,13 @@ jobs:
             fi
 
             # Check if this plugin depends on the published package
-            HAS_DEP=$(jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
               '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
-              "$pkg_json" && echo "true" || echo "false")
+              "$pkg_json" >/dev/null 2>&1; then
+              HAS_DEP="true"
+            else
+              HAS_DEP="false"
+            fi
 
             if [[ "$HAS_DEP" == "true" ]]; then
               PLUGIN_DIR=$(dirname "$pkg_json")
