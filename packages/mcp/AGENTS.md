@@ -59,63 +59,25 @@ bun run check:write            # Auto-fix all issues
 
 This project uses [Biome](https://biomejs.dev/) for automated code formatting and linting. Most style rules are enforced automatically via git hooks.
 
-**For universal code patterns** (Arrow Functions, Numeric Separators, Bun APIs, etc.), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+> **For universal code patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
 
-## MCP-Specific Patterns
+> **For MCP-specific patterns**, see [`.claude/skills/mcp-patterns`](../../.claude/skills/mcp-patterns/SKILL.md)
 
-**Schema Design**: Always use Zod for input/output validation
-
-```ts
-export const MyToolInputSchema = z.object({
-  query: z.string().min(1).describe("Search query"),
-  limit: z.number().optional().describe("Max results"),
-});
-```
-
-**Error Handling**: Always use try/catch with typed error handling
-
-```ts
-try {
-  const response = await apiCall();
-  return formatResponse(response);
-} catch (err: unknown) {
-  const errorMessage = err instanceof Error ? err.message : String(err);
-  await logger({ level: "error", data: `API call failed: ${errorMessage}` });
-  return {
-    content: [{ type: "text", text: `Error: ${errorMessage}` }],
-    isError: true,
-  };
-}
-```
-
-**Logging**: Use `getLogger(mcp)` helper, never console.log
-
-```ts
-import { getLogger } from "../shared/get-logger.ts";
-
-const logger = getLogger(mcp);
-await logger({ level: "info", data: `Operation successful: ${result}` });
-await logger({ level: "error", data: `Operation failed: ${errorMessage}` });
-```
-
-**Response Format**: Return both `content` and `structuredContent`
-
-```ts
-return {
-  content: [{ type: "text", text: formattedText }],
-  structuredContent: responseData,
-};
-```
+The mcp-patterns skill covers:
+- Schema design with Zod (`.describe()` for documentation)
+- Error handling (try/catch, never throw from MCP tools)
+- Logging (`getLogger(mcp)` helper, never console.log)
+- Response format (both `content` and `structuredContent`)
+- Tool registration patterns with examples
+- Error reporting with mailto links
 
 ## Development Workflow
 
+> **For git workflow** (branching, commits, version format), see [`.claude/skills/git-workflow`](../../.claude/skills/git-workflow/SKILL.md)
+
 ### Git Hooks
 
-Git hooks are automatically configured after `bun install`:
-
-- **Pre-commit**: Runs Biome check and format-package on staged files
-- **Setup**: `bun run prepare` (runs automatically with install)
-- Git hooks enforce code quality standards and should never be bypassed
+Git hooks are automatically configured after `bun install` (`bun run prepare`). Pre-commit hooks run Biome check and format-package on staged files
 
 ### MCP Inspector
 
@@ -188,30 +150,8 @@ This package includes additional deployment steps after the standard npm publish
 See [root AGENTS.md](../../AGENTS.md#support) for general support resources.
 
 **MCP-Specific Resources**:
-- **API Documentation**: [docs/API.md](./docs/API.md)
+- **API Documentation**: See TSDoc comments in source code (`src/*/register-*-tool.ts` and `src/*/utils.ts`)
 - **MCP Inspector**: Run `bun run inspect` for interactive testing
-
-## MCP Server Patterns
-
-### Tool Registration
-
-Use Zod schemas for tool parameter validation. See examples:
-
-- Search tool: `src/search/register-search-tool.ts:7-86`
-- Express tool: `src/express/register-express-tool.ts:7-66`
-- Contents tool: `src/contents/register-contents-tool.ts:7-89`
-
-### Error Handling
-
-Always use try/catch with typed error handling (`err: unknown`). See tool registration files for standard pattern.
-
-### Logging
-
-Use `getLogger(mcp)` helper, never console.log. See `src/shared/get-logger.ts:8-11` for implementation.
-
-### Error Reporting
-
-Include mailto links in error logs using `generateErrorReportLink()` helper (`src/shared/generate-error-report-link.ts:6-37`). This creates one-click error reporting with full diagnostic context.
 
 ## Testing
 
@@ -232,7 +172,7 @@ bun test:coverage:watch        # Coverage with watch mode
 bun test src/search/tests/     # Specific directory
 ```
 
-**For universal test patterns** (test() vs it(), retry configuration, error handling, assertion anti-patterns), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+**For universal test patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
 
 ### MCP-Specific Testing Patterns
 
@@ -678,5 +618,3 @@ PORT=4000 bun bin/http
 ### MCP client configuration
 
 For connecting MCP clients to your self-hosted server, see the "Adding to your MCP client" section in [README.md](./README.md).
-
-For complete API reference documentation including parameters, response formats, and examples, see [API.md](./docs/API.md).

@@ -15,10 +15,7 @@ import { AnthropicModel } from '../teams-anthropic.utils.ts';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
-// Skip all tests if API key is not available
-const describeWithApiKey = ANTHROPIC_API_KEY ? describe : describe.skip;
-
-describeWithApiKey('AnthropicChatModel Integration Tests', () => {
+describe('AnthropicChatModel Integration Tests', () => {
   let model: AnthropicChatModel;
 
   beforeAll(() => {
@@ -53,7 +50,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response.role).toBe('model');
         expect(response.content).toBeDefined();
         expect(typeof response.content).toBe('string');
-        expect(response.content.toLowerCase()).toContain('hello');
+        expect(response.content?.toLowerCase()).toContain('hello');
       },
       { timeout: 30_000 },
     );
@@ -77,7 +74,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response).toBeDefined();
         expect(response.role).toBe('model');
         expect(response.content).toBeDefined();
-        expect(response.content.toLowerCase()).toContain('ahoy');
+        expect(response.content?.toLowerCase()).toContain('ahoy');
       },
       { timeout: 30_000 },
     );
@@ -111,7 +108,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response2).toBeDefined();
         expect(response2.role).toBe('model');
         expect(response2.content).toBeDefined();
-        expect(response2.content.toLowerCase()).toContain('alice');
+        expect(response2.content?.toLowerCase()).toContain('alice');
       },
       { timeout: 60_000 },
     );
@@ -144,7 +141,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
 
         // Chunks combined should equal final content
         const combinedChunks = chunks.join('');
-        expect(combinedChunks).toBe(response.content);
+        expect(combinedChunks).toBe(response.content ?? '');
 
         // Response should contain the numbers
         expect(response.content).toMatch(/1/);
@@ -192,9 +189,14 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
           {
             functions: {
               get_weather: {
+                name: 'get_weather',
                 description: 'Get the current weather for a location',
                 parameters: {
-                  location: { type: 'string', description: 'City name' },
+                  type: 'object',
+                  properties: {
+                    location: { type: 'string', description: 'City name' },
+                  },
+                  required: ['location'],
                 },
                 handler: async (args: { location: string }) => {
                   return {
@@ -232,18 +234,28 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
           {
             functions: {
               get_weather: {
+                name: 'get_weather',
                 description: 'Get the current weather for a location',
                 parameters: {
-                  location: { type: 'string', description: 'City name' },
+                  type: 'object',
+                  properties: {
+                    location: { type: 'string', description: 'City name' },
+                  },
+                  required: ['location'],
                 },
                 handler: async (args: { location: string }) => {
                   return { temperature: 25, conditions: 'Clear', location: args.location };
                 },
               },
               get_time: {
+                name: 'get_time',
                 description: 'Get the current time for a location',
                 parameters: {
-                  location: { type: 'string', description: 'City name' },
+                  type: 'object',
+                  properties: {
+                    location: { type: 'string', description: 'City name' },
+                  },
+                  required: ['location'],
                 },
                 handler: async (args: { location: string }) => {
                   return { time: '14:30', timezone: 'JST', location: args.location };
@@ -277,9 +289,14 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
           {
             functions: {
               get_weather: {
+                name: 'get_weather',
                 description: 'Get the current weather for a location',
                 parameters: {
-                  location: { type: 'string', description: 'City name' },
+                  type: 'object',
+                  properties: {
+                    location: { type: 'string', description: 'City name' },
+                  },
+                  required: ['location'],
                 },
                 handler: async () => {
                   functionCalled = true;
@@ -355,7 +372,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response).toBeDefined();
         expect(response.content).toBeDefined();
         // Response should be relatively short due to token limit
-        expect(response.content.split(' ').length).toBeLessThan(50);
+        expect(response.content?.split(' ').length).toBeLessThan(50);
       },
       { timeout: 30_000 },
     );
@@ -379,7 +396,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response).toBeDefined();
         expect(response.role).toBe('model');
         expect(response.content).toBeDefined();
-        expect(response.content.toLowerCase()).toContain('error');
+        expect(response.content?.toLowerCase()).toContain('error');
       },
       { timeout: 30_000 },
     );
@@ -403,7 +420,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response).toBeDefined();
         expect(response.role).toBe('model');
         expect(response.content).toBeDefined();
-        expect(response.content.toLowerCase()).toContain('error');
+        expect(response.content?.toLowerCase()).toContain('error');
       },
       { timeout: 15_000 },
     );
@@ -445,7 +462,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
         expect(response).toBeDefined();
         expect(response.role).toBe('model');
         expect(response.content).toBeDefined();
-        expect(response.content.toLowerCase()).toContain('hello');
+        expect(response.content?.toLowerCase()).toContain('hello');
       },
       { timeout: 30_000 },
     );
@@ -480,7 +497,7 @@ describeWithApiKey('AnthropicChatModel Integration Tests', () => {
 
         expect(response2).toBeDefined();
         expect(response2.content).toBeDefined();
-        expect(response2.content.toLowerCase()).toContain('blue');
+        expect(response2.content?.toLowerCase()).toContain('blue');
       },
       { timeout: 60_000 },
     );

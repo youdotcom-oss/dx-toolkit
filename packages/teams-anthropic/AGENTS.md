@@ -51,132 +51,28 @@ bun run build                  # Build for production
 
 This project uses [Biome](https://biomejs.dev/) for automated code formatting and linting. Most style rules are enforced automatically via git hooks.
 
-**For universal code patterns** (Arrow Functions, Numeric Separators, Bun APIs, Import Extensions, etc.), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+> **For universal code patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
+
+> **For Teams.ai and Anthropic patterns**, see [`.claude/skills/teams-ai-patterns`](../../.claude/skills/teams-ai-patterns/SKILL.md)
 
 ## Package-Specific Patterns
 
-### Teams.ai Patterns
-
-**Memory API**: Use `push()` and `values()`, NEVER `addMessage()` or `getMessages()`
-
-```ts
-// ✅ Correct
-const memory = options?.messages || new LocalMemory();
-await memory.push(input);
-const messages = await memory.values();
-
-// ❌ Wrong (these methods don't exist)
-await memory.addMessage(input);
-const messages = await memory.getMessages();
-```
-
-**FunctionMessage Structure**: ALWAYS include `function_id` property
-
-```ts
-// ✅ Correct
-const fnResult: Message = {
-  role: 'function',
-  function_id: fnCall.id || fnCall.name,
-  content: typeof result === 'string' ? result : JSON.stringify(result),
-};
-
-// ❌ Wrong (missing function_id)
-const fnResult: Message = {
-  role: 'function',
-  content: result,
-};
-```
-
-**Function Handler Access**: NEVER call function definition directly, always access handler property
-
-```ts
-// ✅ Correct
-const fnDef = options.functions[fnCall.name];
-if (fnDef && typeof fnDef === 'object' && 'handler' in fnDef) {
-  const handler = (fnDef as { handler: (args: unknown) => Promise<unknown> }).handler;
-  const result = await handler(fnCall.arguments);
-}
-
-// ❌ Wrong (no call signatures on Function type)
-const fn = options.functions[fnCall.name];
-const result = await fn(fnCall.arguments);
-```
-
-### Anthropic Patterns
-
-**Streaming API**: Use `messages.stream()` method, NEVER `messages.create()` with stream parameter
-
-```ts
-// ✅ Correct
-const stream = this._anthropic.messages.stream({
-  ...requestParams,
-  stream: true,
-});
-
-for await (const event of stream) {
-  if (event.type === 'content_block_delta') {
-    if (event.delta.type === 'text_delta') {
-      const delta = event.delta.text;
-      textParts.push(delta);
-      if (options.onChunk) {
-        await options.onChunk(delta);
-      }
-    }
-  }
-}
-
-// ❌ Wrong (type errors)
-requestParams.stream = true;
-const stream = await this._anthropic.messages.create(requestParams);
-```
-
-**System Messages**: Extract system messages separately, Anthropic requires them as separate parameter
-
-```ts
-// ✅ Correct
-const systemMessage = extractSystemMessage(conversationMessages);
-if (systemMessage) {
-  requestParams.system = systemMessage;
-}
-
-// ❌ Wrong (system messages in conversation array)
-const anthropicMessages = transformToAnthropicMessages([
-  { role: 'system', content: 'You are helpful' },
-  { role: 'user', content: 'Hello' },
-]);
-```
-
-**Content Block Type Assertions**: Always use explicit type assertions for content blocks
-
-```ts
-// ✅ Correct
-for (const block of response.content) {
-  if (block.type === 'text') {
-    const textBlock = block as Anthropic.TextBlock;
-    textParts.push(textBlock.text);
-  } else if (block.type === 'tool_use') {
-    const toolBlock = block as Anthropic.ToolUseBlock;
-    toolUses.push({ id: toolBlock.id, name: toolBlock.name, input: toolBlock.input });
-  }
-}
-
-// ❌ Wrong (missing citations property error)
-for (const block of response.content) {
-  if (block.type === 'text') {
-    textParts.push(block.text);
-  }
-}
-```
+The teams-ai-patterns skill covers:
+- **Teams.ai Memory API**: Use `push()` and `values()`, not `addMessage()` or `getMessages()`
+- **FunctionMessage structure**: Always include `function_id` property
+- **Function handler access**: Access handler property, never call directly
+- **Anthropic streaming**: Use `messages.stream()` method
+- **System messages**: Extract separately as required by Anthropic API
+- **Content block type assertions**: Use explicit type assertions
+- **MCP client integration**: `getYouMcpConfig()` utility patterns
 
 ## Development Workflow
 
+> **For git workflow** (branching, commits, version format), see [`.claude/skills/git-workflow`](../../.claude/skills/git-workflow/SKILL.md)
+
 ### Git Hooks
 
-Git hooks are automatically configured after `bun install`:
-
-- **Pre-commit**: Runs Biome check and format-package on staged files
-- **Setup**: `bun run prepare` (runs automatically with install)
-- Git hooks enforce code quality standards and should never be bypassed
+Git hooks are automatically configured after `bun install` (`bun run prepare`). Pre-commit hooks run Biome check and format-package on staged files
 
 ### Code Quality Commands
 
@@ -219,8 +115,6 @@ packages/teams-anthropic/
 │   ├── basic-chat.ts                    # Basic usage example
 │   ├── with-streaming.ts                # Streaming example
 │   └── with-functions.ts                # Function calling example
-├── docs/
-│   └── API.md                           # API reference documentation
 ├── dist/                                # Compiled output (gitignored)
 │   ├── main.js                          # Bundled entry point
 │   └── main.d.ts                        # Type definitions

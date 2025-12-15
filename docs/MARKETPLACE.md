@@ -11,11 +11,39 @@ Choose your platform to get started:
 <details>
 <summary><strong>Claude Code</strong> (Native Support)</summary>
 
-```bash
-# Add marketplace
-/plugin marketplace add youdotcom-oss/dx-toolkit
+**Option 1: Via Install Script (Recommended)**
 
-# Browse plugins
+The install script automatically configures the marketplace in `.claude/settings.json`:
+
+```bash
+# Run from your project directory
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+
+# Restart Claude Code, then use:
+/generate-teams-app
+```
+
+**Option 2: Manual Configuration**
+
+Add marketplace to `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "youdotcom-dx-toolkit": {
+      "source": {
+        "source": "github",
+        "repo": "youdotcom-oss/dx-toolkit"
+      }
+    }
+  }
+}
+```
+
+Then use Claude Code commands:
+
+```bash
+# Browse available plugins
 /plugin list
 
 # Install a plugin
@@ -25,88 +53,47 @@ Choose your platform to get started:
 /generate-teams-app
 ```
 
-</details>
-
-<details>
-<summary><strong>Agent SDK</strong> (Programmatic)</summary>
-
-**Quick Install:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
-```
-
-**Manual Install:**
-```bash
-# Download plugin archive
-curl -L https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/teams-mcp-integration-v1.0.0.tar.gz | tar -xz -C ./plugins/
-```
-
-**Usage in code:**
-```typescript
-import { query } from "@anthropic-ai/claude-agent-sdk";
-
-for await (const message of query({
-  prompt: "Hello",
-  options: {
-    plugins: [
-      { type: "local", path: "./plugins/teams-mcp-integration" }
-    ]
-  }
-})) {
-  // Plugin features available
-}
-```
+See [Configure Team Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces#configure-team-marketplaces)
 
 </details>
 
 <details>
-<summary><strong>Cursor</strong></summary>
+<summary><strong>Cursor</strong> (Imports from Claude)</summary>
 
-**Quick Install:**
+Cursor imports from Claude's skills and plugins system, so plugins install to `.claude/plugins/`:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+# Install plugin
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+
+# Then enable in Cursor
+# Settings → Rules → Import Settings → Toggle "Claude skills and plugins"
 ```
 
-Then copy AGENTS.md to Cursor rules:
-```bash
-cp .cursor/plugins/teams-mcp-integration/AGENTS.md .cursor/rules/teams-mcp-integration.md
-```
-
-Enable in: Cursor Settings → Rules → Import Settings → "Claude skills and plugins"
+Cursor determines when plugins are relevant based on context (agent-decided rules).
 
 See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 
 </details>
 
 <details>
-<summary><strong>Windsurf</strong></summary>
+<summary><strong>Other AI Agents</strong> (Universal via agents.md)</summary>
 
-**Quick Install:**
+**For Cody, Continue, Codex, Jules, and 20+ other AI agents:**
+
+The install script automatically adds the plugin reference to your project's `AGENTS.md`:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+# Install and configure
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+
+# Optional: Custom directory (default: .dx-toolkit)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md --dir .plugins
 ```
 
-Then copy AGENTS.md to Windsurf rules:
-```bash
-cp .windsurf/plugins/teams-mcp-integration/AGENTS.md .windsurf/rules/teams-mcp-integration.md
-```
+Your AI agent will automatically discover and use the plugin via `AGENTS.md`.
 
-</details>
-
-<details>
-<summary><strong>Other AI Agents</strong> (Cody, Continue, etc.)</summary>
-
-**Quick Install:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
-```
-
-**Or download directly:**
-```bash
-curl -L https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/teams-mcp-integration-v1.0.0.tar.gz | tar -xz
-```
-
-Your AI agent will automatically discover and use the instructions in `AGENTS.md`.
+Learn more: [agents.md specification](https://agents.md/)
 
 </details>
 
@@ -134,12 +121,13 @@ Get your Teams app up and running with You.com's AI-powered search in 4 quick st
 ```bash
 # Claude Code
 /plugin install teams-mcp-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
 
-# Agent SDK / Other IDEs
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
 
-# Manual Download
-curl -L https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/teams-mcp-integration-v1.0.0.tar.gz | tar -xz -C ./plugins/
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
 ```
 
 **Package:** [`@youdotcom-oss/teams-anthropic`](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic)
@@ -169,21 +157,37 @@ Cloud deployment and infrastructure automation (GCP, Azure, Databricks)
 
 ## 💡 How Plugins Work
 
-**For Claude Code users:**
+**For Claude Code users (--claude):**
 - Plugins add slash commands to your workflow
+- Install script automatically configures `.claude/settings.json` with marketplace
+- Local installation to `.claude/plugins/` for project isolation and security
 - Native integration with your IDE
-- Automatic updates and version management
+- Restart Claude Code to use installed plugins
 
-**For other AI agents:**
-- Plugins provide AGENTS.md instructions
-- Your AI assistant reads and follows the workflow
-- Same capabilities, universal compatibility
+**For Cursor users (--cursor):**
+- Cursor imports from [Claude's skills and plugins](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
+- Install to `.claude/plugins/` (same location as Claude Code)
+- Enable in: Cursor Settings → Rules → Import Settings → "Claude skills and plugins"
+- Cursor determines when plugins are relevant based on context (agent-decided rules)
+- No manual file copying required
+
+**For other AI agents (--agents.md):**
+- Install to `.dx-toolkit/plugins/` (customizable via `--dir`)
+- Script automatically adds reference to your project's `AGENTS.md`
+- AI agents discover plugins via directory scan
+- Works with Claude, Codex, Jules, Cody, Continue, VS Code, and 20+ agents
+- Universal compatibility via [agents.md specification](https://agents.md/)
 
 **All platforms:**
 - Access official You.com packages
-- Step-by-step setup guidance
+- Step-by-step setup guidance via plugin commands
 - Environment configuration help
 - Troubleshooting support
+
+**Learn more:**
+- [agents.md specification](https://agents.md/)
+- [Claude Code Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
+- [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 
 ---
 

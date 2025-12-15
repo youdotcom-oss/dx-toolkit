@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { FunctionMessage, Message, ModelMessage, UserMessage } from '@microsoft/teams.ai';
 
@@ -8,6 +8,7 @@ import {
   getAllModels,
   getModelDisplayName,
   getModelFamily,
+  getYouMcpConfig,
   isValidModel,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
@@ -94,10 +95,9 @@ describe('message-transformer', () => {
       expect(Array.isArray(content)).toBe(true);
       expect(content).toHaveLength(2);
 
-      expect(content[0]).toEqual({
-        type: 'text',
-        text: 'Let me check the weather for you.',
-      });
+      const textBlock = content[0] as Anthropic.TextBlock;
+      expect(textBlock.type).toBe('text');
+      expect(textBlock.text).toBe('Let me check the weather for you.');
 
       expect(content[1]?.type).toBe('tool_use');
       const toolUse = content[1] as Anthropic.ToolUseBlock;
@@ -110,6 +110,7 @@ describe('message-transformer', () => {
       const messages: Message[] = [
         {
           role: 'function',
+          function_id: 'get_weather',
           name: 'get_weather',
           content: 'Temperature: 72°F, Conditions: Sunny',
         } as FunctionMessage,
@@ -169,6 +170,7 @@ describe('message-transformer', () => {
         } as ModelMessage,
         {
           role: 'function',
+          function_id: 'get_weather',
           name: 'get_weather',
           content: 'Temperature: 72°F',
         } as FunctionMessage,
@@ -258,7 +260,8 @@ describe('message-transformer', () => {
           {
             type: 'text',
             text: 'Hello! How can I help you today?',
-          },
+            citations: null,
+          } as Anthropic.TextBlock,
         ],
         model: 'claude-sonnet-4-5-20250929',
         stop_reason: 'end_turn',
@@ -266,6 +269,11 @@ describe('message-transformer', () => {
         usage: {
           input_tokens: 10,
           output_tokens: 20,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+          server_tool_use: { web_search_requests: 0 },
+          service_tier: null,
         },
       };
 
@@ -285,7 +293,8 @@ describe('message-transformer', () => {
           {
             type: 'text',
             text: 'Let me check the weather for you.',
-          },
+            citations: null,
+          } as Anthropic.TextBlock,
           {
             type: 'tool_use',
             id: 'toolu_123',
@@ -299,6 +308,11 @@ describe('message-transformer', () => {
         usage: {
           input_tokens: 10,
           output_tokens: 20,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+          server_tool_use: { web_search_requests: 0 },
+          service_tier: null,
         },
       };
 
@@ -325,11 +339,13 @@ describe('message-transformer', () => {
           {
             type: 'text',
             text: 'First part. ',
-          },
+            citations: null,
+          } as Anthropic.TextBlock,
           {
             type: 'text',
             text: 'Second part.',
-          },
+            citations: null,
+          } as Anthropic.TextBlock,
         ],
         model: 'claude-sonnet-4-5-20250929',
         stop_reason: 'end_turn',
@@ -337,6 +353,11 @@ describe('message-transformer', () => {
         usage: {
           input_tokens: 10,
           output_tokens: 20,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+          server_tool_use: { web_search_requests: 0 },
+          service_tier: null,
         },
       };
 
@@ -370,6 +391,11 @@ describe('message-transformer', () => {
         usage: {
           input_tokens: 10,
           output_tokens: 20,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+          server_tool_use: { web_search_requests: 0 },
+          service_tier: null,
         },
       };
 
@@ -392,6 +418,11 @@ describe('message-transformer', () => {
         usage: {
           input_tokens: 10,
           output_tokens: 0,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
+          server_tool_use: { web_search_requests: 0 },
+          service_tier: null,
         },
       };
 
@@ -407,14 +438,14 @@ describe('message-transformer', () => {
 describe('anthropic-model.enum', () => {
   describe('AnthropicModel enum', () => {
     test('should have correct model identifiers', () => {
-      expect(AnthropicModel.CLAUDE_OPUS_4_5).toBe('claude-opus-4-5-20251101');
-      expect(AnthropicModel.CLAUDE_SONNET_4_5).toBe('claude-sonnet-4-5-20250929');
-      expect(AnthropicModel.CLAUDE_OPUS_3_5).toBe('claude-opus-3-5-20240229');
-      expect(AnthropicModel.CLAUDE_SONNET_3_5).toBe('claude-3-5-sonnet-20241022');
-      expect(AnthropicModel.CLAUDE_HAIKU_3_5).toBe('claude-3-5-haiku-20241022');
-      expect(AnthropicModel.CLAUDE_3_OPUS).toBe('claude-3-opus-20240229');
-      expect(AnthropicModel.CLAUDE_3_SONNET).toBe('claude-3-sonnet-20240229');
-      expect(AnthropicModel.CLAUDE_3_HAIKU).toBe('claude-3-haiku-20240307');
+      expect(AnthropicModel.CLAUDE_OPUS_4_5 as string).toBe('claude-opus-4-5-20251101');
+      expect(AnthropicModel.CLAUDE_SONNET_4_5 as string).toBe('claude-sonnet-4-5-20250929');
+      expect(AnthropicModel.CLAUDE_OPUS_3_5 as string).toBe('claude-opus-3-5-20240229');
+      expect(AnthropicModel.CLAUDE_SONNET_3_5 as string).toBe('claude-3-5-sonnet-20241022');
+      expect(AnthropicModel.CLAUDE_HAIKU_3_5 as string).toBe('claude-3-5-haiku-20241022');
+      expect(AnthropicModel.CLAUDE_3_OPUS as string).toBe('claude-3-opus-20240229');
+      expect(AnthropicModel.CLAUDE_3_SONNET as string).toBe('claude-3-sonnet-20240229');
+      expect(AnthropicModel.CLAUDE_3_HAIKU as string).toBe('claude-3-haiku-20240307');
     });
   });
 
@@ -576,5 +607,86 @@ describe('anthropic-model.enum', () => {
       const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5);
       expect(family).toBe('opus');
     });
+  });
+});
+
+describe('getYouMcpConfig', () => {
+  const originalEnv = process.env.YDC_API_KEY;
+
+  afterEach(() => {
+    // Restore original environment variable
+    if (originalEnv) {
+      process.env.YDC_API_KEY = originalEnv;
+    } else {
+      delete process.env.YDC_API_KEY;
+    }
+  });
+
+  test('should return valid MCP client configuration', () => {
+    const config = getYouMcpConfig({ apiKey: 'test-key-123' });
+
+    expect(config).toBeDefined();
+    expect(config.url).toBeDefined();
+    expect(config.url).toBe('https://api.you.com/mcp');
+    expect(config.params).toBeDefined();
+    expect(config.params.headers).toBeDefined();
+  });
+
+  test('should include proper authentication header', () => {
+    const testKey = 'test-key-456';
+    const config = getYouMcpConfig({ apiKey: testKey });
+
+    expect(config.params.headers.Authorization).toBe(`Bearer ${testKey}`);
+  });
+
+  test('should include User-Agent with package version', () => {
+    const config = getYouMcpConfig({ apiKey: 'test-key' });
+
+    expect(config.params.headers['User-Agent']).toBeDefined();
+    expect(config.params.headers['User-Agent']).toMatch(/^TEAMS-MCP-CLIENT\//);
+    expect(config.params.headers['User-Agent']).toContain('You.com');
+    expect(config.params.headers['User-Agent']).toContain('microsoft-teams');
+  });
+
+  test('should use custom API key when provided', () => {
+    const customKey = 'custom-api-key-789';
+    const config = getYouMcpConfig({ apiKey: customKey });
+
+    expect(config.params.headers.Authorization).toBe(`Bearer ${customKey}`);
+  });
+
+  test('should fall back to YDC_API_KEY environment variable', () => {
+    const envKey = 'env-api-key-101112';
+    process.env.YDC_API_KEY = envKey;
+
+    const config = getYouMcpConfig();
+
+    expect(config.params.headers.Authorization).toBe(`Bearer ${envKey}`);
+  });
+
+  test('should prefer explicit API key over environment variable', () => {
+    const explicitKey = 'explicit-key';
+    const envKey = 'env-key';
+    process.env.YDC_API_KEY = envKey;
+
+    const config = getYouMcpConfig({ apiKey: explicitKey });
+
+    expect(config.params.headers.Authorization).toBe(`Bearer ${explicitKey}`);
+  });
+
+  test('should throw error when no API key provided and YDC_API_KEY not set', () => {
+    delete process.env.YDC_API_KEY;
+
+    expect(() => {
+      getYouMcpConfig();
+    }).toThrow(/You.com API key is required/);
+  });
+
+  test('should throw error with helpful message', () => {
+    delete process.env.YDC_API_KEY;
+
+    expect(() => {
+      getYouMcpConfig();
+    }).toThrow(/YDC_API_KEY environment variable/);
   });
 });

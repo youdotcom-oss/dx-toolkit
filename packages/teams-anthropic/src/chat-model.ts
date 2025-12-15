@@ -35,7 +35,9 @@ const isFunctionWithDescription = (fn: unknown): fn is { description: string } =
 /**
  * Type guard to check if a function definition has a parameters property
  */
-const isFunctionWithParameters = (fn: unknown): fn is { parameters: Record<string, unknown> } =>
+const isFunctionWithParameters = (
+  fn: unknown,
+): fn is { parameters: { properties?: Record<string, unknown>; required?: string[] } } =>
   typeof fn === 'object' && fn !== null && 'parameters' in fn;
 
 /**
@@ -200,16 +202,28 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
 
       // Add tools if functions provided
       if (options?.functions) {
-        requestParams.tools = Object.entries(options.functions).map(([name, fn]) => ({
-          name,
-          description: isFunctionWithDescription(fn) ? fn.description : `Function: ${name}`,
-          input_schema: {
-            type: 'object',
-            properties: isFunctionWithParameters(fn) ? fn.parameters : {},
-            // Makes it clear that no parameters are required (all are optional)
-            required: [],
-          },
-        }));
+        requestParams.tools = Object.entries(options.functions).map(([name, fn]) => {
+          // Extract properties and required from Teams.ai parameters schema
+          let properties: Record<string, unknown> = {};
+          let required: string[] = [];
+
+          if (isFunctionWithParameters(fn)) {
+            // Teams.ai uses { type: 'object', properties: {...}, required: [...] }
+            // Extract the actual properties object
+            properties = fn.parameters.properties || {};
+            required = fn.parameters.required || [];
+          }
+
+          return {
+            name,
+            description: isFunctionWithDescription(fn) ? fn.description : `Function: ${name}`,
+            input_schema: {
+              type: 'object',
+              properties,
+              required,
+            },
+          };
+        });
       }
 
       // Check if streaming is enabled

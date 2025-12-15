@@ -68,10 +68,10 @@
   "mcpName": "io.github.youdotcom-oss/mcp",
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "zod": "^4.1.13",
+    "zod": "^4.2.0",
     "@hono/mcp": "^0.2.2",
     "@modelcontextprotocol/sdk": "^1.24.3",
-    "hono": "^4.10.8"
+    "hono": "^4.11.1"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "0.17.5"

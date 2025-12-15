@@ -47,7 +47,22 @@ jobs:
         if: steps.check_internal.outputs.is_internal == 'true'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          track_progress: true #
+          track_progress: true
+          settings: |
+            {
+              "hooks": {
+                "UserPromptSubmit": [
+                  {
+                    "hooks": [
+                      {
+                        "type": "command",
+                        "command": ".claude/hooks/UserPromptSubmit"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}

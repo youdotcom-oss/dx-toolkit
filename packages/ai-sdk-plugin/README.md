@@ -341,7 +341,6 @@ console.log(result.toolResults);
 
 ### Need more help?
 
-- **API Documentation**: [docs/API.md](./docs/API.md) - Complete API reference
 - **GitHub Issues**: [Report bugs](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - **Email Support**: support@you.com
 

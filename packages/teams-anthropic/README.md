@@ -396,7 +396,7 @@ const response = await model.send(message, {
 
 ## API Reference
 
-For detailed API documentation, see [API.md](./docs/API.md).
+API documentation is provided via TypeScript types and TSDoc comments in the source code. See the examples above and TypeScript intellisense in your IDE for complete API details.
 
 ## Templates
 
@@ -421,5 +421,4 @@ MIT
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **Documentation**: [API.md](./docs/API.md)
 - **Email**: support@you.com

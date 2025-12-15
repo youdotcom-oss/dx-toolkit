@@ -252,8 +252,7 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 
 ## Documentation
 
-- **[@youdotcom-oss/mcp API Reference](./packages/mcp/docs/API.md)** - Complete API documentation with parameters, examples, and response formats
-- **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide
+- **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide with API examples
 - **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers
 - **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
 

@@ -95,8 +95,6 @@ packages/ai-sdk-plugin/
 │   └── tests/
 │       └── integration.spec.ts      # End-to-end tool tests
 ├── examples/                        # Usage examples
-├── docs/
-│   └── API.md                       # API reference
 ├── package.json                     # Package configuration
 └── README.md                        # User documentation
 ```
@@ -230,7 +228,6 @@ Web and news search using You.com Search API.
 - `freshness` (string, optional) - Time range filter
 - `livecrawl` (string, optional) - Live-crawl sections for full content ("web", "news", "all")
 - `livecrawl_formats` (string, optional) - Format for crawled content ("html", "markdown")
-- Additional filters (see API.md)
 
 **Returns**: Web results with snippets and news articles
 
@@ -306,7 +303,7 @@ const result = await generateText({
 1. **Update schema in @youdotcom-oss/mcp** - Schemas are maintained in the MCP package
 2. **No changes needed in this package** - Tool automatically uses updated schema
 3. **Add tests** - Test new parameters in integration.spec.ts
-4. **Update API.md** - Document new parameters
+4. **Update TSDoc** - Document new parameters in source code with TSDoc comments
 
 **When adding new tools**:
 
@@ -340,7 +337,7 @@ export const youNewTool = (config: YouToolsConfig = {}) => {
 
 2. **Add integration tests**
 3. **Add example in examples/**
-4. **Update README.md and API.md**
+4. **Update README.md and add TSDoc comments in source code**
 
 ### Testing Strategy
 
@@ -392,57 +389,18 @@ bun run check:write        # Fix all auto-fixable issues
 
 ### AI SDK Tool Patterns
 
-**Tool Description**: Write descriptions for the AI model, not for humans
+> **For AI SDK tool patterns**, see [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md)
 
-```typescript
-// ✅ Clear guidance for AI model
-description: 'Search the web for current information, news, articles, and content using You.com. Returns web results with snippets and news articles. Use this when you need up-to-date information or facts from the internet.'
-
-// ❌ Too brief
-description: 'Search the web'
-
-// ❌ For humans instead of AI
-description: 'This tool allows you to search'
-```
-
-**Input Schema**: Always use schemas from `@youdotcom-oss/mcp`
-
-```typescript
-// ✅ Import from @youdotcom-oss/mcp
-import { SearchQuerySchema } from '@youdotcom-oss/mcp';
-inputSchema: SearchQuerySchema
-
-// ❌ Don't duplicate schemas
-const MySearchSchema = z.object({ query: z.string() });
-inputSchema: MySearchSchema
-```
-
-**Error Handling**: Always validate API key before calls
-
-```typescript
-// ✅ Check API key
-if (!apiKey) {
-  throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.');
-}
-
-// ❌ Let API call fail
-const response = await callApi(apiKey); // Unclear error if apiKey is ''
-```
-
-**Response Formatting**: Use formatters from `@youdotcom-oss/mcp`
-
-```typescript
-// ✅ Use provided formatters
-import { formatSearchResults } from '@youdotcom-oss/mcp';
-text: formatSearchResults(response)
-
-// ❌ Create custom formatters
-text: response.results.map(r => r.title).join('\n')
-```
+The ai-sdk-patterns skill covers:
+- Tool description best practices (write for AI models, not humans)
+- Input schema patterns (use schemas from `@youdotcom-oss/mcp`)
+- API key handling (automatic environment variable fallback)
+- Raw response returns (maximum flexibility for consumers)
+- Schema-driven smart queries
 
 ### Code Style
 
-For universal code patterns (arrow functions, numeric separators, Bun APIs, etc.), see [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+> **For universal code patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
 
 ## Troubleshooting
 
@@ -523,6 +481,6 @@ See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documen
 ## Support
 
 - **Package Issues**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **API Issues**: Check [API.md](./docs/API.md) and [You.com Platform](https://you.com/platform)
+- **API Issues**: Check [README.md](./README.md) for usage examples and [You.com Platform](https://you.com/platform) for API keys
 - **Performance Issues**: See [PERFORMANCE.md](../../docs/PERFORMANCE.md)
 - **Email**: support@you.com

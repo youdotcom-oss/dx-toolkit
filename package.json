@@ -22,10 +22,11 @@
     "lint:fix": "bun run --filter '*' lint:fix",
     "prepare": "git config core.hooksPath .hooks",
     "start:mcp": "bun --cwd packages/mcp start",
-    "test": "bun run --filter '*' test",
+    "test": "bun run test:mcp && bun run test:teams-anthropic && bun run test:ai-sdk-plugin",
     "test:ai-sdk-plugin": "bun --cwd packages/ai-sdk-plugin test",
     "test:coverage": "bun run --filter '*' test:coverage",
     "test:mcp": "bun --cwd packages/mcp test",
+    "test:teams-anthropic": "bun --cwd packages/teams-anthropic test",
     "test:watch": "bun run --filter '*' test:watch"
   },
   "lint-staged": {
@@ -47,6 +48,6 @@
     "format-package": "^7.0.0",
     "lint-staged": "^16.2.7",
     "typescript": "5.9.3",
-    "zod": "^4.1.13"
+    "zod": "^4.2.0"
   }
 }

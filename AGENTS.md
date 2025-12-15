@@ -10,6 +10,31 @@ Open-source toolkit enabling developers to integrate You.com's AI capabilities i
 
 > **For a user-focused quick start**, see the [root README.md](./README.md). This guide (AGENTS.md) is for internal maintainers and contributors who need comprehensive development details.
 
+## Skill-Based Organization
+
+This monorepo uses [Claude Code Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills) for efficient, on-demand knowledge loading:
+
+**Available Skills** (in `.claude/skills/`):
+- **code-patterns** - Universal code patterns (arrow functions, Bun APIs, test patterns, error handling, type guards)
+- **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
+- **git-workflow** - Git conventions (branching, commits, versioning, gh CLI usage)
+- **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
+- **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
+- **teams-ai-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
+- **package-creation** - Post-creation workflow (implementation, testing, publishing)
+- **performance-testing** - Performance monitoring system (measurements, thresholds, regression handling)
+
+**Benefits**:
+- **Progressive disclosure**: Skill metadata (~100 tokens) loads first, full content (<5k tokens) loads on-demand
+- **Token efficiency**: ~43% reduction in always-loaded context (~8,650 tokens moved to on-demand skills)
+- **Single source of truth**: Universal patterns in skills, package-specific patterns in package AGENTS.md
+- **Maintainability**: Update patterns once in skills, not in every package AGENTS.md
+
+Throughout this guide, you'll see references like:
+> **For universal code patterns**, see `.claude/skills/code-patterns`
+
+These indicate that detailed information is available in the referenced skill.
+
 ---
 
 ## Monorepo Structure
@@ -430,304 +455,21 @@ Packages depending on other workspace packages should use the **bundled pattern*
 
 ### Universal Code Patterns
 
-**Arrow Functions**: Always use arrow functions for declarations
+> **For universal code patterns** (arrow functions, Bun APIs, test patterns, error handling, etc.), see `.claude/skills/code-patterns`
 
-```ts
-// ✅ Preferred
-export const fetchData = async (params: Params) => { ... };
+This skill covers:
+- Arrow functions and function declarations
+- Numeric separators for readability
+- Bun APIs over Node.js APIs
+- Test patterns with `test()` vs `it()`
+- Typed error handling with `err: unknown`
+- Test retry configuration for API tests
+- Test assertion anti-patterns to avoid
+- Private class fields with `#` prefix
+- Type guards over type casting
+- When to use Zod for schema validation
 
-// ❌ Avoid
-export async function fetchData(params: Params) { ... }
-```
-
-**Numeric Separators**: Use underscores for large numbers (improves readability)
-
-```ts
-// ✅ Preferred
-const timeout = 90_000; // 90 seconds
-const maxSize = 1_000_000; // 1 million
-const largeNumber = 1_234_567_890;
-
-// ❌ Avoid
-const timeout = 90000;
-const maxSize = 1000000;
-const largeNumber = 1234567890;
-```
-
-**No Unused Exports**: All exports must be actively used
-
-```bash
-# Before adding exports, verify usage:
-grep -r "ExportName" packages/
-```
-
-**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
-
-```ts
-// ✅ Preferred - Bun native APIs
-import { $ } from 'bun';
-import { heapStats } from 'bun:jsc';
-
-// Path resolution (throws if not found - perfect for validation)
-const path = Bun.resolveSync('./file.js', import.meta.dir);
-
-// Shell commands
-await $`ls -la`;
-const output = await $`echo hello`.text();
-
-// Sleep
-await Bun.sleep(100);
-
-// Garbage collection
-Bun.gc(true);
-
-// ❌ Avoid - Node.js APIs when Bun alternative exists
-import { existsSync } from 'node:fs';
-import { exec } from 'node:child_process';
-const path = require.resolve('./file.js');
-await new Promise(resolve => setTimeout(resolve, 100));
-```
-
-**Why prefer Bun APIs?**
-- Better performance (native implementation)
-- Better TypeScript integration
-- More predictable behavior in Bun runtime
-- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
-
-**When Node.js APIs are acceptable:**
-- No Bun equivalent exists
-- Compatibility with Node.js runtime required
-- Third-party package dependency requires it
-
-**Bun Test Patterns**: Always use `test()` in Bun tests, never `it()`
-
-```ts
-// ✅ Preferred - Bun test API
-import { test, expect } from 'bun:test';
-
-test('should validate input', () => {
-  expect(true).toBe(true);
-});
-
-test('async operation', async () => {
-  const result = await fetchData();
-  expect(result).toBeDefined();
-});
-
-// ❌ Avoid - Jest/Vitest syntax
-import { it, expect } from 'bun:test';
-
-it('should validate input', () => {  // Don't use it()
-  expect(true).toBe(true);
-});
-```
-
-**Why use test() not it()?**
-- `test()` is Bun's native test API
-- Consistent with Bun documentation and examples
-- Clearer intent (explicitly testing)
-- `it()` is compatibility alias from Jest/Vitest
-
-**Error Handling**: Always use try/catch with typed error handling
-
-```ts
-// ✅ Preferred - typed error handling
-try {
-  const response = await apiCall();
-  return formatResponse(response);
-} catch (err: unknown) {
-  const errorMessage = err instanceof Error ? err.message : String(err);
-  console.error(`API call failed: ${errorMessage}`);
-  throw new Error(`Failed to process request: ${errorMessage}`);
-}
-
-// ❌ Avoid - untyped catch
-try {
-  const response = await apiCall();
-  return formatResponse(response);
-} catch (err) {  // Implicit 'any' type
-  console.error(err.message);  // Unsafe property access
-}
-
-// ❌ Avoid - catch without type checking
-catch (err: any) {
-  console.error(err.message);  // 'any' defeats type safety
-}
-```
-
-**Why typed error handling?**
-- TypeScript requires explicit typing for catch clauses
-- Prevents unsafe property access on unknown error types
-- Forces proper type narrowing (instanceof Error check)
-- Better error messages and debugging
-
-**Test Retry Configuration**: Use retry for API-dependent tests
-
-```ts
-// ✅ Preferred - API tests with retry
-test('should fetch data from API', async () => {
-  const response = await apiCall();
-  expect(response).toBeDefined();
-}, { timeout: 60_000, retry: 2 });
-
-// ❌ Avoid - no retry for flaky API tests
-test('should fetch data from API', async () => {
-  const response = await apiCall();
-  expect(response).toBeDefined();
-}, { timeout: 60_000 });  // May fail on transient network issues
-```
-
-**Why use retry?**
-- Handles transient network issues, rate limiting, intermittent failures
-- Tests pass if any of 3 attempts succeed (1 initial + 2 retries)
-- Low cost: only runs extra attempts on failure
-- Standard pattern: `{ timeout: X, retry: 2 }`
-
-**Considerations**:
-- Total test time = iterations × max_attempts × time_per_iteration
-- Use for API integration tests, not for unit tests
-- Example: 5 iterations × 3 attempts × 7s/call = 105s max
-
-**Test Assertion Anti-Patterns**: Avoid patterns that silently skip assertions
-
-```ts
-// ❌ Avoid - early returns silently exit test
-test('should validate item', () => {
-  const item = getItem();
-  if (!item) return;  // Test passes even if item is undefined!
-  expect(item.name).toBe('test');
-});
-
-// ❌ Avoid - redundant conditionals
-test('should have markdown property', () => {
-  expect(item?.markdown).toBeDefined();
-  if (item?.markdown) {  // Redundant check
-    expect(typeof item.markdown).toBe('string');
-  }
-});
-
-// ✅ Preferred - let tests fail naturally
-test('should validate item', () => {
-  const item = getItem();
-  expect(item).toBeDefined();
-  expect(item).toHaveProperty('name');
-  expect(item?.name).toBe('test');
-});
-
-test('should have markdown property', () => {
-  expect(item).toBeDefined();
-  expect(item).toHaveProperty('markdown');  // Fails clearly if undefined
-  expect(typeof item?.markdown).toBe('string');
-});
-```
-
-**Why avoid these patterns?**
-- Early returns make tests pass when they should fail
-- Redundant conditionals create false confidence
-- Tests should fail with clear error messages
-- Use optional chaining with direct assertions
-
-**Private Class Fields**: Always use `#` private fields, never `private` keyword
-
-```ts
-// ✅ Preferred - JavaScript private fields (#)
-export class AnthropicChatModel implements IChatModel {
-  #anthropic: Anthropic;
-  #model: string;
-  #requestOptions?: AnthropicRequestOptions;
-  #log: ILogger;
-
-  constructor(options: AnthropicChatModelOptions) {
-    this.#model = options.model;
-    this.#requestOptions = options.requestOptions;
-    this.#log = options.logger || new ConsoleLogger();
-    this.#anthropic = new Anthropic({ apiKey: options.apiKey });
-  }
-
-  async send(input: Message): Promise<ModelMessage> {
-    const response = await this.#anthropic.messages.create({
-      model: this.#model,
-      // ...
-    });
-  }
-}
-
-// ❌ Avoid - TypeScript private keyword
-export class AnthropicChatModel implements IChatModel {
-  private anthropic: Anthropic;
-  private model: string;
-  private requestOptions?: AnthropicRequestOptions;
-  private log: ILogger;
-
-  constructor(options: AnthropicChatModelOptions) {
-    this.model = options.model;
-    this.requestOptions = options.requestOptions;
-    this.log = options.logger || new ConsoleLogger();
-    this.anthropic = new Anthropic({ apiKey: options.apiKey });
-  }
-}
-```
-
-**Why use # private fields?**
-- True runtime privacy (not just compile-time)
-- JavaScript standard (TC39 Stage 4)
-- Prevents accidental access in JavaScript
-- More explicit intent than `private` keyword
-- Works in both TypeScript and JavaScript
-- Better encapsulation for class internals
-
-**Type Guards**: Prefer type guards over type casting for runtime type narrowing
-
-```ts
-// ✅ Preferred - Type guard functions
-const isInputModelMessage = (input: Message): input is ModelMessage =>
-  input.role === 'model' && Boolean(input?.function_calls);
-
-const isHandler = (fn: unknown): fn is {
-  (): unknown;
-  handler: (args: unknown) => Promise<unknown>;
-} => Boolean(fn && Object.hasOwn(fn, 'handler'));
-
-// Usage - type-safe without casting
-if (isInputModelMessage(input)) {
-  // TypeScript knows input is ModelMessage here
-  for (const call of input.function_calls) {
-    const func = options.functions[call.name];
-    if (isHandler(func)) {
-      // TypeScript knows func has handler property here
-      const result = await func.handler(call.arguments);
-    }
-  }
-}
-
-// ❌ Avoid - Type casting (loses type safety)
-if ((input as ModelMessage).function_calls) {
-  for (const call of (input as ModelMessage).function_calls) {
-    const func = options.functions[call.name] as { handler: Function };
-    const result = await func.handler(call.arguments);
-  }
-}
-```
-
-**Why prefer type guards over casting?**
-- Native TypeScript type narrowing
-- Explicit runtime checks with compile-time benefits
-- Clear, reusable type predicates
-- Type safety at call sites without assumptions
-- Self-documenting type requirements
-
-**When to use Zod for schema validation:**
-Type guards are for internal type narrowing. Use Zod for schema validation:
-- MCP tool input/output schemas (see `packages/mcp/src/*/schemas.ts`)
-- API request/response validation
-- Validating external input (user input, config files)
-- Need detailed error messages for validation failures
-- Sharing schemas between runtime and compile-time validation
-
-**Resources:**
-- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
-- [Bun Shell](https://bun.sh/docs/runtime/shell)
-- [Bun Test](https://bun.sh/docs/cli/test)
+The skill provides detailed examples, rationale, and best practices for each pattern
 
 ## Git Workflow
 
@@ -922,45 +664,26 @@ Read and follow the instructions in `.claude/commands/create-package.md`
 
 ### Post-Creation Workflow
 
+> **For complete post-creation workflow** (implementation, testing, publishing), see `.claude/skills/package-creation`
+
+This skill covers:
+- Implementing package logic with TSDoc comments
+- Registering package documentation in root CLAUDE.md
+- Adding performance monitoring (optional, API wrappers only)
+- Testing locally before publishing
+- Testing publish workflow with prerelease versions
+- First stable release process
+
+**Quick Reference**:
+
 After creating a package with the create-package command:
 
-**1. Implement Package Logic**
-- Edit `packages/{package-name}/src/main.ts` to export your public API
-- Create feature modules in `src/` directory
-- Add tests in `src/tests/` directory
-- Update `docs/API.md` with API documentation
-- Run `bun run check` from package directory to verify code quality
-
-**2. Register Package Documentation**
-- Add your package's AGENTS.md reference to root `CLAUDE.md`
-- This ensures Claude Code can access package development guidelines
-- Format: `@packages/{package-name}/AGENTS.md`
-
-**3. Add Performance Monitoring (Optional)**
-- Only required for packages that wrap You.com APIs directly
-- Add measurements to `scripts/performance/measure.ts`
-- See "Adding Performance Monitoring to New Packages" section below
-- Skip for utility libraries, CLI tools, or packages without API wrappers
-
-**4. Test Locally**
-```bash
-cd packages/{package-name}
-bun test                 # Run tests
-bun run check            # Check code quality
-bun run build            # Build package (if bundled pattern)
-```
-
-**5. Test Publish Workflow**
-- Test with prerelease before first stable release
-- Go to: `https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml`
-- Enter version `0.1.0` with next `1` to create `0.1.0-next.1`
-- Verify workflow succeeds and package appears on npm
-
-**6. First Stable Release**
-- Push package code to main branch
-- Trigger publish workflow with version `0.1.0` (no next value)
-- Verify package at `https://www.npmjs.com/package/{npm-package-name}`
-- Test installation: `bun add {npm-package-name}`
+1. **Implement Package Logic** - Edit `src/main.ts`, add tests, add TSDoc to exports
+2. **Register Package Documentation** - Add AGENTS.md reference to root `CLAUDE.md`
+3. **Add Performance Monitoring** (optional) - Only for API wrapper packages
+4. **Test Locally** - Run `bun test` and `bun run check`
+5. **Test Publish Workflow** - Use prerelease version (e.g., `0.1.0-next.1`)
+6. **First Stable Release** - Publish version `0.1.0` to npm
 
 ### Working on Packages
 
@@ -1010,9 +733,18 @@ For package-specific development details, see each package's AGENTS.md:
 
 ### Documentation Standards
 
-**IMPORTANT EXCEPTION**: The root `README.md` (at monorepo level) is an exception to these guidelines. It serves as a project overview and does not follow the package consumption tone. These guidelines apply to **package-level documentation only** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
+> **For complete documentation standards** (README.md tone, thin AGENTS.md philosophy, TSDoc strategy), see `.claude/skills/documentation`
 
-All packages maintain two distinct documentation files with specific tone requirements:
+This skill covers:
+- README.md user-facing tone (encouraging, accessible, second-person voice)
+- **Thin AGENTS.md philosophy** (100-200 lines, heavy skill references, package-specific only)
+- TSDoc API documentation strategy (no separate API.md files)
+- Validation checklists for both documentation types
+- Good vs bad examples showing thin vs bloated AGENTS.md
+
+**Key principle**: Package AGENTS.md files should be minimal wrappers (100-200 lines) that reference skills for universal patterns and focus only on package-specific patterns.
+
+**Quick Reference**:
 
 #### README.md - User-Facing Documentation
 
@@ -1102,112 +834,29 @@ Before publishing package documentation:
 
 ## Performance Testing & Monitoring
 
-### Centralized Performance Monitoring
+> **For complete performance testing details** (centralized monitoring, running measurements, adding to new packages), see `.claude/skills/performance-testing`
 
-This monorepo uses a centralized weekly monitoring system to track performance across all packages:
+This skill covers:
+- Centralized weekly monitoring architecture
+- Running measurements locally and in CI
+- Package thresholds and regression handling
+- Adding performance monitoring to new packages
+- When to add monitoring (only for API wrapper packages)
+
+**Quick Reference**:
 
 **Architecture**:
-- **Measurements**: `scripts/performance/measure.ts` - Runs all package measurements
-- **Detection**: `scripts/performance/detect-and-file.ts` - Detects regressions and creates GitHub issues
-- **Documentation**: `scripts/performance/update-docs.ts` - Updates docs/PERFORMANCE.md automatically
-- **Automation**: `.github/workflows/weekly-performance.yml` - Runs every Monday at 1pm UTC
+- `scripts/performance/measure.ts` - Runs all measurements
+- `scripts/performance/detect-and-file.ts` - Detects regressions, creates GitHub issues
+- `.github/workflows/weekly-performance.yml` - Runs every Monday at 1pm UTC
 
-**Key Benefits**:
-- Centralized tracking across all packages
-- Automated GitHub issue creation for regressions
-- Public transparency (GitHub issues visible to all)
-- Historical tracking (90-day artifact retention)
-- No redundant test maintenance
-
-### Running Performance Measurements
-
-**Locally**:
-```bash
-# Set API key
-export YDC_API_KEY=your-key-here
-
-# Run measurements
-bun scripts/performance/measure.ts > results.json
-
-# View results
-cat results.json
-
-# Check for regressions (requires gh CLI)
-bun scripts/performance/detect-and-file.ts results.json
-
-# Update docs
-bun scripts/performance/update-docs.ts results.json
-```
-
-**In CI**: Automatically runs every Monday via weekly-performance workflow
-
-### Package Thresholds
-
+**Current Thresholds**:
 | Package | Lag | Overhead | Memory |
 |---------|-----|----------|--------|
 | `@youdotcom-oss/mcp` | < 100ms | < 50% | < 400KB |
 | `@youdotcom-oss/ai-sdk-plugin` | < 80ms | < 35% | < 350KB |
 
-See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed methodology and results.
-
-### When Regressions Occur
-
-**Automatic**:
-1. Weekly workflow detects threshold violations
-2. GitHub issue created automatically with:
-   - Severity classification (minor/moderate/critical)
-   - Current vs threshold comparison
-   - Investigation steps
-   - Links to workflow run and documentation
-3. Issue updated if regression persists in subsequent runs
-
-**Manual Investigation**:
-```bash
-# Run measurement locally
-bun scripts/performance/measure.ts > results.json
-
-# Check specific package results
-cat results.json | grep -A 20 "@youdotcom-oss/mcp"
-
-# Profile with CPU profiler
-bun --cpu-prof scripts/performance/measure.ts
-```
-
-### Adding Performance Monitoring to New Packages
-
-When creating new packages, add measurements in `scripts/performance/measure.ts`:
-
-```typescript
-const measureNewPackage = async (): Promise<PerformanceResult> => {
-  const results = await measurePerformance({
-    iterations: 20,
-    warmup: async () => { /* ... */ },
-    raw: async () => { /* Raw API call */ },
-    wrapper: async () => { /* Your abstraction layer */ },
-  });
-
-  return {
-    package: '@youdotcom-oss/new-package',
-    timestamp: new Date().toISOString(),
-    metrics: {
-      processingLag: {
-        value: results.processingLag,
-        threshold: 80, // Set appropriate threshold
-        pass: results.processingLag < 80,
-      },
-      // ... other metrics
-    },
-    rawData: { /* ... */ },
-  };
-};
-
-// Add to main() Promise.all()
-const results = await Promise.all([
-  measureMcp(),
-  measureAiSdkPlugin(),
-  measureNewPackage(), // Add here
-]);
-```
+See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed methodology and results
 
 ## Troubleshooting
 

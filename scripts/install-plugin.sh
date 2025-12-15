@@ -1,19 +1,15 @@
 #!/usr/bin/env bash
 #
 # Install You.com DX Toolkit plugins
-# Usage: ./install-plugin.sh <plugin-name> [version]
+# Usage: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s <plugin-name> --claude|--cursor|--agents.md
 #
 # Examples:
-#   ./install-plugin.sh teams-mcp-integration
-#   ./install-plugin.sh teams-mcp-integration 1.0.0
-#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
 #
 
 set -e
-
-PLUGIN_NAME="$1"
-VERSION="${2:-latest}"
-REPO="youdotcom-oss/dx-toolkit"
 
 # Colors for output
 RED='\033[0;31m'
@@ -40,16 +36,60 @@ info() {
   echo -e "${BLUE}$1${NC}"
 }
 
+PLUGIN_NAME=""
+INSTALL_MODE=""
+VERSION="latest"
+CUSTOM_DIR=""
+REPO="youdotcom-oss/dx-toolkit"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --claude|--cursor|--agents.md)
+      INSTALL_MODE="${1#--}"
+      shift
+      ;;
+    --version)
+      VERSION="$2"
+      shift 2
+      ;;
+    --dir)
+      CUSTOM_DIR="$2"
+      shift 2
+      ;;
+    *)
+      if [ -z "$PLUGIN_NAME" ]; then
+        PLUGIN_NAME="$1"
+      else
+        error "Unknown argument: $1"
+      fi
+      shift
+      ;;
+  esac
+done
+
 # Validate inputs
-if [ -z "$PLUGIN_NAME" ]; then
-  error "Usage: $0 <plugin-name> [version]
+if [ -z "$PLUGIN_NAME" ] || [ -z "$INSTALL_MODE" ]; then
+  error "Usage: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s <plugin-name> --claude|--cursor|--agents.md
+
+Required:
+  <plugin-name>          Plugin to install (e.g., teams-mcp-integration)
+  --claude               Install for Claude Code (creates .claude/settings.json)
+  --cursor               Install for Cursor (uses Claude's plugin system)
+  --agents.md            Install for other AI agents (appends to AGENTS.md)
+
+Optional:
+  --version X.Y.Z        Install specific version (default: latest)
+  --dir PATH             Directory for --agents.md mode (default: .dx-toolkit)
 
 Examples:
-  $0 teams-mcp-integration
-  $0 teams-mcp-integration 1.0.0
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
 
 Available plugins:
   - teams-mcp-integration
+  - ai-sdk-integration
 
 See https://github.com/youdotcom-oss/dx-toolkit/blob/main/docs/MARKETPLACE.md"
 fi
@@ -78,7 +118,7 @@ Check available plugins at: https://github.com/youdotcom-oss/dx-toolkit/releases
   fi
 
   TAG="$LATEST_RELEASE"
-  VERSION="${LATEST_RELEASE#$PLUGIN_NAME@v}"
+  VERSION="${LATEST_RELEASE#"$PLUGIN_NAME"@v}"
   info "Latest version: $VERSION"
 else
   # Validate version format
@@ -95,26 +135,92 @@ DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$ARCHIVE_NAME"
 
 info "Downloading from: $DOWNLOAD_URL"
 
-# Detect environment and determine installation path
+# Determine installation path based on mode
 INSTALL_DIR=""
 
-if [ -d "./plugins" ] || [ "$FORCE_AGENT_SDK" = "true" ]; then
-  # Agent SDK environment
-  INSTALL_DIR="./plugins/$PLUGIN_NAME"
-  info "Detected Agent SDK environment"
-elif [ -d "./.cursor" ]; then
-  # Cursor IDE
-  INSTALL_DIR="./.cursor/plugins/$PLUGIN_NAME"
-  info "Detected Cursor IDE"
-elif [ -d "./.windsurf" ]; then
-  # Windsurf IDE
-  INSTALL_DIR="./.windsurf/plugins/$PLUGIN_NAME"
-  info "Detected Windsurf IDE"
-else
-  # Generic/fallback
-  INSTALL_DIR="./$PLUGIN_NAME"
-  info "Installing to current directory"
-fi
+case "$INSTALL_MODE" in
+  claude|cursor)
+    # Both Claude Code and Cursor use .claude/plugins/
+    INSTALL_DIR="./.claude/plugins/$PLUGIN_NAME"
+    mkdir -p "./.claude/plugins"
+
+    if [ "$INSTALL_MODE" = "claude" ]; then
+      info "Installing for Claude Code..."
+
+      # Configure marketplace in .claude/settings.json
+      SETTINGS_FILE="./.claude/settings.json"
+      MARKETPLACE_NAME="youdotcom-dx-toolkit"
+      MARKETPLACE_REPO="youdotcom-oss/dx-toolkit"
+
+      if [ ! -f "$SETTINGS_FILE" ]; then
+        info "Creating .claude/settings.json with marketplace configuration..."
+        cat > "$SETTINGS_FILE" << EOF
+{
+  "extraKnownMarketplaces": {
+    "$MARKETPLACE_NAME": {
+      "source": {
+        "source": "github",
+        "repo": "$MARKETPLACE_REPO"
+      }
+    }
+  }
+}
+EOF
+        success "✅ Marketplace configured in .claude/settings.json"
+      else
+        # Check if marketplace is already configured
+        if ! grep -q "$MARKETPLACE_REPO" "$SETTINGS_FILE" 2>/dev/null; then
+          info "Adding marketplace to existing .claude/settings.json..."
+
+          # Use jq if available, otherwise provide manual instructions
+          if command -v jq &> /dev/null; then
+            # Use jq for proper JSON merging
+            TEMP_FILE=$(mktemp)
+            jq --arg name "$MARKETPLACE_NAME" --arg repo "$MARKETPLACE_REPO" '
+              .extraKnownMarketplaces = (.extraKnownMarketplaces // {}) +
+              {($name): {"source": {"source": "github", "repo": $repo}}}
+            ' "$SETTINGS_FILE" > "$TEMP_FILE" && mv "$TEMP_FILE" "$SETTINGS_FILE"
+            success "✅ Marketplace added to .claude/settings.json"
+          else
+            warning "jq not found - please manually add marketplace to .claude/settings.json"
+            cat << EOF
+
+Add this to your .claude/settings.json:
+
+{
+  "extraKnownMarketplaces": {
+    "$MARKETPLACE_NAME": {
+      "source": {
+        "source": "github",
+        "repo": "$MARKETPLACE_REPO"
+      }
+    }
+  }
+}
+
+EOF
+          fi
+        else
+          info "Marketplace already configured in .claude/settings.json"
+        fi
+      fi
+    else
+      info "Installing for Cursor (uses Claude's plugin system)..."
+    fi
+    ;;
+
+  agents.md)
+    # Install to custom directory for agents.md pattern
+    BASE_DIR="${CUSTOM_DIR:-.dx-toolkit}"
+    INSTALL_DIR="./$BASE_DIR/plugins/$PLUGIN_NAME"
+    mkdir -p "./$BASE_DIR/plugins"
+    info "Installing for agents.md pattern to $INSTALL_DIR..."
+    ;;
+
+  *)
+    error "Invalid install mode: $INSTALL_MODE"
+    ;;
+esac
 
 # Create installation directory
 mkdir -p "$INSTALL_DIR"
@@ -129,73 +235,124 @@ fi
 
 success "✅ $PLUGIN_NAME v$VERSION installed successfully!"
 
+# For agents.md mode, append reference to project's AGENTS.md
+if [ "$INSTALL_MODE" = "agents.md" ]; then
+  AGENTS_FILE="./AGENTS.md"
+  PLUGIN_AGENTS_REF="$INSTALL_DIR/AGENTS.md"
+  PLUGIN_TITLE=$(echo "$PLUGIN_NAME" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+
+  BEGIN_MARKER="<!-- BEGIN: You.com DX Toolkit Plugins -->"
+  END_MARKER="<!-- END: You.com DX Toolkit Plugins -->"
+
+  if [ ! -f "$AGENTS_FILE" ]; then
+    # Create new AGENTS.md with plugin section
+    info "Creating AGENTS.md with plugin reference..."
+    cat > "$AGENTS_FILE" << EOF
+# Project Instructions for AI Agents
+
+$BEGIN_MARKER
+
+## $PLUGIN_TITLE
+
+For ${PLUGIN_NAME//-/ }, see:
+\`$PLUGIN_AGENTS_REF\`
+
+$END_MARKER
+
+EOF
+    success "✅ Created AGENTS.md with plugin reference"
+  elif ! grep -q "$BEGIN_MARKER" "$AGENTS_FILE" 2>/dev/null; then
+    # AGENTS.md exists but no plugin section - append to end
+    info "Adding plugin section to existing AGENTS.md..."
+    cat >> "$AGENTS_FILE" << EOF
+
+$BEGIN_MARKER
+
+## $PLUGIN_TITLE
+
+For ${PLUGIN_NAME//-/ }, see:
+\`$PLUGIN_AGENTS_REF\`
+
+$END_MARKER
+
+EOF
+    success "✅ Added plugin section to AGENTS.md"
+  elif ! grep -q "$PLUGIN_NAME" "$AGENTS_FILE" 2>/dev/null; then
+    # Plugin section exists but this plugin not added yet - insert before END_MARKER
+    info "Adding plugin to existing plugin section..."
+    # Use sed to insert before END_MARKER
+    PLUGIN_NAME_SPACES="${PLUGIN_NAME//-/ }"
+    sed -i.bak "/$END_MARKER/i\\
+\\
+## $PLUGIN_TITLE\\
+\\
+For $PLUGIN_NAME_SPACES, see:\\
+\\\`$PLUGIN_AGENTS_REF\\\`\\
+" "$AGENTS_FILE" && rm -f "$AGENTS_FILE.bak"
+    success "✅ Added plugin reference to AGENTS.md"
+  else
+    info "Plugin already referenced in AGENTS.md"
+  fi
+fi
+
 # Show next steps based on environment
 echo ""
 info "Next steps:"
 
-if [[ "$INSTALL_DIR" =~ ^./plugins/ ]]; then
-  # Agent SDK
-  cat << EOF
+case "$INSTALL_MODE" in
+  claude)
+    cat << EOF
 
-  Add to your Agent SDK code:
+  ✅ Claude Code Setup Complete!
 
-    import { query } from "@anthropic-ai/claude-agent-sdk";
+  Marketplace configured: .claude/settings.json
+  Plugin installed: $INSTALL_DIR
 
-    for await (const message of query({
-      prompt: "Hello",
-      options: {
-        plugins: [
-          { type: "local", path: "./plugins/$PLUGIN_NAME" }
-        ]
-      }
-    })) {
-      // Plugin features available
-    }
+  To use this plugin:
+    1. Restart Claude Code (if running)
+    2. Use the plugin's slash command (see README.md for details)
 
   Documentation: $INSTALL_DIR/README.md
 
 EOF
-elif [[ "$INSTALL_DIR" =~ ^./.cursor/ ]]; then
-  # Cursor
-  cat << EOF
+    ;;
 
-  For Cursor-specific setup:
-  1. Copy AGENTS.md to .cursor/rules/:
-     cp "$INSTALL_DIR/AGENTS.md" .cursor/rules/$PLUGIN_NAME.md
+  cursor)
+    cat << EOF
 
-  2. Enable in Cursor Settings → Rules
+  ✅ Cursor Setup Complete!
 
-  Documentation: $INSTALL_DIR/README.md
+  Plugin installed: $INSTALL_DIR
 
-EOF
-elif [[ "$INSTALL_DIR" =~ ^./.windsurf/ ]]; then
-  # Windsurf
-  cat << EOF
-
-  For Windsurf-specific setup:
-  1. Copy AGENTS.md to .windsurf/rules/:
-     cp "$INSTALL_DIR/AGENTS.md" .windsurf/rules/$PLUGIN_NAME.md
+  To use this plugin:
+    1. Open Cursor Settings → Rules → Import Settings
+    2. Enable "Claude skills and plugins"
+    3. Cursor will automatically discover and use the plugin
 
   Documentation: $INSTALL_DIR/README.md
+  See: https://cursor.com/docs/context/rules#claude-skills-and-plugins
 
 EOF
-else
-  # Generic
-  cat << EOF
+    ;;
 
-  Read the plugin documentation:
-    cat $INSTALL_DIR/README.md
+  agents.md)
+    BASE_DIR="${CUSTOM_DIR:-.dx-toolkit}"
+    cat << EOF
 
-  For Claude Code:
-    /plugin marketplace add youdotcom-oss/dx-toolkit
-    /plugin install $PLUGIN_NAME
+  ✅ Universal AI Agents Setup Complete!
 
-  For Agent SDK:
-    mkdir -p plugins
-    mv $PLUGIN_NAME plugins/
-    # Then use: plugins: [{ type: "local", path: "./plugins/$PLUGIN_NAME" }]
+  Plugin installed: $INSTALL_DIR
+  Reference added: ./AGENTS.md
+
+  Your AI agent will automatically discover and use this plugin via AGENTS.md.
+
+  Works with: Claude, Codex, Jules, Cody, Continue, VS Code, and 20+ other AI agents.
+
+  Documentation: $INSTALL_DIR/README.md
+  Learn more: https://agents.md/
 
 EOF
-fi
+    ;;
+esac
 
 success "Happy coding! 🚀"

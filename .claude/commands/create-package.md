@@ -486,12 +486,12 @@ See root [AGENTS.md → Documentation Standards](../../AGENTS.md#documentation-s
 4. File path references with line numbers
 5. Symptom/solution troubleshooting format
 
-**API.md (5 rules):**
-1. Technical and precise tone
-2. Reference-style structure
-3. Complete runnable examples
-4. Full TypeScript signatures with arrow functions
-5. Cross-references to related exports
+**TSDoc (API documentation strategy):**
+1. Add TSDoc comments above exported functions and types
+2. Include `@example` blocks with runnable code
+3. Document all parameters with `@param` tags (format: `@param name - description`)
+4. TypeScript types provide inline documentation in IDEs
+5. No separate API.md file needed
 
 ---
 
@@ -548,10 +548,6 @@ Try this simple example:
 **When to use [feature]:**
 - "Example query in natural language"
 - "Another example showing user intent"
-
-## Documentation
-
-For detailed API documentation, see [docs/API.md](./docs/API.md).
 
 ## Troubleshooting
 
@@ -699,7 +695,7 @@ See [root AGENTS.md](../../AGENTS.md#publishing) for the package publishing proc
 See [root AGENTS.md](../../AGENTS.md#support) for general support resources.
 
 **Package-Specific Resources**:
-- **API Documentation**: [docs/API.md](./docs/API.md)
+- **API Documentation**: See TSDoc comments in source code and TypeScript types
 - **Troubleshooting**: [README.md](./README.md#troubleshooting)
 
 ## Troubleshooting
@@ -923,12 +919,22 @@ packages/{package-name}/
 
 ---
 
-For development workflow, testing, publishing, and contribution guidelines, see:
+**For complete post-creation workflow**, see `.claude/skills/package-creation`
 
+This skill covers:
+- Implementing package logic with TSDoc comments
+- Registering package documentation in root CLAUDE.md
+- Adding performance monitoring (optional for API wrapper packages)
+- Testing locally and with publish workflow
+- First stable release process
+
+**For code patterns and documentation standards**, see:
+- `.claude/skills/code-patterns` - Universal patterns (arrow functions, Bun APIs, test patterns, error handling)
+- `.claude/skills/documentation` - Documentation standards (thin AGENTS.md philosophy, TSDoc API docs)
+
+**Package-specific details**:
 - **Package development**: `packages/{package-name}/AGENTS.md`
 - **Monorepo guidelines**: Root `AGENTS.md`
-- **Adding performance monitoring**: Root `AGENTS.md` → "Adding Performance Monitoring to New Packages"
-- **Publishing workflow**: Root `AGENTS.md` → "Publishing"
 
 **Quick start:**
 

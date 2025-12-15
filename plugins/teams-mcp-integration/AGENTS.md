@@ -14,7 +14,7 @@ Trigger this integration when developer mentions:
 
 **Fetch and follow the complete integration workflow:**
 
-`plugins/teams-mcp-integration/commands/generate-teams-app.md`
+`commands/generate-teams-app.md`
 
 This file contains:
 - Complete step-by-step workflow
