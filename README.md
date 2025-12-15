@@ -33,6 +33,12 @@ Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK ap
 ### [teams-anthropic-integration](./plugins/teams-anthropic-integration/)
 Generate Microsoft Teams apps with You.com Anthropic integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-anthropic-integration/README.md)**
 
+### [claude-agent-sdk-integration](./plugins/claude-agent-sdk-integration/)
+Integrate Claude Agent SDK with You.com MCP server - guided setup for Python and TypeScript with HTTP MCP configuration. **[Documentation →](./plugins/claude-agent-sdk-integration/README.md)**
+
+### [openai-agent-sdk-integration](./plugins/openai-agent-sdk-integration/)
+Integrate OpenAI Agents SDK with You.com MCP server - supports Hosted MCP and Streamable HTTP for Python and TypeScript. **[Documentation →](./plugins/openai-agent-sdk-integration/README.md)**
+
 ## Quick Start
 
 **Prerequisites:**
@@ -148,10 +154,6 @@ dx-toolkit/
 ```
 
 ## Roadmap
-
-**Packages in Development** (Target: 12/16/2025)
-- **@youdotcom-oss/openai-sdk-plugin** - OpenAI SDK integration for web search and AI agents
-- **@youdotcom-oss/claude-agent-sdk** - Claude Agent SDK patterns and orchestration utilities
 
 **Plugins in Development** (Target: Q1 2026)
 - **google-chat-mcp-integration** - Google Chat apps with You.com MCP server

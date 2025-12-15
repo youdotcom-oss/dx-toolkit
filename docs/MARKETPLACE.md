@@ -104,7 +104,7 @@ Learn more: [agents.md specification](https://agents.md/)
 ### Enterprise Integration
 
 <details open>
-<summary><strong>teams-anthropic-integration</strong> v1.0.0</summary>
+<summary><strong>teams-anthropic-integration</strong></summary>
 
 **Integrate Microsoft Teams apps with You.com MCP server**
 
@@ -137,6 +137,117 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 - [Package README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic)
 - [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=teams-anthropic-integration)
 - [You.com MCP Server](https://documentation.you.com/developer-resources/mcp-server)
+
+</details>
+
+### Workflow
+
+<details open>
+<summary><strong>ai-sdk-integration</strong></summary>
+
+**Integrate Vercel AI SDK with You.com tools**
+
+Add You.com's search, AI agent, and content extraction capabilities to your Vercel AI SDK applications. Works with both `generateText()` and `streamText()` patterns.
+
+**What you get:**
+- 🚀 Interactive setup workflow
+- 🛠️ Three powerful tools: web search, AI agent, content extraction
+- ⚙️ Smart integration with existing files or new templates
+- 📝 Support for both generateText and streamText patterns
+- 🌐 Universal compatibility across AI coding assistants
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install ai-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --agents.md
+```
+
+**Package:** [`@youdotcom-oss/ai-sdk-plugin`](https://www.npmjs.com/package/@youdotcom-oss/ai-sdk-plugin)
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration)
+- [Package README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/ai-sdk-plugin)
+- [Vercel AI SDK](https://sdk.vercel.ai/docs)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=ai-sdk-integration)
+
+</details>
+
+<details open>
+<summary><strong>claude-agent-sdk-integration</strong></summary>
+
+**Integrate Claude Agent SDK with You.com MCP server**
+
+Set up Claude Agent SDK with You.com's HTTP MCP server for web search, AI agents, and content extraction. Supports Python and TypeScript with complete working examples.
+
+**What you get:**
+- 🐍 Python async/await pattern
+- 📘 TypeScript type-safe integration
+- 🔌 HTTP MCP server configuration
+- 🔍 You.com search, AI agent, and content tools
+- ✨ Interactive setup workflow
+- 📝 Complete template examples
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install claude-agent-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --agents.md
+```
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration)
+- [Claude Agent SDK (Python)](https://platform.claude.com/docs/en/agent-sdk/python)
+- [Claude Agent SDK (TypeScript)](https://platform.claude.com/docs/en/agent-sdk/typescript)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=claude-agent-sdk-integration)
+
+</details>
+
+<details open>
+<summary><strong>openai-agent-sdk-integration</strong></summary>
+
+**Integrate OpenAI Agents SDK with You.com MCP server**
+
+Set up OpenAI Agents SDK with You.com MCP server using Hosted MCP (OpenAI-managed) or Streamable HTTP (self-managed). Supports Python and TypeScript with flexible configuration options.
+
+**What you get:**
+- 🤖 Two configuration modes: Hosted MCP and Streamable HTTP
+- 🐍 Python async/await pattern
+- 📘 TypeScript type-safe integration
+- 🔍 You.com search, AI agent, and content tools
+- ✨ Interactive setup workflow
+- 📝 Complete template examples for both modes
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install openai-agent-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --agents.md
+```
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/openai-agent-sdk-integration)
+- [OpenAI Agents SDK (Python)](https://openai.github.io/openai-agents-python/)
+- [OpenAI Agents SDK (TypeScript)](https://openai.github.io/openai-agents-js/)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=openai-agent-sdk-integration)
 
 </details>
 

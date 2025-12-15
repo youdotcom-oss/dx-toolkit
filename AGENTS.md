@@ -224,7 +224,7 @@ bun run check
 - Format: Date-based CalVer (`YYYY.MM.DD`)
 - Auto-bumped: On every plugin release
 - Indicates: Last marketplace update date
-- Example: `"version": "2024.12.14"` in marketplace.json
+- Example: `"version": "2025.12.14"` in marketplace.json
 
 **Release Flow**:
 1. Develop in `dx-toolkit/plugins/{plugin-name}/`
