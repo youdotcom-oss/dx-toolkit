@@ -9,9 +9,34 @@ Complete documentation standards for dx-toolkit packages. Use these guidelines w
 
 ---
 
-## Important Exception
+## Root README.md - Monorepo Overview
 
-**IMPORTANT**: The root `README.md` (at monorepo level) is an exception to these guidelines. It serves as a project overview and does not follow the package consumption tone. These guidelines apply to **package-level documentation only** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
+**IMPORTANT**: The root `README.md` (at monorepo level) is an exception to package-specific guidelines.
+
+**Purpose**: Project overview for multiple audiences (users + contributors)
+
+**Structure**:
+1. **Overview and Packages** (user-facing) - What's available
+2. **Quick Start for Users** - Choose a package → Follow its README
+3. **Quick Start for Contributors** - Essential setup only (5 commands max)
+4. **Essential Commands** - Basic operations, link to AGENTS.md for details
+5. **Documentation Links** - Clear separation: user docs vs contributor docs
+6. **Roadmap** - In development + future plans (link to docs/ROADMAP.md)
+7. **Advanced Topics** - Use `<details>` for contributor-heavy content
+
+**Key Principles**:
+- ✅ Progressive disclosure - Use `<details>` for advanced topics
+- ✅ Clear audience separation - Label "For Users" vs "For Contributors"
+- ✅ Link to detailed docs - Don't duplicate AGENTS.md or package READMEs
+- ✅ Keep essential commands visible - Detailed commands in AGENTS.md
+- ✅ Reflect current state - Update roadmap section for upcoming work
+- ❌ Don't duplicate workflow details - Link to AGENTS.md#monorepo-architecture
+- ❌ Don't show full directory structure - Link to AGENTS.md#monorepo-structure
+- ❌ Don't list "coming soon" in main package list - Use roadmap section
+
+**Target Length**: 300-400 lines (not 500+) with collapsed sections
+
+These guidelines apply to **package-level documentation** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
 
 ## Thin AGENTS.md Philosophy
 

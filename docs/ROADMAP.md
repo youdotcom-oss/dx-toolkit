@@ -1,8 +1,24 @@
 # You.com DX Toolkit Roadmap
 
-Future packages and plugins planned for the dx-toolkit monorepo.
+Packages and plugins planned for the dx-toolkit monorepo.
 
 ---
+
+## In Development (Target: 12/16/2025)
+
+### SDK Integration Plugins
+
+**openai-sdk-plugin**
+- OpenAI SDK plugin for You.com web search and AI agents
+- Similar API to ai-sdk-plugin but for OpenAI's official SDK
+- Real-time web search integration with OpenAI models
+- Status: In Development
+
+**claude-agent-sdk-plugin**
+- Claude Agent SDK integration patterns and utilities
+- Agent orchestration patterns for Claude Code
+- MCP server integration helpers
+- Status: In Development
 
 ## Planned Plugins (Q1 2026)
 
