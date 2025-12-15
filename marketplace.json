@@ -22,12 +22,12 @@
   "plugins": [
     {
       "name": "teams-anthropic-integration",
-      "version": "0.1.0-next.1",
+      "version": "1.0.0",
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
       "path": "./plugins/teams-anthropic-integration",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-anthropic-integration@v0.1.0-next.1",
-      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-anthropic-integration@v0.1.0-next.1/teams-anthropic-integration-v0.1.0-next.1.tar.gz",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-anthropic-integration@v1.0.0",
+      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-anthropic-integration@v1.0.0/teams-anthropic-integration-v1.0.0.tar.gz",
       "keywords": [
         "microsoft-teams",
         "mcp",
