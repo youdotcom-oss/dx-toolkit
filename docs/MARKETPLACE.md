@@ -104,7 +104,7 @@ Learn more: [agents.md specification](https://agents.md/)
 ### Enterprise Integration
 
 <details open>
-<summary><strong>teams-anthropic-integration</strong> v1.0.0</summary>
+<summary><strong>teams-anthropic-integration</strong></summary>
 
 **Integrate Microsoft Teams apps with You.com MCP server**
 
@@ -143,7 +143,7 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 ### Workflow
 
 <details open>
-<summary><strong>claude-agent-sdk-integration</strong> v0.1.0</summary>
+<summary><strong>claude-agent-sdk-integration</strong></summary>
 
 **Integrate Claude Agent SDK with You.com MCP server**
 
@@ -179,7 +179,7 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 </details>
 
 <details open>
-<summary><strong>openai-agent-sdk-integration</strong> v0.1.0</summary>
+<summary><strong>openai-agent-sdk-integration</strong></summary>
 
 **Integrate OpenAI Agents SDK with You.com MCP server**
 
