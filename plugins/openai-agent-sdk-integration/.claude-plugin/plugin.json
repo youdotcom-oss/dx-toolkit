@@ -8,5 +8,8 @@
       "description": "Set up OpenAI Agents SDK with You.com MCP server",
       "path": "commands/integrate-openai-agent.md"
     }
-  ]
+  ],
+  "author": "You.com",
+  "license": "MIT",
+  "repository": "https://github.com/youdotcom-oss/dx-toolkit"
 }

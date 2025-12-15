@@ -143,7 +143,7 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 ### Workflow
 
 <details open>
-<summary><strong>claude-agent-sdk-integration</strong> v1.0.0</summary>
+<summary><strong>claude-agent-sdk-integration</strong> v0.1.0</summary>
 
 **Integrate Claude Agent SDK with You.com MCP server**
 
@@ -179,7 +179,7 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 </details>
 
 <details open>
-<summary><strong>openai-agent-sdk-integration</strong> v1.0.0</summary>
+<summary><strong>openai-agent-sdk-integration</strong> v0.1.0</summary>
 
 **Integrate OpenAI Agents SDK with You.com MCP server**
 
