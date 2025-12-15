@@ -40,10 +40,10 @@ Claude Agent SDK patterns and orchestration utilities for building production-re
 
 ## Plugins in Development (Q1 2026)
 
-**google-chat-mcp-integration** (Enterprise Integration)
+**google-chat-anthropic-integration** (Enterprise Integration)
 - **Type**: Plugin
-- Generate Google Chat apps with You.com MCP integration
-- Similar to teams-mcp-integration but for Google Chat
+- Generate Google Chat apps with You.com Anthropic integration
+- Similar to teams-anthropic-integration but for Google Chat
 - Template-based setup workflow
 - Status: Planned Q1 2026
 

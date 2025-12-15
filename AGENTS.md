@@ -52,7 +52,7 @@ dx-toolkit/
 │       ├── AGENTS.md      # Package-specific dev guide
 │       └── package.json   # Package config
 ├── plugins/               # Claude Code plugins (NOT published to npm)
-│   └── teams-mcp-integration/
+│   └── teams-anthropic-integration/
 │       ├── .claude-plugin/
 │       ├── commands/
 │       ├── src/
@@ -141,13 +141,13 @@ plugins/{plugin-name}/
 - **Distribution**: Included in npm package, primarily for internal use
 - **Reference**: Links to root AGENTS.md for universal patterns
 
-**Plugin AGENTS.md** (e.g., `plugins/teams-mcp-integration/AGENTS.md`):
+**Plugin AGENTS.md** (e.g., `plugins/teams-anthropic-integration/AGENTS.md`):
 - **Audience**: Universal AI agents (Claude, Cursor, Windsurf, etc.) that don't support Claude Code plugins
 - **Purpose**: Lightweight file that aliases commands for cross-agent compatibility
 - **Pattern**: References command files to avoid duplication
 - **Content**: When to trigger, command file path to fetch
 - **Distribution**: Publicly hosted at `https://api.you.com/plugins/{plugin-name}/AGENTS.md`
-- **Example**: `Fetch and follow: plugins/teams-mcp-integration/commands/generate-teams-app.md`
+- **Example**: `Fetch and follow: plugins/teams-anthropic-integration/commands/generate-teams-app.md`
 
 **Why this pattern**:
 - ✅ Single source of truth - Detailed instructions in commands/
@@ -180,28 +180,28 @@ Plugin directories must follow this naming rule:
 **Rule**: Plugin directory name MUST match the plugin name in `.claude-plugin/plugin.json`
 
 **Examples**:
-- Plugin name: `teams-mcp-integration` → Directory: `plugins/teams-mcp-integration` ✅
-- Plugin name: `google-chat-mcp-integration` → Directory: `plugins/google-chat-mcp-integration` ✅
+- Plugin name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
+- Plugin name: `google-chat-anthropic-integration` → Directory: `plugins/google-chat-anthropic-integration` ✅
 
 **Validation**: Marketplace tests validate plugin names match directory names.
 
 **Current plugins**:
-- `teams-mcp-integration` in `plugins/teams-mcp-integration/`
+- `teams-anthropic-integration` in `plugins/teams-anthropic-integration/`
 
 ### Plugin Commands
 
 ```bash
 # From root - test specific plugin
-bun --cwd plugins/teams-mcp-integration test
+bun --cwd plugins/teams-anthropic-integration test
 
 # From root - check specific plugin
-bun --cwd plugins/teams-mcp-integration run check
+bun --cwd plugins/teams-anthropic-integration run check
 
 # From root - test all plugins
 bun run --filter 'plugins/*' test
 
 # From plugin directory
-cd plugins/teams-mcp-integration
+cd plugins/teams-anthropic-integration
 bun test
 bun run check
 ```
@@ -211,7 +211,7 @@ bun run check
 **Primary Distribution**: Plugins are distributed via GitHub Releases
 
 **Release Format**:
-- Tag: `{plugin-name}@v{version}` (e.g., `teams-mcp-integration@v1.0.0`)
+- Tag: `{plugin-name}@v{version}` (e.g., `teams-anthropic-integration@v1.0.0`)
 - Archive: `{plugin-name}-v{version}.tar.gz`
 - Pattern: Consistent with package releases (uses `@` separator)
 

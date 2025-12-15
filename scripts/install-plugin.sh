@@ -4,9 +4,9 @@
 # Usage: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s <plugin-name> --claude|--cursor|--agents.md
 #
 # Examples:
-#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
-#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
-#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --claude
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
+#   curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 #
 
 set -e
@@ -73,7 +73,7 @@ if [ -z "$PLUGIN_NAME" ] || [ -z "$INSTALL_MODE" ]; then
   error "Usage: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s <plugin-name> --claude|--cursor|--agents.md
 
 Required:
-  <plugin-name>          Plugin to install (e.g., teams-mcp-integration)
+  <plugin-name>          Plugin to install (e.g., teams-anthropic-integration)
   --claude               Install for Claude Code (creates .claude/settings.json)
   --cursor               Install for Cursor (uses Claude's plugin system)
   --agents.md            Install for other AI agents (appends to AGENTS.md)
@@ -83,12 +83,12 @@ Optional:
   --dir PATH             Directory for --agents.md mode (default: .dx-toolkit)
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
-  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
-  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --claude
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
+  curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 
 Available plugins:
-  - teams-mcp-integration
+  - teams-anthropic-integration
   - ai-sdk-integration
 
 See https://github.com/youdotcom-oss/dx-toolkit/blob/main/docs/MARKETPLACE.md"

@@ -1,13 +1,13 @@
 {
   "name": "ai-sdk-integration",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
   "author": {
     "name": "You.com",
     "email": "support@you.com",
     "url": "https://you.com"
   },
-  "homepage": "https://api.you.com/plugins/ai-sdk-integration/",
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration",
   "repository": "https://github.com/youdotcom-oss/dx-toolkit",
   "license": "MIT",
   "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"],

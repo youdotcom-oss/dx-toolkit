@@ -1,7 +1,7 @@
 {
   "$schema": "https://code.claude.com/schema/marketplace.json",
   "name": "youdotcom-oss/dx-toolkit",
-  "version": "2024.12.14",
+  "version": "2025.12.15",
   "description": "Claude Code Plugin Marketplace for You.com developer tools - MCP servers, AI SDK plugins, and enterprise integrations",
   "author": {
     "name": "You.com",
@@ -17,14 +17,24 @@
   "categories": ["enterprise-integration", "workflow", "deployment"],
   "plugins": [
     {
-      "name": "teams-mcp-integration",
-      "version": "1.0.0",
+      "name": "teams-anthropic-integration",
+      "version": "0.1.0-next.1",
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
-      "path": "./plugins/teams-mcp-integration",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-mcp-integration@v1.0.0",
-      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-mcp-integration@v1.0.0/teams-mcp-integration-v1.0.0.tar.gz",
+      "path": "./plugins/teams-anthropic-integration",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-anthropic-integration@v0.1.0-next.1",
+      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-anthropic-integration@v0.1.0-next.1/teams-anthropic-integration-v0.1.0-next.1.tar.gz",
       "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
+    },
+    {
+      "name": "ai-sdk-integration",
+      "version": "0.1.0",
+      "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
+      "category": "workflow",
+      "path": "./plugins/ai-sdk-integration",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/ai-sdk-integration@v0.1.0",
+      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/ai-sdk-integration@v0.1.0/ai-sdk-integration-v0.1.0.tar.gz",
+      "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"]
     }
   ]
 }

@@ -17,7 +17,7 @@ The install script automatically configures the marketplace in `.claude/settings
 
 ```bash
 # Run from your project directory
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration
 
 # Restart Claude Code, then use:
 /generate-teams-app
@@ -47,7 +47,7 @@ Then use Claude Code commands:
 /plugin list
 
 # Install a plugin
-/plugin install teams-mcp-integration
+/plugin install teams-anthropic-integration
 
 # Use it
 /generate-teams-app
@@ -64,7 +64,7 @@ Cursor imports from Claude's skills and plugins system, so plugins install to `.
 
 ```bash
 # Install plugin
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
 
 # Then enable in Cursor
 # Settings → Rules → Import Settings → Toggle "Claude skills and plugins"
@@ -85,10 +85,10 @@ The install script automatically adds the plugin reference to your project's `AG
 
 ```bash
 # Install and configure
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 
 # Optional: Custom directory (default: .dx-toolkit)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md --dir .plugins
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md --dir .plugins
 ```
 
 Your AI agent will automatically discover and use the plugin via `AGENTS.md`.
@@ -104,7 +104,7 @@ Learn more: [agents.md specification](https://agents.md/)
 ### Enterprise Integration
 
 <details open>
-<summary><strong>teams-mcp-integration</strong> v1.0.0</summary>
+<summary><strong>teams-anthropic-integration</strong> v1.0.0</summary>
 
 **Integrate Microsoft Teams apps with You.com MCP server**
 
@@ -120,22 +120,22 @@ Get your Teams app up and running with You.com's AI-powered search in 4 quick st
 **Quick Install:**
 ```bash
 # Claude Code
-/plugin install teams-mcp-integration
-# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --claude
+/plugin install teams-anthropic-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --claude
 
 # Cursor
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-mcp-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 ```
 
 **Package:** [`@youdotcom-oss/teams-anthropic`](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic)
 
 **Documentation:**
-- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-mcp-integration)
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration)
 - [Package README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic)
-- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=teams-mcp-integration)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=teams-anthropic-integration)
 - [You.com MCP Server](https://documentation.you.com/developer-resources/mcp-server)
 
 </details>
