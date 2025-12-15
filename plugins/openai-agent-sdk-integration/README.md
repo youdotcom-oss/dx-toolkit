@@ -232,7 +232,7 @@ async function main() {
     instructions: 'Use You.com tools to search for AI news.',
     tools: [
       hostedMcpTool({
-        serverLabel: 'you',
+        serverLabel: 'ydc',
         serverUrl: 'https://api.you.com/mcp',
         headers: {
           Authorization: `Bearer ${process.env.YDC_API_KEY}`,

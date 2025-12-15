@@ -77,7 +77,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
      instructions: 'Use You.com tools to answer questions.',
      tools: [
        hostedMcpTool({
-         serverLabel: 'you',
+         serverLabel: 'ydc',
          serverUrl: 'https://api.you.com/mcp',
          headers: {
            Authorization: `Bearer ${process.env.YDC_API_KEY}`,
@@ -304,7 +304,7 @@ async function main() {
       'Use You.com tools to search for and answer questions about AI news.',
     tools: [
       hostedMcpTool({
-        serverLabel: 'you',
+        serverLabel: 'ydc',
         serverUrl: 'https://api.you.com/mcp',
         headers: {
           Authorization: `Bearer ${process.env.YDC_API_KEY}`,
@@ -442,7 +442,7 @@ import { hostedMcpTool } from '@openai/agents';
 
 tools: [
   hostedMcpTool({
-    serverLabel: 'you',
+    serverLabel: 'ydc',
     serverUrl: 'https://api.you.com/mcp',
     headers: {
       Authorization: `Bearer ${process.env.YDC_API_KEY}`,
