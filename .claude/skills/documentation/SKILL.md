@@ -13,28 +13,89 @@ Complete documentation standards for dx-toolkit packages. Use these guidelines w
 
 **IMPORTANT**: The root `README.md` (at monorepo level) is an exception to package-specific guidelines.
 
-**Purpose**: Project overview for multiple audiences (users + contributors)
+**Purpose**: Clean navigation document for developers (integrators + contributors)
 
 **Structure**:
-1. **Overview and Packages** (user-facing) - What's available
-2. **Quick Start for Users** - Choose a package → Follow its README
-3. **Quick Start for Contributors** - Essential setup only (5 commands max)
-4. **Essential Commands** - Basic operations, link to AGENTS.md for details
-5. **Documentation Links** - Clear separation: user docs vs contributor docs
-6. **Roadmap** - In development + future plans (link to docs/ROADMAP.md)
-7. **Advanced Topics** - Use `<details>` for contributor-heavy content
+1. **Title and intro** - Multi-platform toolkit (Claude Code, Cursor, 20+ AI agents)
+2. **NPM Packages** - One-liner per package with Documentation link
+3. **Marketplace** - One-liner per plugin with Documentation link (match NPM Packages format)
+4. **Quick Start** - Development setup only (prerequisites + setup commands)
+5. **Monorepo Commands** - Workspace-level and package-specific commands
+6. **Documentation** - Package docs and contributor docs links
+7. **Directory Structure** - Basic structure overview
+8. **Roadmap** - Packages and plugins in development (link to docs/ROADMAP.md)
+9. **Contributing** - Link to CONTRIBUTING.md
+10. **License and Support** - Standard sections
 
 **Key Principles**:
-- ✅ Progressive disclosure - Use `<details>` for advanced topics
-- ✅ Clear audience separation - Label "For Users" vs "For Contributors"
+- ✅ Single Quick Start for development setup - No separate user/contributor sections
+- ✅ Unified format - NPM Packages and Marketplace use same one-liner pattern
 - ✅ Link to detailed docs - Don't duplicate AGENTS.md or package READMEs
-- ✅ Keep essential commands visible - Detailed commands in AGENTS.md
-- ✅ Reflect current state - Update roadmap section for upcoming work
-- ❌ Don't duplicate workflow details - Link to AGENTS.md#monorepo-architecture
-- ❌ Don't show full directory structure - Link to AGENTS.md#monorepo-structure
-- ❌ Don't list "coming soon" in main package list - Use roadmap section
+- ✅ Show both command patterns - Root shortcuts AND `bun --cwd packages/<package> <command>`
+- ✅ Complete environment setup - Both YDC_API_KEY and ANTHROPIC_API_KEY
+- ✅ Build before test - `bun run build` then `bun test` in Quick Start
+- ✅ Reflect current state - Update roadmap for upcoming work
+- ❌ Don't separate "For Users" vs "For Contributors" - Single flow
+- ❌ Don't duplicate Testing/Code Quality sections - Covered in Monorepo Commands
+- ❌ Don't include "Working with AI Agents" section - Link to AGENTS.md instead
+- ❌ Don't include "GitHub Workflows" section - Link to AGENTS.md instead
+- ❌ Don't use `<details>` for progressive disclosure - Keep simple and linear
 
-**Target Length**: 300-400 lines (not 500+) with collapsed sections
+**Quick Start Pattern**:
+```markdown
+## Quick Start
+
+**Prerequisites:**
+- Bun >= 1.2.21: [Installation guide](https://bun.sh/docs/installation)
+- GitHub CLI (recommended): `brew install gh` (macOS) or [other platforms](...)
+
+**Development setup:**
+```bash
+# Clone repository
+git clone git@github.com:youdotcom-oss/dx-toolkit.git
+cd dx-toolkit
+
+# Install dependencies
+bun install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your YDC_API_KEY and ANTHROPIC_API_KEY
+source .env
+
+# Authenticate with GitHub (if using gh CLI)
+gh auth login
+
+# Build all packages
+bun run build
+
+# Run all tests
+bun test
+
+# Run all quality checks
+bun run check
+```
+
+**For comprehensive development guidelines**, see [AGENTS.md](./AGENTS.md).
+```
+
+**Package/Plugin Listing Pattern** (One-liner with link):
+```markdown
+### [@youdotcom-oss/mcp](./packages/mcp/)
+MCP Server giving AI agents real-time web search, AI answers, and content extraction via Model Context Protocol. **[Documentation →](./packages/mcp/README.md)**
+
+### [teams-mcp-integration](./plugins/teams-mcp-integration/)
+Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
+```
+
+**Contributing Pattern** (Just link):
+```markdown
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+```
+
+**Target Length**: ~200 lines (down from 300-400 with removed sections)
 
 These guidelines apply to **package-level documentation** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
 
