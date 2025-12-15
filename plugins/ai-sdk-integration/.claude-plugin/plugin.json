@@ -1,6 +1,6 @@
 {
   "name": "ai-sdk-integration",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
   "author": {
     "name": "You.com",

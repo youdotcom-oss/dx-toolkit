@@ -1,6 +1,6 @@
 {
   "name": "teams-mcp-integration",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
   "author": {
     "name": "You.com",
