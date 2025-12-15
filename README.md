@@ -5,7 +5,8 @@
 This workspace contains packages for building, testing, and shipping agentic workflows:
 
 - **[@youdotcom-oss/mcp](./packages/mcp/)** - MCP Server providing web search, AI agents, and content extraction
-- **AI SDK Plugins** *(coming soon)* - Integrations for Vercel AI SDK, OpenAI SDK, Gemini SDK
+- **[@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)** - Vercel AI SDK plugin for You.com web search and AI agents
+- **[@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)** - Anthropic SDK integration for Microsoft Teams.ai applications
 - **Evaluation Harness** *(coming soon)* - Tools for testing and evaluating agentic workflows
 - **Claude Code Skills** *(coming soon)* - RAG, context engineering, and workflow patterns for Claude Code
 
@@ -24,9 +25,33 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 
 **[View full documentation →](./packages/mcp/README.md)**
 
-### @youdotcom-oss/ai-sdk-plugin *(coming soon)*
+### [@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)
 
-AI SDK for building custom integrations with You.com's APIs.
+Vercel AI SDK plugin that brings **You.com's web search, AI agents, and content extraction directly into your AI applications** with zero server setup.
+
+**Features:**
+- Search the web in real-time with advanced filtering
+- Generate AI answers enhanced with live web data
+- Extract any webpage in markdown or HTML format
+- Works with any AI SDK model provider (Anthropic, OpenAI, Google)
+- Full TypeScript support with Zod schema validation
+- Production-ready, built on You.com's enterprise search API
+
+**[View full documentation →](./packages/ai-sdk-plugin/README.md)**
+
+### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
+
+Anthropic SDK integration for Microsoft Teams.ai - Use **Claude models (Opus, Sonnet, Haiku) in your Teams.ai applications** with just a few lines of code.
+
+**Features:**
+- Type-safe model selection with enums
+- Streaming support with `onChunk` callback
+- Function calling with Claude's tool use
+- Multi-part messages and complex conversations
+- Full IChatModel interface - drop-in replacement for OpenAI
+- Configurable temperature, max tokens, and Anthropic parameters
+
+**[View full documentation →](./packages/teams-anthropic/README.md)**
 
 ## Claude Code Plugin Marketplace
 
@@ -252,7 +277,12 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 
 ## Documentation
 
+### Package Documentation
 - **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide with API examples
+- **[AI SDK Plugin README](./packages/ai-sdk-plugin/README.md)** - Vercel AI SDK integration guide
+- **[Teams Anthropic README](./packages/teams-anthropic/README.md)** - Microsoft Teams.ai integration guide
+
+### Contributor Documentation
 - **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers
 - **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
 
@@ -262,10 +292,12 @@ For detailed package command documentation, see [AGENTS.md](./AGENTS.md#package-
 dx-toolkit/
 ├── marketplace.json       # Plugin marketplace manifest
 ├── packages/
-│   └── mcp/               # MCP Server package
+│   ├── mcp/               # MCP Server package
+│   ├── ai-sdk-plugin/     # Vercel AI SDK plugin
+│   └── teams-anthropic/   # Teams.ai Anthropic integration
 │       ├── src/           # Source code
-│       ├── bin/           # Compiled output
-│       ├── docs/          # API documentation
+│       ├── dist/          # Compiled output
+│       ├── templates/     # Code templates
 │       ├── README.md      # User documentation
 │       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
@@ -292,7 +324,8 @@ dx-toolkit/
 Contributions are welcome! Each open source package includes its own contribution guidelines:
 
 - **MCP Server**: See [packages/mcp/README.md](./packages/mcp/README.md) and [packages/mcp/CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)
-- Future packages will include their own documentation
+- **AI SDK Plugin**: See [packages/ai-sdk-plugin/README.md](./packages/ai-sdk-plugin/README.md)
+- **Teams Anthropic**: See [packages/teams-anthropic/README.md](./packages/teams-anthropic/README.md)
 
 For internal maintainers, see [AGENTS.md](./AGENTS.md) for comprehensive development details.
 
