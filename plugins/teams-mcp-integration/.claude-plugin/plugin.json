@@ -1,6 +1,6 @@
 {
   "name": "teams-mcp-integration",
-  "version": "0.1.0",
+  "version": "0.1.0-next.1",
   "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
   "author": {
     "name": "You.com",
@@ -10,6 +10,15 @@
   "homepage": "https://api.you.com/plugins/teams-mcp-integration/",
   "repository": "https://github.com/youdotcom-oss/dx-toolkit",
   "license": "MIT",
-  "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"],
-  "commands": ["./commands/"]
+  "keywords": [
+    "microsoft-teams",
+    "mcp",
+    "you.com",
+    "integration",
+    "anthropic",
+    "claude"
+  ],
+  "commands": [
+    "./commands/"
+  ]
 }
