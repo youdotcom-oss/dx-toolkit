@@ -89,15 +89,19 @@ bun run check:write      # Auto-fix all issues across all packages
 **From Root** (run specific package commands):
 
 ```bash
-# MCP Server
+# MCP Server (using root shortcuts)
 bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
+# Or call package scripts directly:
+bun --cwd packages/mcp dev
+bun --cwd packages/mcp start
+bun --cwd packages/mcp test
+
 # All packages follow this pattern:
-# bun run dev:<package>
-# bun run start:<package>
-# bun run test:<package>
+# bun run <command>:<package>
+# bun --cwd packages/<package> <command>
 ```
 
 ## Documentation
