@@ -14,7 +14,11 @@
     "url": "https://github.com/youdotcom-oss/dx-toolkit.git"
   },
   "license": "MIT",
-  "categories": ["enterprise-integration", "workflow", "deployment"],
+  "categories": [
+    "enterprise-integration",
+    "workflow",
+    "deployment"
+  ],
   "plugins": [
     {
       "name": "teams-anthropic-integration",
@@ -24,7 +28,14 @@
       "path": "./plugins/teams-anthropic-integration",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/teams-anthropic-integration@v1.0.0",
       "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/teams-anthropic-integration@v1.0.0/teams-anthropic-integration-v1.0.0.tar.gz",
-      "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
+      "keywords": [
+        "microsoft-teams",
+        "mcp",
+        "you.com",
+        "integration",
+        "anthropic",
+        "claude"
+      ]
     },
     {
       "name": "ai-sdk-integration",
@@ -34,17 +45,31 @@
       "path": "./plugins/ai-sdk-integration",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/ai-sdk-integration@v1.0.0",
       "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/ai-sdk-integration@v1.0.0/ai-sdk-integration-v1.0.0.tar.gz",
-      "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"]
+      "keywords": [
+        "vercel",
+        "ai-sdk",
+        "you.com",
+        "integration",
+        "anthropic",
+        "openai"
+      ]
     },
     {
       "name": "claude-agent-sdk-integration",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "description": "Integrate Claude Agent SDK with You.com HTTP MCP server for Python and TypeScript",
       "category": "workflow",
       "path": "./plugins/claude-agent-sdk-integration",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/claude-agent-sdk-integration@v0.1.0",
-      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/claude-agent-sdk-integration@v0.1.0/claude-agent-sdk-integration-v0.1.0.tar.gz",
-      "keywords": ["claude", "anthropic", "agent-sdk", "mcp", "you.com", "integration"]
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/claude-agent-sdk-integration@v1.0.0",
+      "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/claude-agent-sdk-integration@v1.0.0/claude-agent-sdk-integration-v1.0.0.tar.gz",
+      "keywords": [
+        "claude",
+        "anthropic",
+        "agent-sdk",
+        "mcp",
+        "you.com",
+        "integration"
+      ]
     },
     {
       "name": "openai-agent-sdk-integration",
@@ -54,7 +79,15 @@
       "path": "./plugins/openai-agent-sdk-integration",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/openai-agent-sdk-integration@v0.1.0",
       "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/openai-agent-sdk-integration@v0.1.0/openai-agent-sdk-integration-v0.1.0.tar.gz",
-      "keywords": ["openai", "agent-sdk", "mcp", "you.com", "integration", "hosted", "streamable-http"]
+      "keywords": [
+        "openai",
+        "agent-sdk",
+        "mcp",
+        "you.com",
+        "integration",
+        "hosted",
+        "streamable-http"
+      ]
     }
   ]
 }

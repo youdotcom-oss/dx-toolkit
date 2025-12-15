@@ -1,6 +1,6 @@
 {
   "name": "claude-agent-sdk-integration",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Integrate Claude Agent SDK with You.com HTTP MCP server",
   "commands": [
     {
