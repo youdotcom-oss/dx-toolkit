@@ -1,0 +1,24 @@
+name: "Plugin: publish claude-agent-sdk-integration"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g., 1.0.0)"
+        required: true
+        type: string
+      next:
+        description: "Next prerelease number (optional, e.g., 1 for v1.0.0-next.1)"
+        required: false
+        type: string
+
+jobs:
+  publish:
+    name: Publish Plugin
+    uses: ./.github/workflows/_publish-plugin.yml
+    with:
+      plugin_name: claude-agent-sdk-integration
+      version: ${{ inputs.version }}
+      next: ${{ inputs.next }}
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

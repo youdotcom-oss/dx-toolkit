@@ -1,0 +1,12 @@
+{
+  "name": "openai-agent-sdk-integration",
+  "version": "0.1.0",
+  "description": "Integrate OpenAI Agents SDK with You.com MCP server",
+  "commands": [
+    {
+      "name": "integrate-openai-agent",
+      "description": "Set up OpenAI Agents SDK with You.com MCP server",
+      "path": "commands/integrate-openai-agent.md"
+    }
+  ]
+}

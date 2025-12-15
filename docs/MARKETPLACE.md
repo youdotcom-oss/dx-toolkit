@@ -140,6 +140,80 @@ curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scrip
 
 </details>
 
+### Workflow
+
+<details open>
+<summary><strong>claude-agent-sdk-integration</strong> v1.0.0</summary>
+
+**Integrate Claude Agent SDK with You.com MCP server**
+
+Set up Claude Agent SDK with You.com's HTTP MCP server for web search, AI agents, and content extraction. Supports Python and TypeScript with complete working examples.
+
+**What you get:**
+- 🐍 Python async/await pattern
+- 📘 TypeScript type-safe integration
+- 🔌 HTTP MCP server configuration
+- 🔍 You.com search, AI agent, and content tools
+- ✨ Interactive setup workflow
+- 📝 Complete template examples
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install claude-agent-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --agents.md
+```
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration)
+- [Claude Agent SDK (Python)](https://platform.claude.com/docs/en/agent-sdk/python)
+- [Claude Agent SDK (TypeScript)](https://platform.claude.com/docs/en/agent-sdk/typescript)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=claude-agent-sdk-integration)
+
+</details>
+
+<details open>
+<summary><strong>openai-agent-sdk-integration</strong> v1.0.0</summary>
+
+**Integrate OpenAI Agents SDK with You.com MCP server**
+
+Set up OpenAI Agents SDK with You.com MCP server using Hosted MCP (OpenAI-managed) or Streamable HTTP (self-managed). Supports Python and TypeScript with flexible configuration options.
+
+**What you get:**
+- 🤖 Two configuration modes: Hosted MCP and Streamable HTTP
+- 🐍 Python async/await pattern
+- 📘 TypeScript type-safe integration
+- 🔍 You.com search, AI agent, and content tools
+- ✨ Interactive setup workflow
+- 📝 Complete template examples for both modes
+
+**Quick Install:**
+```bash
+# Claude Code
+/plugin install openai-agent-sdk-integration
+# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --claude
+
+# Cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --cursor
+
+# Other AI Agents (Cody, Continue, etc.)
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --agents.md
+```
+
+**Documentation:**
+- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/openai-agent-sdk-integration)
+- [OpenAI Agents SDK (Python)](https://openai.github.io/openai-agents-python/)
+- [OpenAI Agents SDK (TypeScript)](https://openai.github.io/openai-agents-js/)
+- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=openai-agent-sdk-integration)
+
+</details>
+
 ---
 
 ## 🎯 Categories

@@ -1,0 +1,24 @@
+{
+  "name": "claude-agent-sdk-integration",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for integrating Claude Agent SDK with You.com HTTP MCP server",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "plugins/claude-agent-sdk-integration"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration#readme",
+  "author": "You.com",
+  "keywords": [
+    "claude",
+    "agent-sdk",
+    "mcp",
+    "you.com",
+    "claude-code-plugin"
+  ]
+}
