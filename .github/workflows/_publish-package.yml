@@ -67,7 +67,7 @@ jobs:
           # Validate npm package name format (@scope/package-name)
           if ! echo "$INPUT_NPM_PACKAGE_NAME" | grep -qE '^@[a-z0-9-]+/[a-z0-9-]+$'; then
             echo "::error::Invalid npm package name: $INPUT_NPM_PACKAGE_NAME"
-            echo "::error::Expected: @scope/package-name (lowercase, hyphens allowed)"
+            echo "::error::Expected: @scope/package-name (lowercase, numbers, hyphens allowed)"
             exit 1
           fi
 
