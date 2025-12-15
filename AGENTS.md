@@ -183,21 +183,32 @@ bun run check
 
 ### Distribution Strategy
 
-**Primary Distribution**: Plugins are publicly hosted at `https://api.you.com/plugins/`
+**Primary Distribution**: Plugins are distributed via GitHub Releases
 
-**Canonical URLs**:
-- Plugin home: `https://api.you.com/plugins/teams-mcp-integration/`
-- AGENTS.md: `https://api.you.com/plugins/teams-mcp-integration/AGENTS.md`
-- Templates: `https://api.you.com/plugins/teams-mcp-integration/templates/`
-- README: `https://api.you.com/plugins/teams-mcp-integration/README.md`
+**Release Format**:
+- Tag: `{plugin-name}@v{version}` (e.g., `teams-mcp-integration@v1.0.0`)
+- Archive: `{plugin-name}-v{version}.tar.gz`
+- Pattern: Consistent with package releases (uses `@` separator)
 
-**Source Repository**: GitHub (`youdotcom-oss/dx-toolkit`) for development and CI/CD
+**Installation URLs**:
+- Latest: `https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/{plugin-name}-v{version}.tar.gz`
+- Specific: `https://github.com/youdotcom-oss/dx-toolkit/releases/download/{plugin-name}@v{version}/{plugin-name}-v{version}.tar.gz`
+- Installer: `curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s {plugin-name}`
 
-**Deployment Flow**:
-1. Develop in `dx-toolkit/plugins/teams-mcp-integration/`
+**Marketplace Versioning**:
+- Format: Date-based CalVer (`YYYY.MM.DD`)
+- Auto-bumped: On every plugin release
+- Indicates: Last marketplace update date
+- Example: `"version": "2024.12.14"` in marketplace.json
+
+**Release Flow**:
+1. Develop in `dx-toolkit/plugins/{plugin-name}/`
 2. Test locally with Bun workspace
 3. CI validates and tests on PR
-4. On merge to main, deploy to `https://api.you.com/plugins/teams-mcp-integration/`
+4. Trigger `publish-{plugin-name}` workflow with version
+5. Workflow creates GitHub Release with archive
+6. Workflow updates marketplace.json (plugin version + marketplace date)
+7. Users install via GitHub Release URLs
 
 See [docs/MARKETPLACE.md](./docs/MARKETPLACE.md) for complete marketplace documentation.
 

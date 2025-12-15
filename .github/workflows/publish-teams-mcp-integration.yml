@@ -1,0 +1,25 @@
+name: Publish teams-mcp-integration Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g., 1.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    name: Publish Plugin
+    uses: ./.github/workflows/_publish-plugin.yml
+    with:
+      plugin_name: teams-mcp-integration
+      version: ${{ inputs.version }}
+      prerelease: ${{ inputs.prerelease }}
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

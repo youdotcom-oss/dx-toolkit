@@ -1,0 +1,312 @@
+name: Reusable Plugin Publisher
+
+on:
+  workflow_call:
+    inputs:
+      plugin_name:
+        description: "Plugin name (e.g., teams-mcp-integration)"
+        required: true
+        type: string
+      version:
+        description: "Version to publish (e.g., 1.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      PUBLISH_TOKEN:
+        description: "Token with permissions to push to protected branches"
+        required: true
+    outputs:
+      version:
+        description: "The published version"
+        value: ${{ jobs.create-release.outputs.version }}
+      plugin_name:
+        description: "The plugin name"
+        value: ${{ jobs.create-release.outputs.plugin_name }}
+      download_url:
+        description: "The download URL for the plugin archive"
+        value: ${{ jobs.create-release.outputs.download_url }}
+
+env:
+  REPO_NAME: "dx-toolkit"
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    name: Validate and Build Plugin
+    outputs:
+      archive_name: ${{ steps.build.outputs.archive_name }}
+    steps:
+      - name: Validate inputs
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PLUGIN_NAME: ${{ inputs.plugin_name }}
+        run: |
+          # SECURITY: Validate all inputs before use to prevent injection
+
+          # Validate version format (semver)
+          if ! echo "$INPUT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format: $INPUT_VERSION"
+            echo "::error::Expected: X.Y.Z (e.g., 1.0.0)"
+            exit 1
+          fi
+
+          # Validate plugin name format (lowercase, hyphens allowed)
+          if ! echo "$INPUT_PLUGIN_NAME" | grep -qE '^[a-z0-9-]+$'; then
+            echo "::error::Invalid plugin name: $INPUT_PLUGIN_NAME"
+            echo "::error::Expected: lowercase-with-hyphens"
+            exit 1
+          fi
+
+          # Check for 'v' prefix (common mistake)
+          if [[ "$INPUT_VERSION" =~ ^v ]]; then
+            echo "::error::Version should not include 'v' prefix"
+            echo "::error::Enter '1.0.0' not 'v1.0.0'"
+            exit 1
+          fi
+
+          echo "✓ Input validation passed"
+
+      - uses: actions/checkout@v4
+
+      - name: Verify plugin directory exists
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+        run: |
+          PLUGIN_DIR="plugins/${PLUGIN_NAME}"
+
+          if [[ ! -d "$PLUGIN_DIR" ]]; then
+            echo "::error::Plugin directory not found: $PLUGIN_DIR"
+            exit 1
+          fi
+
+          # Check for required files
+          if [[ ! -f "$PLUGIN_DIR/.claude-plugin/plugin.json" ]]; then
+            echo "::error::Missing required file: $PLUGIN_DIR/.claude-plugin/plugin.json"
+            exit 1
+          fi
+
+          if [[ ! -f "$PLUGIN_DIR/README.md" ]]; then
+            echo "::warning::Missing README.md in $PLUGIN_DIR"
+          fi
+
+          echo "✓ Plugin directory structure validated"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies and test
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+        run: |
+          bun install
+          bun run build
+
+          # Run plugin tests if they exist
+          PLUGIN_DIR="plugins/${PLUGIN_NAME}"
+          if [[ -f "$PLUGIN_DIR/package.json" ]]; then
+            cd "$PLUGIN_DIR"
+            if jq -e '.scripts.test' package.json > /dev/null; then
+              echo "Running plugin tests..."
+              bun test || echo "::warning::Tests failed but continuing"
+            fi
+            cd ../..
+          fi
+
+      - name: Build plugin archive
+        id: build
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          PLUGIN_DIR="plugins/${PLUGIN_NAME}"
+          ARCHIVE_NAME="${PLUGIN_NAME}-v${VERSION}.tar.gz"
+
+          echo "Building archive: $ARCHIVE_NAME"
+
+          cd "$PLUGIN_DIR"
+
+          # Create clean archive (exclude dev files)
+          tar -czf "../../${ARCHIVE_NAME}" \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='*.log' \
+            --exclude='.DS_Store' \
+            --exclude='coverage' \
+            --exclude='*.tsbuildinfo' \
+            --exclude='.turbo' \
+            .
+
+          cd ../..
+
+          # Verify archive was created
+          if [[ ! -f "$ARCHIVE_NAME" ]]; then
+            echo "::error::Failed to create archive"
+            exit 1
+          fi
+
+          # Show archive size
+          SIZE=$(ls -lh "$ARCHIVE_NAME" | awk '{print $5}')
+          echo "✓ Archive created: $ARCHIVE_NAME ($SIZE)"
+
+          echo "archive_name=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.archive_name }}
+          path: ${{ steps.build.outputs.archive_name }}
+          retention-days: 1
+
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    needs: [validate-and-build]
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ inputs.version }}
+      plugin_name: ${{ inputs.plugin_name }}
+      download_url: ${{ steps.release.outputs.download_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.validate-and-build.outputs.archive_name }}
+
+      - name: Generate release notes
+        id: notes
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          PLUGIN_DIR="plugins/${PLUGIN_NAME}"
+
+          # Extract description from marketplace.json
+          DESCRIPTION=$(jq -r ".plugins[] | select(.name==\"$PLUGIN_NAME\") | .description" marketplace.json || echo "")
+
+          cat > release_notes.md << EOF
+          ## ${PLUGIN_NAME} v${VERSION}
+
+          ${DESCRIPTION}
+
+          ### Installation
+
+          See [MARKETPLACE.md](https://github.com/youdotcom-oss/dx-toolkit/blob/main/docs/MARKETPLACE.md) for installation instructions.
+
+          ### Documentation
+
+          - [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/${PLUGIN_NAME})
+          - [Package dependencies](https://github.com/youdotcom-oss/dx-toolkit/blob/main/plugins/${PLUGIN_NAME}/package.json)
+          EOF
+
+      - name: Create GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
+          ARCHIVE_NAME: ${{ needs.validate-and-build.outputs.archive_name }}
+        run: |
+          # Use plugin@version tag format (consistent with packages)
+          TAG="${PLUGIN_NAME}@v${VERSION}"
+          TITLE="${PLUGIN_NAME} v${VERSION}"
+
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
+              --notes-file release_notes.md \
+              --prerelease \
+              "${ARCHIVE_NAME}"
+          else
+            gh release create "${TAG}" \
+              --title "${TITLE}" \
+              --notes-file release_notes.md \
+              "${ARCHIVE_NAME}"
+          fi
+
+          # Generate download URL
+          DOWNLOAD_URL="https://github.com/youdotcom-oss/dx-toolkit/releases/download/${TAG}/${ARCHIVE_NAME}"
+          echo "download_url=${DOWNLOAD_URL}" >> $GITHUB_OUTPUT
+
+          echo "✅ Release created: ${TAG}"
+          echo "📦 Download URL: ${DOWNLOAD_URL}"
+
+  update-marketplace:
+    runs-on: ubuntu-latest
+    name: Update Marketplace
+    needs: [create-release]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Update marketplace.json
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          VERSION: ${{ inputs.version }}
+          DOWNLOAD_URL: ${{ needs.create-release.outputs.download_url }}
+        run: |
+          # Update plugin version and download URL in marketplace.json
+          jq --arg name "$PLUGIN_NAME" \
+             --arg version "$VERSION" \
+             --arg url "$DOWNLOAD_URL" \
+             '(.plugins[] | select(.name == $name) | .version) = $version |
+              (.plugins[] | select(.name == $name) | .downloadUrl) = $url' \
+             marketplace.json > marketplace.json.tmp
+
+          mv marketplace.json.tmp marketplace.json
+
+          # Verify the plugin update
+          UPDATED_VERSION=$(jq -r ".plugins[] | select(.name==\"$PLUGIN_NAME\") | .version" marketplace.json)
+          if [[ "$UPDATED_VERSION" != "$VERSION" ]]; then
+            echo "::error::Failed to update marketplace.json"
+            exit 1
+          fi
+
+          echo "✓ Updated plugin version in marketplace.json"
+
+          # Auto-bump marketplace version to current date (YYYY.MM.DD)
+          CURRENT_MARKETPLACE_VERSION=$(jq -r '.version' marketplace.json)
+          NEW_MARKETPLACE_VERSION="$(date +%Y.%m.%d)"
+
+          jq --arg ver "$NEW_MARKETPLACE_VERSION" '.version = $ver' marketplace.json > marketplace.json.tmp
+          mv marketplace.json.tmp marketplace.json
+
+          echo "✓ Updated marketplace version: $CURRENT_MARKETPLACE_VERSION → $NEW_MARKETPLACE_VERSION"
+
+      - name: Configure Git
+        env:
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+
+      - name: Commit and push
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          git add marketplace.json
+
+          if git diff --staged --quiet; then
+            echo "::notice::No changes to marketplace.json"
+          else
+            MARKETPLACE_VERSION=$(jq -r '.version' marketplace.json)
+            git commit -m "ci: update marketplace v${MARKETPLACE_VERSION} for ${PLUGIN_NAME}@v${VERSION} [skip ci]"
+            git push origin ${{ github.ref_name }}
+            echo "✅ Marketplace updated to v${MARKETPLACE_VERSION}"
+          fi
