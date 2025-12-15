@@ -14,54 +14,14 @@ Build with You.com's AI capabilities across your entire workflow:
 
 Production-ready packages for building, testing, and shipping agentic workflows:
 
-- **[@youdotcom-oss/mcp](./packages/mcp/)** - MCP Server providing web search, AI agents, and content extraction
-- **[@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)** - Vercel AI SDK plugin for You.com web search and AI agents
-- **[@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)** - Anthropic SDK integration for Microsoft Teams.ai applications
-- **Evaluation Harness** *(coming soon)* - Tools for testing and evaluating agentic workflows
-- **Claude Code Skills** *(coming soon)* - RAG, context engineering, and workflow patterns for Claude Code
-
-## Packages
-
 ### [@youdotcom-oss/mcp](./packages/mcp/)
-
-The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/).
-
-**Features:**
-- Web and news search using You.com's Search API
-- AI-powered Express Agent for fast responses
-- Content extraction from web pages (markdown/HTML)
-- Multiple transport protocols (STDIO and HTTP)
-- Full TypeScript support with Zod schemas
-
-**[View full documentation →](./packages/mcp/README.md)**
+MCP Server giving AI agents real-time web search, AI answers, and content extraction via Model Context Protocol. **[Documentation →](./packages/mcp/README.md)**
 
 ### [@youdotcom-oss/ai-sdk-plugin](./packages/ai-sdk-plugin/)
-
-Vercel AI SDK plugin that brings **You.com's web search, AI agents, and content extraction directly into your AI applications** with zero server setup.
-
-**Features:**
-- Search the web in real-time with advanced filtering
-- Generate AI answers enhanced with live web data
-- Extract any webpage in markdown or HTML format
-- Works with any AI SDK model provider (Anthropic, OpenAI, Google)
-- Full TypeScript support with Zod schema validation
-- Production-ready, built on You.com's enterprise search API
-
-**[View full documentation →](./packages/ai-sdk-plugin/README.md)**
+Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, works with any model provider. **[Documentation →](./packages/ai-sdk-plugin/README.md)**
 
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
-
-Anthropic SDK integration for Microsoft Teams.ai - Use **Claude models (Opus, Sonnet, Haiku) in your Teams.ai applications** with just a few lines of code.
-
-**Features:**
-- Type-safe model selection with enums
-- Streaming support with `onChunk` callback
-- Function calling with Claude's tool use
-- Multi-part messages and complex conversations
-- Full IChatModel interface - drop-in replacement for OpenAI
-- Configurable temperature, max tokens, and Anthropic parameters
-
-**[View full documentation →](./packages/teams-anthropic/README.md)**
+Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
 ## Universal Plugin Marketplace
 
