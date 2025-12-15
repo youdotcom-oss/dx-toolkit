@@ -150,10 +150,10 @@ jobs:
           fi
 
           # Show archive size
-          SIZE=$(ls -lh "$ARCHIVE_NAME" | awk '{print $5}')
-          echo "✓ Archive created: $ARCHIVE_NAME ($SIZE)"
+          SIZE=$(stat -f%z "$ARCHIVE_NAME" 2>/dev/null || stat -c%s "$ARCHIVE_NAME" 2>/dev/null || echo "unknown")
+          echo "✓ Archive created: \"$ARCHIVE_NAME\" ($SIZE bytes)"
 
-          echo "archive_name=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+          echo "archive_name=${ARCHIVE_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -186,8 +186,6 @@ jobs:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
           VERSION: ${{ inputs.version }}
         run: |
-          PLUGIN_DIR="plugins/${PLUGIN_NAME}"
-
           # Extract description from marketplace.json
           DESCRIPTION=$(jq -r ".plugins[] | select(.name==\"$PLUGIN_NAME\") | .description" marketplace.json || echo "")
 
@@ -234,7 +232,7 @@ jobs:
 
           # Generate download URL
           DOWNLOAD_URL="https://github.com/youdotcom-oss/dx-toolkit/releases/download/${TAG}/${ARCHIVE_NAME}"
-          echo "download_url=${DOWNLOAD_URL}" >> $GITHUB_OUTPUT
+          echo "download_url=${DOWNLOAD_URL}" >> "$GITHUB_OUTPUT"
 
           echo "✅ Release created: ${TAG}"
           echo "📦 Download URL: ${DOWNLOAD_URL}"
