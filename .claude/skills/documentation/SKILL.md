@@ -84,8 +84,8 @@ bun run check
 ### [@youdotcom-oss/mcp](./packages/mcp/)
 MCP Server giving AI agents real-time web search, AI answers, and content extraction via Model Context Protocol. **[Documentation →](./packages/mcp/README.md)**
 
-### [teams-mcp-integration](./plugins/teams-mcp-integration/)
-Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
+### [teams-anthropic-integration](./plugins/teams-anthropic-integration/)
+Generate Microsoft Teams apps with You.com Anthropic integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-anthropic-integration/README.md)**
 ```
 
 **Contributing Pattern** (Just link):

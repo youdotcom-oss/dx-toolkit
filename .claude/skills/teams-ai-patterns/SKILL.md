@@ -214,5 +214,5 @@ const prompt = new ChatPrompt(
 
 - Package documentation: `packages/teams-anthropic/AGENTS.md`
 - MCP template: `packages/teams-anthropic/templates/mcp-client.ts`
-- Plugin command: `plugins/teams-mcp-integration/commands/generate-teams-app.md`
+- Plugin command: `plugins/teams-anthropic-integration/commands/generate-teams-app.md`
 - Universal patterns: `.claude/skills/code-patterns`

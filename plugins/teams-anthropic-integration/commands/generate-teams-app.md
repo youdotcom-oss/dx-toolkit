@@ -98,5 +98,5 @@ Before completing:
 ## Additional Resources
 
 * Package README: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic
-* Plugin README: https://api.you.com/plugins/teams-mcp-integration/README.md
+* Plugin README: https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration
 * You.com MCP Server: https://documentation.you.com/developer-resources/mcp-server

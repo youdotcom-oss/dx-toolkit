@@ -23,7 +23,7 @@ This Claude Code plugin helps you quickly set up Microsoft Teams apps with You.c
 /plugin marketplace add youdotcom-oss/dx-toolkit
 
 # Install plugin
-/plugin install teams-mcp-integration
+/plugin install teams-anthropic-integration
 
 # Use slash command
 /generate-teams-app
@@ -34,8 +34,8 @@ This Claude Code plugin helps you quickly set up Microsoft Teams apps with You.c
 Download AGENTS.md to your project's Cursor rules directory:
 
 ```bash
-curl -o teams-mcp-integration.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-mv teams-mcp-integration.md .cursor/rules/
+curl -o teams-anthropic-integration.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
+mv teams-anthropic-integration.md .cursor/rules/
 ```
 
 Then enable in Cursor Settings → Rules → Import Settings → "Claude skills and plugins"
@@ -47,8 +47,8 @@ See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-sk
 Download AGENTS.md to your project's Windsurf rules directory:
 
 ```bash
-curl -o teams-mcp-integration.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
-mv teams-mcp-integration.md .windsurf/rules/
+curl -o teams-anthropic-integration.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
+mv teams-anthropic-integration.md .windsurf/rules/
 ```
 
 ### Other AI Agents (Cody, Continue, etc.)
@@ -56,7 +56,7 @@ mv teams-mcp-integration.md .windsurf/rules/
 Download AGENTS.md to your project root:
 
 ```bash
-curl -o AGENTS.md https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
+curl -o AGENTS.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
 ```
 
 AI agents will automatically discover and use it.
@@ -67,10 +67,10 @@ Access documentation directly:
 
 ```bash
 # View instructions
-curl https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
+curl https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
 
 # View README
-curl https://api.you.com/plugins/teams-mcp-integration/README.md
+curl https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/README.md
 
 # Install package and access template
 npm install @youdotcom-oss/teams-anthropic
@@ -160,7 +160,7 @@ For existing apps, skip the App import (line 20 in template)
 
 ## Documentation
 
-- **Plugin AGENTS.md**: https://api.you.com/plugins/teams-mcp-integration/AGENTS.md
+- **Plugin AGENTS.md**: https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
 - **Package README**: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic
 - **Package API Docs**: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic/docs/API.md
 - **You.com MCP Server**: https://documentation.you.com/developer-resources/mcp-server

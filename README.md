@@ -30,8 +30,8 @@ Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding as
 ### [ai-sdk-integration](./plugins/ai-sdk-integration/)
 Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK applications - interactive setup workflow with smart integration. **[Documentation →](./plugins/ai-sdk-integration/README.md)**
 
-### [teams-mcp-integration](./plugins/teams-mcp-integration/)
-Generate Microsoft Teams apps with You.com MCP integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-mcp-integration/README.md)**
+### [teams-anthropic-integration](./plugins/teams-anthropic-integration/)
+Generate Microsoft Teams apps with You.com Anthropic integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-anthropic-integration/README.md)**
 
 ## Quick Start
 
@@ -131,7 +131,7 @@ dx-toolkit/
 │       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
 ├── plugins/               # Claude Code plugins
-│   └── teams-mcp-integration/
+│   └── teams-anthropic-integration/
 │       ├── .claude-plugin/
 │       ├── commands/
 │       ├── src/

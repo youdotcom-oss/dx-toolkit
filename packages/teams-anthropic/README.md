@@ -16,18 +16,18 @@ Anthropic SDK integration for Microsoft Teams.ai - Use Claude models (Opus, Sonn
 
 ## Claude Code Plugin
 
-**For Teams MCP Integration**: Use the [teams-mcp-integration](https://api.you.com/plugins/teams-mcp-integration/) Claude Code plugin to quickly set up Teams apps with You.com MCP server integration.
+**For Teams Anthropic Integration**: Use the [teams-anthropic-integration](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) Claude Code plugin to quickly set up Teams apps with You.com MCP server integration.
 
 ```bash
 # Claude Code users
 /plugin marketplace add youdotcom-oss/dx-toolkit
-/plugin install teams-mcp-integration
+/plugin install teams-anthropic-integration
 /generate-teams-app
 ```
 
-**Other AI agents**: Download [AGENTS.md](https://api.you.com/plugins/teams-mcp-integration/AGENTS.md) for universal AI agent support (Cursor, Windsurf, Cody, Continue, etc.)
+**Other AI agents**: Download [AGENTS.md](https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md) for universal AI agent support (Cursor, Windsurf, Cody, Continue, etc.)
 
-See [Plugin Documentation](https://api.you.com/plugins/teams-mcp-integration/) for complete integration guide.
+See [Plugin Documentation](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) for complete integration guide.
 
 ## Getting Started
 

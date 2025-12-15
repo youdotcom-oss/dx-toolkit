@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       plugin_name:
-        description: "Plugin name (e.g., teams-mcp-integration)"
+        description: "Plugin name (e.g., teams-anthropic-integration)"
         required: true
         type: string
       version:
