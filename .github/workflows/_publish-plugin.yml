@@ -253,6 +253,32 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Update plugin.json version
+        env:
+          PLUGIN_NAME: ${{ inputs.plugin_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          PLUGIN_JSON="plugins/${PLUGIN_NAME}/.claude-plugin/plugin.json"
+
+          # Verify plugin.json exists
+          if [[ ! -f "$PLUGIN_JSON" ]]; then
+            echo "::error::Plugin manifest not found: $PLUGIN_JSON"
+            exit 1
+          fi
+
+          # Update version in plugin.json
+          jq --arg version "$VERSION" '.version = $version' "$PLUGIN_JSON" > "${PLUGIN_JSON}.tmp"
+          mv "${PLUGIN_JSON}.tmp" "$PLUGIN_JSON"
+
+          # Verify the update
+          UPDATED_VERSION=$(jq -r '.version' "$PLUGIN_JSON")
+          if [[ "$UPDATED_VERSION" != "$VERSION" ]]; then
+            echo "::error::Failed to update plugin.json version"
+            exit 1
+          fi
+
+          echo "✓ Updated plugin version in $PLUGIN_JSON: $UPDATED_VERSION"
+
       - name: Update marketplace.json
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
@@ -300,13 +326,16 @@ jobs:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
           VERSION: ${{ inputs.version }}
         run: |
-          git add marketplace.json
+          PLUGIN_JSON="plugins/${PLUGIN_NAME}/.claude-plugin/plugin.json"
+
+          git add marketplace.json "$PLUGIN_JSON"
 
           if git diff --staged --quiet; then
-            echo "::notice::No changes to marketplace.json"
+            echo "::notice::No changes to commit"
           else
             MARKETPLACE_VERSION=$(jq -r '.version' marketplace.json)
             git commit -m "ci: update marketplace v${MARKETPLACE_VERSION} for ${PLUGIN_NAME}@v${VERSION} [skip ci]"
             git push origin ${{ github.ref_name }}
             echo "✅ Marketplace updated to v${MARKETPLACE_VERSION}"
+            echo "✅ Plugin version updated to v${VERSION}"
           fi
