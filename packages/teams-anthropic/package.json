@@ -1,0 +1,81 @@
+{
+  "name": "@youdotcom-oss/teams-anthropic",
+  "version": "0.1.0",
+  "description": "Anthropic SDK integration for Microsoft Teams.ai - enables Claude models (Opus, Sonnet, Haiku) in Teams applications",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/teams-anthropic"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "anthropic",
+    "claude",
+    "microsoft-teams",
+    "teams-ai",
+    "chat-model",
+    "ai",
+    "llm",
+    "sdk"
+  ],
+  "type": "module",
+  "main": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    },
+    "./templates/mcp-client": "./templates/mcp-client.ts",
+    "./package": "./package.json"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @anthropic-ai/sdk --external @microsoft/teams.ai --external @microsoft/teams.common",
+    "build:types": "tsc --project tsconfig.build.json --declaration --emitDeclarationOnly --noEmit false",
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check .",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "bun run lint:fix && bun run format && bun run format:package",
+    "format": "biome format --write .",
+    "format:package": "format-package --write",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch"
+  },
+  "types": "./dist/main.d.ts",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2"
+  },
+  "peerDependencies": {
+    "@microsoft/teams.ai": "^2.0.5",
+    "@microsoft/teams.common": "^2.0.5",
+    "@microsoft/teams.apps": "^2.0.5",
+    "@microsoft/teams.mcpclient": "^2.0.5"
+  },
+  "devDependencies": {
+    "@microsoft/teams.ai": "^2.0.5",
+    "@microsoft/teams.common": "^2.0.5",
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:bun.sh)",
+      "WebFetch(domain:bun.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:biomejs.dev)",
+      "WebFetch(domain:modelcontextprotocol.io)",
+      "Bash(bash)",
+      "Bash(bun:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git diff:*)",
+      "Bash(git restore:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)"
+    ]
+  },
+  "enabledMcpjsonServers": ["ydc-server"],
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/UserPromptSubmit"
+          }
+        ]
+      }
+    ]
+  }
+}

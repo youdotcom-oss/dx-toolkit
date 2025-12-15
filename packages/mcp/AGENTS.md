@@ -59,136 +59,25 @@ bun run check:write            # Auto-fix all issues
 
 This project uses [Biome](https://biomejs.dev/) for automated code formatting and linting. Most style rules are enforced automatically via git hooks.
 
-### Manual Adherence Required
+> **For universal code patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
 
-**Arrow Functions**: Always use arrow functions for declarations (not enforced by Biome)
+> **For MCP-specific patterns**, see [`.claude/skills/mcp-patterns`](../../.claude/skills/mcp-patterns/SKILL.md)
 
-```ts
-// ✅ Preferred
-export const fetchData = async (params: Params) => { ... };
-
-// ❌ Avoid
-export async function fetchData(params: Params) { ... }
-```
-
-**Numeric Separators**: Use underscores for large numbers (improves readability)
-
-```ts
-// ✅ Preferred
-const timeout = 90_000; // 90 seconds
-const maxSize = 1_000_000; // 1 million
-const largeNumber = 1_234_567_890;
-
-// ❌ Avoid
-const timeout = 90000;
-const maxSize = 1000000;
-const largeNumber = 1234567890;
-```
-
-**No Unused Exports**: All exports must be actively used (Biome detects unused variables/imports, but NOT unused exports)
-
-```bash
-# Before adding exports, verify usage:
-grep -r "ExportName" src/
-```
-
-**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
-
-```ts
-// ✅ Preferred - Bun native APIs
-import { $ } from 'bun';
-import { heapStats } from 'bun:jsc';
-
-// Path resolution (throws if not found - perfect for validation)
-const path = Bun.resolveSync('./file.js', import.meta.dir);
-
-// Shell commands
-await $`ls -la`;
-const output = await $`echo hello`.text();
-
-// Sleep
-await Bun.sleep(100);
-
-// Garbage collection
-Bun.gc(true);
-
-// ❌ Avoid - Node.js APIs when Bun alternative exists
-import { existsSync } from 'node:fs';
-import { exec } from 'node:child_process';
-const path = require.resolve('./file.js');
-await new Promise(resolve => setTimeout(resolve, 100));
-```
-
-**Why prefer Bun APIs?**
-- Better performance (native implementation)
-- Better TypeScript integration
-- More predictable behavior in Bun runtime
-- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
-
-**When Node.js APIs are acceptable:**
-- No Bun equivalent exists
-- Compatibility with Node.js runtime required
-- Third-party package dependency requires it
-
-**Resources:**
-- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
-- [Bun Shell](https://bun.sh/docs/runtime/shell)
-
-### MCP-Specific Patterns
-
-**Schema Design**: Always use Zod for input/output validation
-
-```ts
-export const MyToolInputSchema = z.object({
-  query: z.string().min(1).describe("Search query"),
-  limit: z.number().optional().describe("Max results"),
-});
-```
-
-**Error Handling**: Always use try/catch with typed error handling
-
-```ts
-try {
-  const response = await apiCall();
-  return formatResponse(response);
-} catch (err: unknown) {
-  const errorMessage = err instanceof Error ? err.message : String(err);
-  await logger({ level: "error", data: `API call failed: ${errorMessage}` });
-  return {
-    content: [{ type: "text", text: `Error: ${errorMessage}` }],
-    isError: true,
-  };
-}
-```
-
-**Logging**: Use `getLogger(mcp)` helper, never console.log
-
-```ts
-import { getLogger } from "../shared/get-logger.ts";
-
-const logger = getLogger(mcp);
-await logger({ level: "info", data: `Operation successful: ${result}` });
-await logger({ level: "error", data: `Operation failed: ${errorMessage}` });
-```
-
-**Response Format**: Return both `content` and `structuredContent`
-
-```ts
-return {
-  content: [{ type: "text", text: formattedText }],
-  structuredContent: responseData,
-};
-```
+The mcp-patterns skill covers:
+- Schema design with Zod (`.describe()` for documentation)
+- Error handling (try/catch, never throw from MCP tools)
+- Logging (`getLogger(mcp)` helper, never console.log)
+- Response format (both `content` and `structuredContent`)
+- Tool registration patterns with examples
+- Error reporting with mailto links
 
 ## Development Workflow
 
+> **For git workflow** (branching, commits, version format), see [`.claude/skills/git-workflow`](../../.claude/skills/git-workflow/SKILL.md)
+
 ### Git Hooks
 
-Git hooks are automatically configured after `bun install`:
-
-- **Pre-commit**: Runs Biome check and format-package on staged files
-- **Setup**: `bun run prepare` (runs automatically with install)
-- Git hooks enforce code quality standards and should never be bypassed
+Git hooks are automatically configured after `bun install` (`bun run prepare`). Pre-commit hooks run Biome check and format-package on staged files
 
 ### MCP Inspector
 
@@ -233,94 +122,36 @@ fix(mcp): resolve timeout issue
 
 ## Publishing
 
-### Release Process
+See [root AGENTS.md](../../AGENTS.md#publishing) for the standard package publishing process.
 
-This package is published to npm via the `.github/workflows/publish-mcp.yml` workflow in the monorepo root.
+**MCP-Specific Deployment**:
 
-**Workflow Actions**:
-1. Updates version in `packages/mcp/package.json`
-2. Scans all workspace packages for dependencies on `@youdotcom-oss/mcp`
-3. Updates dependent packages with exact version (e.g., "1.4.0")
-4. Commits all version updates together
-5. Creates GitHub release in this repository
-6. Publishes to npm
-7. Triggers remote deployment via `repository_dispatch` event (MCP-specific)
+This package includes additional deployment steps after the standard npm publish:
+
+1. **Remote Deployment** (via `repository_dispatch` event):
    - Sends `update-mcp-version` event to deployment repository
    - For stable releases: Triggers `deploy-mcp-production` event after version update completes
    - Prereleases skip production deployment
-8. Publishes to Anthropic MCP Registry (stable releases only, MCP-specific)
+
+2. **Anthropic MCP Registry** (stable releases only):
    - Automatically updates `server.json` versions to match published package
    - Authenticates via GitHub OIDC (no manual credentials required)
    - Runs only after successful production deployment
    - Makes server discoverable at `io.github.youdotcom-oss/mcp`
 
-**Note**: Steps 7-8 are specific to the MCP package which requires remote deployment infrastructure and registry presence. Other packages in this monorepo have simpler publish workflows that only perform steps 1-6.
+**Workflow**: `.github/workflows/publish-mcp.yml`
 
-**Version Format**: Exact versions only (no `^` or `~` prefixes)
-
-```json
-{
-  "dependencies": {
-    "@youdotcom-oss/mcp": "1.3.4"
-  }
-}
-```
-
-**IMPORTANT**: If you add dependencies on other workspace packages, use exact version numbers. The publish workflow will automatically keep them in sync when new versions are released.
-
-### Version Format Convention
-
-This package follows standard Git tagging conventions:
-
-- **Git tags**: `v{version}` (e.g., `v1.3.4`, `v1.4.0-next.1`)
-- **GitHub releases**: `v{version}` (e.g., `Release v1.3.4`)
-- **package.json**: `{version}` (no "v" prefix, e.g., `1.3.4`)
-- **npm package**: `{version}` (no "v" prefix, e.g., `@youdotcom-oss/mcp@1.3.4`)
-
-**When triggering the publish workflow:**
+**To trigger a release:**
 1. Go to: Actions → Publish mcp-server Release → Run workflow
 2. Enter version WITHOUT "v" prefix: `1.3.4` (not `v1.3.4`)
-3. The workflow automatically adds "v" for Git tags
-4. Validation checks prevent common mistakes
 
-**Example:**
-```bash
-# Workflow input
-Version: 1.3.4
+## Support
 
-# Produces:
-# - Git tag: v1.3.4
-# - package.json: "version": "1.3.4"
-# - npm: @youdotcom-oss/mcp@1.3.4
-# - Release: https://github.com/.../releases/tag/v1.3.4
-```
+See [root AGENTS.md](../../AGENTS.md#support) for general support resources.
 
-**Validation checks in workflow:**
-- Rejects input with "v" prefix
-- Verifies package.json matches release version
-- Ensures no "v" prefix in package.json
-
-## MCP Server Patterns
-
-### Tool Registration
-
-Use Zod schemas for tool parameter validation. See examples:
-
-- Search tool: `src/search/register-search-tool.ts:7-86`
-- Express tool: `src/express/register-express-tool.ts:7-66`
-- Contents tool: `src/contents/register-contents-tool.ts:7-89`
-
-### Error Handling
-
-Always use try/catch with typed error handling (`err: unknown`). See tool registration files for standard pattern.
-
-### Logging
-
-Use `getLogger(mcp)` helper, never console.log. See `src/shared/get-logger.ts:8-11` for implementation.
-
-### Error Reporting
-
-Include mailto links in error logs using `generateErrorReportLink()` helper (`src/shared/generate-error-report-link.ts:6-37`). This creates one-click error reporting with full diagnostic context.
+**MCP-Specific Resources**:
+- **API Documentation**: See TSDoc comments in source code (`src/*/register-*-tool.ts` and `src/*/utils.ts`)
+- **MCP Inspector**: Run `bun run inspect` for interactive testing
 
 ## Testing
 
@@ -329,78 +160,29 @@ Include mailto links in error logs using `generateErrorReportLink()` helper (`sr
 - **Unit Tests**: `src/*/tests/*.spec.ts` - Test individual utilities
 - **Integration Tests**: `src/tests/*.spec.ts` - Test MCP tools end-to-end
 - **Coverage Target**: >80% for core utilities
+- **API Key Required**: Integration tests require `YDC_API_KEY` environment variable
 
-For test patterns, see:
+### Running Tests
 
-- Unit tests: `src/search/tests/search.utils.spec.ts`
-- Integration tests: `src/tests/tool.spec.ts`
-
-### Test Assertion Anti-Patterns
-
-**IMPORTANT: Avoid patterns that silently skip assertions** - they hide failures.
-
-❌ **Early Returns** - Silently exits test, skips remaining assertions
-
-```ts
-if (!item) return; // Bad: test passes even if item is undefined
+```bash
+bun test                       # All tests
+bun test:coverage              # With coverage report
+bun test:watch                 # Run tests in watch mode
+bun test:coverage:watch        # Coverage with watch mode
+bun test src/search/tests/     # Specific directory
 ```
 
-❌ **Redundant Conditionals** - Asserts defined, then conditionally checks type
+**For universal test patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
+
+### MCP-Specific Testing Patterns
+
+**Shared vs Dedicated MCP Clients**:
+
+Long-running tests with retries may disconnect shared MCP clients from `beforeAll`. Use dedicated clients for isolated tests:
 
 ```ts
-expect(item?.markdown).toBeDefined();
-if (item?.markdown) {
-  expect(typeof item.markdown).toBe("string"); // Redundant!
-}
-```
-
-✅ **Let tests fail naturally** - Use optional chaining and direct assertions:
-
-```ts
-expect(item).toBeDefined();
-expect(item).toHaveProperty("url"); // Fails with clear error if undefined
-```
-
-### Shared Client Patterns
-
-**IMPORTANT: Long-running serial tests with retries can disconnect shared clients**
-
-#### Problem
-
-When using `test.serial()` with shared MCP client from `beforeAll`, long-running tests (especially with `retry` configuration) may cause:
-- Connection timeouts
-- Process cleanup by CI
-- "Not connected" errors in subsequent tests
-
-#### Solution: Use Dedicated Clients for Isolated Tests
-
-❌ **Shared Client** - Can disconnect after long-running tests:
-
-```ts
-let client: Client; // Shared across all tests
-
-beforeAll(async () => {
-  // ... setup
-  client = new Client({ name: 'test-client', version: '1.0.0' });
-  await client.connect(transport);
-});
-
-test.serial('long test with retries', async () => {
-  // Takes 53+ seconds with retries
-  await client.callTool(/* ... */);
-}, { timeout: 90_000, retry: 2 });
-
+// ✅ Dedicated client for long-running or isolated tests
 test.serial('memory test', async () => {
-  // FAILS: client disconnected after previous test
-  await client.callTool(/* ... */); // Error: Not connected
-});
-```
-
-✅ **Dedicated Client** - Create fresh client for isolated tests:
-
-```ts
-test.serial('memory test', async () => {
-  // Create dedicated client for this test only
   const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
   const transport = new StdioClientTransport({
     command: 'npx',
@@ -414,59 +196,16 @@ test.serial('memory test', async () => {
   });
 
   await memoryClient.connect(transport);
-
-  // Run test operations
   await memoryClient.callTool(/* ... */);
-
-  // Clean up
   await memoryClient.close();
 }, { timeout: 15_000 });
 ```
 
-#### When to Use Each Pattern
+**When to use:**
+- **Shared client**: Quick tests (<30s), no retry, basic integration tests
+- **Dedicated client**: Long tests (>30s), tests with retry, performance tests
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| **Shared Client** | Quick tests (<30s each), no retry | Unit tests, basic integration tests |
-| **Dedicated Client** | Long tests (>30s), tests with retry, isolated state | Memory tests, performance tests, flaky API tests |
-
-#### Example: Processing Lag Test Suite
-
-See `src/tests/processing-lag.spec.ts` for complete example:
-- **Shared client**: Used for Search/Express/Contents lag tests
-- **Dedicated client**: Used for memory test to avoid connection issues
-
-### Test Retry Configuration
-
-All API-dependent tests use `{ retry: 2 }` for network resilience:
-
-```ts
-test('API test', async () => {
-  // Test implementation
-}, { retry: 2 }); // 3 total attempts (1 initial + 2 retries)
-```
-
-**Benefits**:
-- Handles transient network issues, rate limiting, intermittent failures
-- Tests pass if any of 3 attempts succeed
-- Low cost: only runs extra attempts on failure
-
-**Considerations**:
-- Total test time = iterations × max_attempts × time_per_iteration
-- Long tests with retry may disconnect shared clients (use dedicated client)
-- Example: 5 iterations × 3 attempts × 7s/call = 105s max
-
-### Running Tests
-
-```bash
-bun test                       # All tests
-bun test:coverage              # With coverage report
-bun test:watch                 # Run tests in watch mode
-bun test:coverage:watch        # Coverage with watch mode
-bun test src/search/tests/     # Specific directory
-```
-
-Requires `YDC_API_KEY` environment variable for API tests.
+See `src/tests/processing-lag.spec.ts` for complete example.
 
 ## Troubleshooting
 
@@ -879,5 +618,3 @@ PORT=4000 bun bin/http
 ### MCP client configuration
 
 For connecting MCP clients to your self-hosted server, see the "Adding to your MCP client" section in [README.md](./README.md).
-
-For complete API reference documentation including parameters, response formats, and examples, see [API.md](./docs/API.md).

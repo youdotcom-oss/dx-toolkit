@@ -25,7 +25,8 @@ jobs:
       - name: Run lint
         run: bun run check
 
-      - name: Run tests
-        run: bun test
+      - name: Run test
+        run: bun run test
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

@@ -1,0 +1,19 @@
+name: Publish teams-anthropic Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version tag (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish @youdotcom-oss/teams-anthropic
+    uses: ./.github/workflows/_publish-package.yml
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+    with:
+      npm_package_name: '@youdotcom-oss/teams-anthropic'
+      version: ${{ github.event.inputs.version }}

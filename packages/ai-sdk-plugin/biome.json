@@ -3,7 +3,7 @@
   "extends": "//",
   "overrides": [
     {
-      "includes": ["examples/**/*.ts", "src/tests/**/*.spec.ts"],
+      "includes": ["templates/**/*.ts", "src/tests/**/*.spec.ts"],
       "linter": {
         "rules": {
           "suspicious": {

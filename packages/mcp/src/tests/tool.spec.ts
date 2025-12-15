@@ -463,10 +463,6 @@ describe('registerSearchTool', () => {
       expect(error).toBeDefined();
     }
   });
-
-  test.skip('handles network timeout scenarios', async () => {
-    // TODO: How do we test this?
-  });
 });
 
 // NOTE: The following tests require a You.com API key with access to the Contents API

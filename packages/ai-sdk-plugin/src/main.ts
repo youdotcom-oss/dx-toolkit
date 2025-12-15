@@ -19,7 +19,7 @@ export type YouToolsConfig = {
 /**
  * Creates a User-Agent string for API requests
  */
-const getUserAgent = () => `AI-SDK/${packageJson.version} (You.com; ai-sdk-plugin)`;
+const getUserAgent = () => `AI-SDK-Plugin//${packageJson.version} (You.com; ai-sdk-plugin)`;
 
 /**
  * You.com web search tool for Vercel AI SDK
@@ -159,13 +159,3 @@ export const youContents = (config: YouToolsConfig = {}) => {
     },
   });
 };
-
-// Export types for users
-export type {
-  ContentsApiResponse,
-  ContentsQuery,
-  ExpressAgentInput,
-  ExpressAgentMcpResponse,
-  SearchQuery,
-  SearchResponse,
-} from '@youdotcom-oss/mcp';

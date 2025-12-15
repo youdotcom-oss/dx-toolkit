@@ -98,7 +98,7 @@ git checkout -b feature/your-feature-name
 
 - Update AGENTS.md for developer-facing changes
 - Update README.md for user-facing changes
-- Add JSDoc comments for public APIs
+- Add TSDoc comments for public APIs
 
 #### 3. Commit Your Changes
 

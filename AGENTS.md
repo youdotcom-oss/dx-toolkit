@@ -10,12 +10,38 @@ Open-source toolkit enabling developers to integrate You.com's AI capabilities i
 
 > **For a user-focused quick start**, see the [root README.md](./README.md). This guide (AGENTS.md) is for internal maintainers and contributors who need comprehensive development details.
 
+## Skill-Based Organization
+
+This monorepo uses [Claude Code Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills) for efficient, on-demand knowledge loading:
+
+**Available Skills** (in `.claude/skills/`):
+- **code-patterns** - Universal code patterns (arrow functions, Bun APIs, test patterns, error handling, type guards)
+- **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
+- **git-workflow** - Git conventions (branching, commits, versioning, gh CLI usage)
+- **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
+- **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
+- **teams-ai-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
+- **package-creation** - Post-creation workflow (implementation, testing, publishing)
+- **performance-testing** - Performance monitoring system (measurements, thresholds, regression handling)
+
+**Benefits**:
+- **Progressive disclosure**: Skill metadata (~100 tokens) loads first, full content (<5k tokens) loads on-demand
+- **Token efficiency**: ~43% reduction in always-loaded context (~8,650 tokens moved to on-demand skills)
+- **Single source of truth**: Universal patterns in skills, package-specific patterns in package AGENTS.md
+- **Maintainability**: Update patterns once in skills, not in every package AGENTS.md
+
+Throughout this guide, you'll see references like:
+> **For universal code patterns**, see `.claude/skills/code-patterns`
+
+These indicate that detailed information is available in the referenced skill.
+
 ---
 
 ## Monorepo Structure
 
 ```
 dx-toolkit/
+├── marketplace.json       # Plugin marketplace manifest
 ├── packages/
 │   └── mcp/               # MCP Server package (@youdotcom-oss/mcp)
 │       ├── src/           # Source code
@@ -25,14 +51,29 @@ dx-toolkit/
 │       ├── README.md      # User documentation
 │       ├── AGENTS.md      # Package-specific dev guide
 │       └── package.json   # Package config
+├── plugins/               # Claude Code plugins (NOT published to npm)
+│   └── teams-mcp-integration/
+│       ├── .claude-plugin/
+│       ├── commands/
+│       ├── src/
+│       ├── tests/
+│       ├── templates/
+│       ├── reference/
+│       ├── AGENTS.md      # Plugin instructions
+│       ├── README.md      # Plugin docs
+│       └── package.json   # private: true
+├── tests/                 # Root-level marketplace validation
 ├── .github/
 │   └── workflows/         # CI/CD workflows
-│       ├── _publish-package.yml     # Reusable workflow for publishing packages
-│       ├── ci.yml                   # Run lint test to validate libraries
-│       ├── code-review.yml          # Agentic code for internal contributors
-│       ├── external-code-review.yml # Agentic code for external contributors
-│       └── publish-mcp.yml          # Publish mcp server and trigger remote deployment
+│       ├── _publish-package.yml        # Reusable workflow for publishing packages
+│       ├── ci.yml                      # Run lint test to validate libraries
+│       ├── code-review.yml             # Agentic code for internal contributors
+│       ├── external-code-review.yml    # Agentic code for external contributors
+│       ├── publish-mcp.yml             # Publish mcp server and trigger remote deployment
+│       └── validate-marketplace.yml    # Weekly plugin marketplace validation
 ├── scripts/               # CI scripts
+├── docs/
+│   └── MARKETPLACE.md     # Plugin marketplace documentation
 ├── package.json           # Workspace root config
 ├── bun.lock              # Workspace lock file (root only)
 └── AGENTS.md             # This file (monorepo dev guide)
@@ -53,6 +94,148 @@ All packages must follow this naming rule:
 
 **Current packages**:
 - `@youdotcom-oss/mcp` in `packages/mcp/`
+
+## Claude Code Plugin Marketplace
+
+This repository serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
+
+### Marketplace vs Packages
+
+**Key Distinction**:
+- **`packages/`** - npm packages (published to npm registry)
+- **`plugins/`** - Claude Code plugins (distributed via GitHub/api.you.com, NOT published to npm)
+
+### Plugin Architecture
+
+```
+plugins/{plugin-name}/
+├── .claude-plugin/
+│   └── plugin.json                     # Claude Code manifest
+├── AGENTS.md                           # Universal AI agent instructions
+├── commands/
+│   └── {command}.md                    # Claude Code slash commands
+├── src/
+│   └── integration.ts                  # Core integration code (validated)
+├── tests/
+│   └── integration.spec.ts             # Bun tests (runs in CI)
+├── templates/
+│   └── *.ts                            # Code templates (shipped as-is)
+├── reference/
+│   └── *.md                            # Reference documentation
+├── .mcp.json                           # Optional: MCP server config
+├── package.json                        # private: true, Bun workspace
+├── tsconfig.json                       # TypeScript config
+├── README.md                           # Human-readable docs
+└── LICENSE                             # MIT license
+```
+
+### Plugin AGENTS.md vs Package AGENTS.md
+
+**Important Distinction**: Plugin AGENTS.md files serve a fundamentally different purpose than package AGENTS.md files.
+
+**Package AGENTS.md** (e.g., `packages/mcp/AGENTS.md`):
+- **Audience**: Developers contributing to the package
+- **Purpose**: Development environment setup, codebase architecture
+- **Tone**: Directive and technical ("Always use...", "NEVER bypass...")
+- **Content**: Package-specific patterns, testing setup, build configuration
+- **Distribution**: Included in npm package, primarily for internal use
+- **Reference**: Links to root AGENTS.md for universal patterns
+
+**Plugin AGENTS.md** (e.g., `plugins/teams-mcp-integration/AGENTS.md`):
+- **Audience**: Universal AI agents (Claude, Cursor, Windsurf, etc.) that don't support Claude Code plugins
+- **Purpose**: Lightweight file that aliases commands for cross-agent compatibility
+- **Pattern**: References command files to avoid duplication
+- **Content**: When to trigger, command file path to fetch
+- **Distribution**: Publicly hosted at `https://api.you.com/plugins/{plugin-name}/AGENTS.md`
+- **Example**: `Fetch and follow: plugins/teams-mcp-integration/commands/generate-teams-app.md`
+
+**Why this pattern**:
+- ✅ Single source of truth - Detailed instructions in commands/
+- ✅ Never out of sync - AGENTS.md just points to command file
+- ✅ Cross-agent compatibility - Works with Cursor, Windsurf, Cody, etc.
+- ✅ Simple maintenance - Update command once, AGENTS.md unchanged
+
+### Plugin Workspace Integration
+
+Plugins are part of the Bun workspace for local validation:
+
+```json
+// Root package.json
+{
+  "workspaces": ["packages/*", "plugins/*"]
+}
+```
+
+**Benefits**:
+- ✅ Validate core integration code works locally
+- ✅ Run Bun tests in CI to ensure integration pattern is correct
+- ✅ Apply same quality checks (Biome, TypeScript)
+- ✅ Plugin still distributed via GitHub (not npm)
+- ✅ Templates shipped as-is (not individually validated)
+
+### Plugin Naming Convention
+
+Plugin directories must follow this naming rule:
+
+**Rule**: Plugin directory name MUST match the plugin name in `.claude-plugin/plugin.json`
+
+**Examples**:
+- Plugin name: `teams-mcp-integration` → Directory: `plugins/teams-mcp-integration` ✅
+- Plugin name: `google-chat-mcp-integration` → Directory: `plugins/google-chat-mcp-integration` ✅
+
+**Validation**: Marketplace tests validate plugin names match directory names.
+
+**Current plugins**:
+- `teams-mcp-integration` in `plugins/teams-mcp-integration/`
+
+### Plugin Commands
+
+```bash
+# From root - test specific plugin
+bun --cwd plugins/teams-mcp-integration test
+
+# From root - check specific plugin
+bun --cwd plugins/teams-mcp-integration run check
+
+# From root - test all plugins
+bun run --filter 'plugins/*' test
+
+# From plugin directory
+cd plugins/teams-mcp-integration
+bun test
+bun run check
+```
+
+### Distribution Strategy
+
+**Primary Distribution**: Plugins are distributed via GitHub Releases
+
+**Release Format**:
+- Tag: `{plugin-name}@v{version}` (e.g., `teams-mcp-integration@v1.0.0`)
+- Archive: `{plugin-name}-v{version}.tar.gz`
+- Pattern: Consistent with package releases (uses `@` separator)
+
+**Installation URLs**:
+- Latest: `https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/{plugin-name}-v{version}.tar.gz`
+- Specific: `https://github.com/youdotcom-oss/dx-toolkit/releases/download/{plugin-name}@v{version}/{plugin-name}-v{version}.tar.gz`
+- Installer: `curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s {plugin-name}`
+
+**Marketplace Versioning**:
+- Format: Date-based CalVer (`YYYY.MM.DD`)
+- Auto-bumped: On every plugin release
+- Indicates: Last marketplace update date
+- Example: `"version": "2024.12.14"` in marketplace.json
+
+**Release Flow**:
+1. Develop in `dx-toolkit/plugins/{plugin-name}/`
+2. Test locally with Bun workspace
+3. CI validates and tests on PR
+4. Trigger `publish-{plugin-name}` workflow with version
+5. Workflow creates GitHub Release with archive
+6. Workflow updates marketplace.json (plugin version + marketplace date)
+7. Users install via GitHub Release URLs
+
+See [docs/MARKETPLACE.md](./docs/MARKETPLACE.md) for complete marketplace documentation.
 
 ## Tech Stack
 
@@ -268,83 +451,25 @@ Packages depending on other workspace packages should use the **bundled pattern*
 **Lock Files**: Only root `bun.lock` is committed
 
 - Root `.gitignore` allows root `bun.lock`
-- Package `.gitignore` files ignore all lock files (including `bun.lock`)
 - Workspace manages all dependencies via root lock file
 
 ### Universal Code Patterns
 
-**Arrow Functions**: Always use arrow functions for declarations
+> **For universal code patterns** (arrow functions, Bun APIs, test patterns, error handling, etc.), see `.claude/skills/code-patterns`
 
-```ts
-// ✅ Preferred
-export const fetchData = async (params: Params) => { ... };
+This skill covers:
+- Arrow functions and function declarations
+- Numeric separators for readability
+- Bun APIs over Node.js APIs
+- Test patterns with `test()` vs `it()`
+- Typed error handling with `err: unknown`
+- Test retry configuration for API tests
+- Test assertion anti-patterns to avoid
+- Private class fields with `#` prefix
+- Type guards over type casting
+- When to use Zod for schema validation
 
-// ❌ Avoid
-export async function fetchData(params: Params) { ... }
-```
-
-**Numeric Separators**: Use underscores for large numbers (improves readability)
-
-```ts
-// ✅ Preferred
-const timeout = 90_000; // 90 seconds
-const maxSize = 1_000_000; // 1 million
-const largeNumber = 1_234_567_890;
-
-// ❌ Avoid
-const timeout = 90000;
-const maxSize = 1000000;
-const largeNumber = 1234567890;
-```
-
-**No Unused Exports**: All exports must be actively used
-
-```bash
-# Before adding exports, verify usage:
-grep -r "ExportName" packages/
-```
-
-**Prefer Bun APIs Over Node.js APIs**: Always use Bun-native APIs when available
-
-```ts
-// ✅ Preferred - Bun native APIs
-import { $ } from 'bun';
-import { heapStats } from 'bun:jsc';
-
-// Path resolution (throws if not found - perfect for validation)
-const path = Bun.resolveSync('./file.js', import.meta.dir);
-
-// Shell commands
-await $`ls -la`;
-const output = await $`echo hello`.text();
-
-// Sleep
-await Bun.sleep(100);
-
-// Garbage collection
-Bun.gc(true);
-
-// ❌ Avoid - Node.js APIs when Bun alternative exists
-import { existsSync } from 'node:fs';
-import { exec } from 'node:child_process';
-const path = require.resolve('./file.js');
-await new Promise(resolve => setTimeout(resolve, 100));
-```
-
-**Why prefer Bun APIs?**
-- Better performance (native implementation)
-- Better TypeScript integration
-- More predictable behavior in Bun runtime
-- Clearer error messages (e.g., `Bun.resolveSync` throws with clear message)
-
-**When Node.js APIs are acceptable:**
-- No Bun equivalent exists
-- Compatibility with Node.js runtime required
-- Third-party package dependency requires it
-
-**Resources:**
-- [Bun Runtime Utils](https://bun.sh/docs/runtime/utils)
-- [Bun Shell](https://bun.sh/docs/runtime/shell)
+The skill provides detailed examples, rationale, and best practices for each pattern
 
 ## Git Workflow
 
@@ -512,7 +637,16 @@ This is only used for the MCP package which requires remote deployment infrastru
 
 ### Adding a New Package
 
-Use the `/create-package` command to interactively create new packages:
+**IMPORTANT**: For complete package creation instructions, see [`.claude/commands/create-package.md`](./.claude/commands/create-package.md).
+
+The create-package command provides:
+- Interactive question flow for package configuration
+- Validation of package names and npm availability
+- Automated file creation (package.json, tsconfig.json, biome.json, source files, documentation)
+- Automatic workflow generation for publishing
+- Rollback on errors
+
+**Quick usage:**
 
 **For Claude Code users:**
 ```bash
@@ -520,43 +654,36 @@ Use the `/create-package` command to interactively create new packages:
 ```
 
 **For other AI coding agents:**
-Ask your agent to read and follow the instructions in `.claude/commands/create-package.md`
+Read and follow the instructions in `.claude/commands/create-package.md`
 
-The command will guide you through:
-1. **Package configuration** - Name, npm package name
-2. **Metadata** - Description and keywords
-3. **Automatic setup**:
-   - Creates package directory structure
-   - Generates all configuration files (package.json, tsconfig.json, biome.json, .gitignore)
-   - Creates source files with templates
-   - Generates documentation (README.md, AGENTS.md)
-   - Creates publish workflow (`.github/workflows/publish-{package}.yml`)
-4. **Post-creation checklist** - Manual steps for testing the package
+**After package creation**, the command will:
+1. Generate complete package structure with all required files
+2. Create publish workflow at `.github/workflows/publish-{package}.yml`
+3. Run `bun install` to register the package in the workspace
+4. Display next steps with references to this file
 
-**Manual Alternative** (if not using Claude Code):
+### Post-Creation Workflow
 
-```bash
-# Create package directory
-mkdir -p packages/new-package
+> **For complete post-creation workflow** (implementation, testing, publishing), see `.claude/skills/package-creation`
 
-# Initialize package
-cd packages/new-package
-bun init
+This skill covers:
+- Implementing package logic with TSDoc comments
+- Registering package documentation in root CLAUDE.md
+- Adding performance monitoring (optional, API wrappers only)
+- Testing locally before publishing
+- Testing publish workflow with prerelease versions
+- First stable release process
 
-# Copy configuration from existing package
-cp ../mcp/{.gitignore,tsconfig.json,biome.json} .
+**Quick Reference**:
 
-# Update root package.json workspaces (if needed)
-# Workspaces already includes "packages/*"
+After creating a package with the create-package command:
 
-# Install dependencies from root
-cd ../..
-bun install
-```
-
-**Important**: When manually creating packages, you must also:
-- Create `.github/workflows/publish-{package}.yml` workflow
-- See `.claude/commands/create-package.md` for detailed manual instructions
+1. **Implement Package Logic** - Edit `src/main.ts`, add tests, add TSDoc to exports
+2. **Register Package Documentation** - Add AGENTS.md reference to root `CLAUDE.md`
+3. **Add Performance Monitoring** (optional) - Only for API wrapper packages
+4. **Test Locally** - Run `bun test` and `bun run check`
+5. **Test Publish Workflow** - Use prerelease version (e.g., `0.1.0-next.1`)
+6. **First Stable Release** - Publish version `0.1.0` to npm
 
 ### Working on Packages
 
@@ -606,9 +733,18 @@ For package-specific development details, see each package's AGENTS.md:
 
 ### Documentation Standards
 
-**IMPORTANT EXCEPTION**: The root `README.md` (at monorepo level) is an exception to these guidelines. It serves as a project overview and does not follow the package consumption tone. These guidelines apply to **package-level documentation only** (e.g., `packages/mcp/README.md`, `packages/ai-sdk-plugin/README.md`).
+> **For complete documentation standards** (README.md tone, thin AGENTS.md philosophy, TSDoc strategy), see `.claude/skills/documentation`
 
-All packages maintain two distinct documentation files with specific tone requirements:
+This skill covers:
+- README.md user-facing tone (encouraging, accessible, second-person voice)
+- **Thin AGENTS.md philosophy** (100-200 lines, heavy skill references, package-specific only)
+- TSDoc API documentation strategy (no separate API.md files)
+- Validation checklists for both documentation types
+- Good vs bad examples showing thin vs bloated AGENTS.md
+
+**Key principle**: Package AGENTS.md files should be minimal wrappers (100-200 lines) that reference skills for universal patterns and focus only on package-specific patterns.
+
+**Quick Reference**:
 
 #### README.md - User-Facing Documentation
 
@@ -698,112 +834,29 @@ Before publishing package documentation:
 
 ## Performance Testing & Monitoring
 
-### Centralized Performance Monitoring
+> **For complete performance testing details** (centralized monitoring, running measurements, adding to new packages), see `.claude/skills/performance-testing`
 
-This monorepo uses a centralized weekly monitoring system to track performance across all packages:
+This skill covers:
+- Centralized weekly monitoring architecture
+- Running measurements locally and in CI
+- Package thresholds and regression handling
+- Adding performance monitoring to new packages
+- When to add monitoring (only for API wrapper packages)
+
+**Quick Reference**:
 
 **Architecture**:
-- **Measurements**: `scripts/performance/measure.ts` - Runs all package measurements
-- **Detection**: `scripts/performance/detect-and-file.ts` - Detects regressions and creates GitHub issues
-- **Documentation**: `scripts/performance/update-docs.ts` - Updates docs/PERFORMANCE.md automatically
-- **Automation**: `.github/workflows/weekly-performance.yml` - Runs every Monday at 1pm UTC
+- `scripts/performance/measure.ts` - Runs all measurements
+- `scripts/performance/detect-and-file.ts` - Detects regressions, creates GitHub issues
+- `.github/workflows/weekly-performance.yml` - Runs every Monday at 1pm UTC
 
-**Key Benefits**:
-- Centralized tracking across all packages
-- Automated GitHub issue creation for regressions
-- Public transparency (GitHub issues visible to all)
-- Historical tracking (90-day artifact retention)
-- No redundant test maintenance
-
-### Running Performance Measurements
-
-**Locally**:
-```bash
-# Set API key
-export YDC_API_KEY=your-key-here
-
-# Run measurements
-bun scripts/performance/measure.ts > results.json
-
-# View results
-cat results.json
-
-# Check for regressions (requires gh CLI)
-bun scripts/performance/detect-and-file.ts results.json
-
-# Update docs
-bun scripts/performance/update-docs.ts results.json
-```
-
-**In CI**: Automatically runs every Monday via weekly-performance workflow
-
-### Package Thresholds
-
+**Current Thresholds**:
 | Package | Lag | Overhead | Memory |
 |---------|-----|----------|--------|
 | `@youdotcom-oss/mcp` | < 100ms | < 50% | < 400KB |
 | `@youdotcom-oss/ai-sdk-plugin` | < 80ms | < 35% | < 350KB |
 
-See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed methodology and results.
-
-### When Regressions Occur
-
-**Automatic**:
-1. Weekly workflow detects threshold violations
-2. GitHub issue created automatically with:
-   - Severity classification (minor/moderate/critical)
-   - Current vs threshold comparison
-   - Investigation steps
-   - Links to workflow run and documentation
-3. Issue updated if regression persists in subsequent runs
-
-**Manual Investigation**:
-```bash
-# Run measurement locally
-bun scripts/performance/measure.ts > results.json
-
-# Check specific package results
-cat results.json | grep -A 20 "@youdotcom-oss/mcp"
-
-# Profile with CPU profiler
-bun --cpu-prof scripts/performance/measure.ts
-```
-
-### Adding Performance Monitoring to New Packages
-
-When creating new packages, add measurements in `scripts/performance/measure.ts`:
-
-```typescript
-const measureNewPackage = async (): Promise<PerformanceResult> => {
-  const results = await measurePerformance({
-    iterations: 20,
-    warmup: async () => { /* ... */ },
-    raw: async () => { /* Raw API call */ },
-    wrapper: async () => { /* Your abstraction layer */ },
-  });
-
-  return {
-    package: '@youdotcom-oss/new-package',
-    timestamp: new Date().toISOString(),
-    metrics: {
-      processingLag: {
-        value: results.processingLag,
-        threshold: 80, // Set appropriate threshold
-        pass: results.processingLag < 80,
-      },
-      // ... other metrics
-    },
-    rawData: { /* ... */ },
-  };
-};
-
-// Add to main() Promise.all()
-const results = await Promise.all([
-  measureMcp(),
-  measureAiSdkPlugin(),
-  measureNewPackage(), // Add here
-]);
-```
+See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed methodology and results
 
 ## Troubleshooting
 
@@ -887,8 +940,54 @@ bun run build    # Build all packages
 - NPM packages: `.js` extension
 - JSON files: `.json` with import assertion
 
+## Publishing
+
+### Package Publishing Process
+
+All packages in this monorepo are published to npm via GitHub Actions workflows.
+
+**Standard Workflow** (most packages):
+1. Updates version in `packages/{package}/package.json`
+2. Scans all workspace packages for dependencies on the published package
+3. Updates dependent packages with exact version (e.g., "1.4.0", no `^` or `~`)
+4. Commits all version updates together
+5. Creates GitHub release with tag `v{version}`
+6. Publishes to npm using NPM Trusted Publishing (OIDC)
+7. No manual npm tokens required
+
+**Package-Specific Workflows**:
+- Each package has its own workflow: `.github/workflows/publish-{package}.yml`
+- Some packages may have additional deployment steps (see package-specific AGENTS.md)
+- Example: MCP package triggers remote deployment and Anthropic MCP Registry update
+
+**Version Format**:
+- Git tags: `v{version}` (e.g., `v1.3.4`)
+- package.json: `{version}` (no "v" prefix, e.g., `1.3.4`)
+- npm: `{version}` (e.g., `@youdotcom-oss/mcp@1.3.4`)
+
+**Triggering a Release**:
+1. Go to: Actions → Publish {package} Release → Run workflow
+2. Enter version WITHOUT "v" prefix: `1.3.4`
+3. Optional: Enter `next` value for prereleases (e.g., `1` creates `1.3.4-next.1`)
+4. The workflow automatically adds "v" for Git tags
+
+**Cross-Package Dependencies**:
+- Always use exact versions (no `^` or `~` prefixes)
+- The publish workflow automatically updates dependent packages
+- Example: Publishing `@youdotcom-oss/mcp@1.4.0` updates all packages that depend on it
+
+**Authentication**:
+- Uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) (OIDC)
+- No npm tokens required - GitHub Actions authenticates automatically
+- Automatic provenance generation for supply chain security
+- Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
+
+For package-specific publishing details (deployment steps, registry updates), see the package's AGENTS.md file.
+
 ## Support
 
-- **Package Issues**: See package-specific AGENTS.md
-- **Issues and Contributions**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Package Issues**: See package-specific AGENTS.md for troubleshooting, then create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Performance Issues**: See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md)
+- **API Keys**: [you.com/platform/api-keys](https://you.com/platform/api-keys)
+- **Contributions**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
 - **Email**: support@you.com
