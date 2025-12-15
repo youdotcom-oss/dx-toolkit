@@ -56,7 +56,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
            HostedMCPTool(
                tool_config={
                    "type": "mcp",
-                   "server_label": "you",
+                   "server_label": "ydc",
                    "server_url": "https://api.you.com/mcp",
                    "headers": {
                        "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"
@@ -176,7 +176,7 @@ async def main():
             HostedMCPTool(
                 tool_config={
                     "type": "mcp",
-                    "server_label": "you",
+                    "server_label": "ydc",
                     "server_url": "https://api.you.com/mcp",
                     "headers": {
                         "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"
@@ -425,7 +425,7 @@ tools=[
     HostedMCPTool(
         tool_config={
             "type": "mcp",
-            "server_label": "you",
+            "server_label": "ydc",
             "server_url": "https://api.you.com/mcp",
             "headers": {
                 "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"

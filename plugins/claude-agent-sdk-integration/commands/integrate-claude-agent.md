@@ -46,7 +46,7 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
      
      options = ClaudeAgentOptions(
          mcp_servers={
-             "you": {
+             "ydc": {
                  "type": "http",
                  "url": "https://api.you.com/mcp",
                  "headers": {
@@ -55,9 +55,9 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
              }
          },
          allowed_tools=[
-             "mcp__you__you_search",
-             "mcp__you__you_express",
-             "mcp__you__you_contents"
+             "mcp__ydc__you_search",
+             "mcp__ydc__you_express",
+             "mcp__ydc__you_contents"
          ]
      )
      ```
@@ -66,7 +66,7 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
      ```typescript
      const options = {
        mcpServers: {
-         you: {
+         ydc: {
            type: 'http' as const,
            url: 'https://api.you.com/mcp',
            headers: {
@@ -75,9 +75,9 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
          }
        },
        allowedTools: [
-         'mcp__you__you_search',
-         'mcp__you__you_express',
-         'mcp__you__you_contents'
+         'mcp__ydc__you_search',
+         'mcp__ydc__you_express',
+         'mcp__ydc__you_contents'
        ]
      };
      ```
@@ -122,16 +122,16 @@ async def main():
     # Configure Claude Agent with HTTP MCP server
     options = ClaudeAgentOptions(
         mcp_servers={
-            "you": {
+            "ydc": {
                 "type": "http",
                 "url": "https://api.you.com/mcp",
                 "headers": {"Authorization": f"Bearer {ydc_api_key}"},
             }
         },
         allowed_tools=[
-            "mcp__you__you_search",
-            "mcp__you__you_express",
-            "mcp__you__you_contents",
+            "mcp__ydc__you_search",
+            "mcp__ydc__you_express",
+            "mcp__ydc__you_contents",
         ],
         model="claude-sonnet-4-5-20250929",
     )
@@ -192,7 +192,7 @@ async function main() {
     prompt: 'Search for the latest AI news from this week',
     options: {
       mcpServers: {
-        you: {
+        ydc: {
           type: 'http' as const,
           url: 'https://api.you.com/mcp',
           headers: {
@@ -201,9 +201,9 @@ async function main() {
         },
       },
       allowedTools: [
-        'mcp__you__you_search',
-        'mcp__you__you_express',
-        'mcp__you__you_contents',
+        'mcp__ydc__you_search',
+        'mcp__ydc__you_express',
+        'mcp__ydc__you_contents',
       ],
       model: 'claude-sonnet-4-5-20250929',
     },
@@ -262,7 +262,7 @@ async function main() {
   // 'await using' ensures automatic cleanup when scope exits
   await using session = unstable_v2_createSession({
     mcpServers: {
-      you: {
+      ydc: {
         type: 'http' as const,
         url: 'https://api.you.com/mcp',
         headers: {
@@ -271,9 +271,9 @@ async function main() {
       },
     },
     allowedTools: [
-      'mcp__you__you_search',
-      'mcp__you__you_express',
-      'mcp__you__you_contents',
+      'mcp__ydc__you_search',
+      'mcp__ydc__you_express',
+      'mcp__ydc__you_contents',
     ],
     model: 'claude-sonnet-4-5-20250929',
   });
@@ -304,7 +304,7 @@ All templates use You.com's **HTTP MCP server** for simplicity:
 **Python:**
 ```python
 mcp_servers={
-    "you": {
+    "ydc": {
         "type": "http",
         "url": "https://api.you.com/mcp",
         "headers": {
@@ -317,7 +317,7 @@ mcp_servers={
 **TypeScript:**
 ```typescript
 mcpServers: {
-  you: {
+  ydc: {
     type: 'http' as const,
     url: 'https://api.you.com/mcp',
     headers: {
@@ -339,19 +339,19 @@ mcpServers: {
 
 After configuration, Claude can use these tools:
 
-### `mcp__you__you_search`
+### `mcp__ydc__you_search`
 Web and news search with filters:
 - `query`: Search query string
 - `freshness`: Filter by recency (day, week, month, year)
 - `country`: Country code for localized results
 - `count`: Number of results to return
 
-### `mcp__you__you_express`
+### `mcp__ydc__you_express`
 Fast AI agent with optional web search:
 - `input`: Query or instruction for the AI agent
 - `tools`: Optional list of tools to use (e.g., ["search"])
 
-### `mcp__you__you_contents`
+### `mcp__ydc__you_contents`
 Web page content extraction:
 - `urls`: Array of URLs to extract content from
 - `format`: Output format (markdown, text, html)
@@ -462,11 +462,11 @@ Verify your YDC_API_KEY is valid:
 <summary><strong>Tools not available or not being called</strong></summary>
 
 Ensure `allowedTools` includes the correct tool names:
-- `mcp__you__you_search` (not `you_search`)
-- `mcp__you__you_express` (not `you_express`)
-- `mcp__you__you_contents` (not `you_contents`)
+- `mcp__ydc__you_search` (not `you_search`)
+- `mcp__ydc__you_express` (not `you_express`)
+- `mcp__ydc__you_contents` (not `you_contents`)
 
-Tool names must include the `mcp__you__` prefix.
+Tool names must include the `mcp__ydc__` prefix.
 
 </details>
 

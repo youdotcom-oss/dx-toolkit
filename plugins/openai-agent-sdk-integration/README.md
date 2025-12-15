@@ -127,7 +127,7 @@ from agents.mcp import HostedMCPTool
 tools=[
     HostedMCPTool(
         tool_config={
-            "server_label": "you",
+            "server_label": "ydc",
             "server_url": "https://api.you.com/mcp",
             "headers": {
                 "Authorization": f"Bearer {ydc_api_key}"
@@ -201,7 +201,7 @@ async def main():
             HostedMCPTool(
                 tool_config={
                     "type": "mcp",
-                    "server_label": "you",
+                    "server_label": "ydc",
                     "server_url": "https://api.you.com/mcp",
                     "headers": {
                         "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"

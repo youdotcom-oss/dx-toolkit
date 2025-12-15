@@ -115,7 +115,7 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 
 options = ClaudeAgentOptions(
     mcp_servers={
-        "you": {
+        "ydc": {
             "type": "http",
             "url": "https://api.you.com/mcp",
             "headers": {
@@ -123,7 +123,7 @@ options = ClaudeAgentOptions(
             }
         }
     },
-    allowed_tools=["mcp__you__you_search", "mcp__you__you_express"]
+    allowed_tools=["mcp__ydc__you_search", "mcp__ydc__you_express"]
 )
 
 async for message in query(prompt="Search for latest AI news", options=options):
@@ -138,13 +138,13 @@ const result = query({
   prompt: 'Search for latest AI news',
   options: {
     mcpServers: {
-      you: {
+      ydc: {
         type: 'http' as const,
         url: 'https://api.you.com/mcp',
         headers: { Authorization: `Bearer ${process.env.YDC_API_KEY}` }
       }
     },
-    allowedTools: ['mcp__you__you_search', 'mcp__you__you_express']
+    allowedTools: ['mcp__ydc__you_search', 'mcp__ydc__you_express']
   }
 });
 
@@ -159,13 +159,13 @@ import { unstable_v2_createSession } from '@anthropic-ai/claude-agent-sdk';
 
 await using session = unstable_v2_createSession({
   mcpServers: {
-    you: {
+    ydc: {
       type: 'http' as const,
       url: 'https://api.you.com/mcp',
       headers: { Authorization: `Bearer ${process.env.YDC_API_KEY}` }
     }
   },
-  allowedTools: ['mcp__you__you_search', 'mcp__you__you_express']
+  allowedTools: ['mcp__ydc__you_search', 'mcp__ydc__you_express']
 });
 
 await session.send('Search for latest AI news');
@@ -180,7 +180,7 @@ for await (const msg of session.receive()) {
 
 After integration, your Claude agents can use:
 
-### `mcp__you__you_search`
+### `mcp__ydc__you_search`
 Web and news search with filters (freshness, country, count)
 
 **Example queries:**
@@ -188,7 +188,7 @@ Web and news search with filters (freshness, country, count)
 - "Find news about renewable energy from this week"
 - "Search for Python tutorials"
 
-### `mcp__you__you_express`
+### `mcp__ydc__you_express`
 Fast AI agent with optional web search
 
 **Example queries:**
@@ -196,7 +196,7 @@ Fast AI agent with optional web search
 - "Explain quantum computing"
 - "Compare TypeScript and JavaScript"
 
-### `mcp__you__you_contents`
+### `mcp__ydc__you_contents`
 Extract content from web pages
 
 **Example queries:**
@@ -279,10 +279,10 @@ Check:
 <details>
 <summary><strong>Tools not available</strong></summary>
 
-Ensure `allowedTools` includes correct tool names with `mcp__you__` prefix:
-- `mcp__you__you_search` (not `you_search`)
-- `mcp__you__you_express` (not `you_express`)
-- `mcp__you__you_contents` (not `you_contents`)
+Ensure `allowedTools` includes correct tool names with `mcp__ydc__` prefix:
+- `mcp__ydc__you_search` (not `you_search`)
+- `mcp__ydc__you_express` (not `you_express`)
+- `mcp__ydc__you_contents` (not `you_contents`)
 
 </details>
 
@@ -319,8 +319,8 @@ Choose v1 during plugin setup for broader compatibility.
 
 ```typescript
 await using session = unstable_v2_createSession({
-  mcpServers: { you: { /* config */ } },
-  allowedTools: ['mcp__you__you_search', 'mcp__you__you_express']
+  mcpServers: { ydc: { /* config */ } },
+  allowedTools: ['mcp__ydc__you_search', 'mcp__ydc__you_express']
 });
 
 // Turn 1
@@ -340,10 +340,10 @@ for await (const msg of session.receive()) {
 
 ```python
 options = ClaudeAgentOptions(
-    mcp_servers={"you": { /* config */ }},
+    mcp_servers={"ydc": { /* config */ }},
     allowed_tools=[
-        "mcp__you__you_search",    # For finding URLs
-        "mcp__you__you_contents"   # For extracting content
+        "mcp__ydc__you_search",    # For finding URLs
+        "mcp__ydc__you_contents"   # For extracting content
     ]
 )
 
