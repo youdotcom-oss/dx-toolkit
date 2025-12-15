@@ -7,11 +7,10 @@ on:
         description: "Version to publish (e.g., 1.0.0)"
         required: true
         type: string
-      prerelease:
-        description: "Mark as pre-release"
+      next:
+        description: "Next prerelease number (optional, e.g., 1 for v1.0.0-next.1)"
         required: false
-        type: boolean
-        default: false
+        type: string
 
 jobs:
   publish:
@@ -20,6 +19,6 @@ jobs:
     with:
       plugin_name: teams-mcp-integration
       version: ${{ inputs.version }}
-      prerelease: ${{ inputs.prerelease }}
+      next: ${{ inputs.next }}
     secrets:
       PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

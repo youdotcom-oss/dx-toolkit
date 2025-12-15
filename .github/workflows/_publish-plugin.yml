@@ -11,11 +11,10 @@ on:
         description: "Version to publish (e.g., 1.0.0)"
         required: true
         type: string
-      prerelease:
-        description: "Mark as pre-release"
+      next:
+        description: "Next prerelease number (optional, e.g., 1 for v1.0.0-next.1)"
         required: false
-        type: boolean
-        default: false
+        type: string
     secrets:
       PUBLISH_TOKEN:
         description: "Token with permissions to push to protected branches"
@@ -23,13 +22,16 @@ on:
     outputs:
       version:
         description: "The published version"
-        value: ${{ jobs.create-release.outputs.version }}
+        value: ${{ jobs.validate-and-build.outputs.version }}
       plugin_name:
         description: "The plugin name"
         value: ${{ jobs.create-release.outputs.plugin_name }}
       download_url:
         description: "The download URL for the plugin archive"
         value: ${{ jobs.create-release.outputs.download_url }}
+      is_prerelease:
+        description: "Whether this is a prerelease"
+        value: ${{ jobs.validate-and-build.outputs.is_prerelease }}
 
 env:
   REPO_NAME: "dx-toolkit"
@@ -40,6 +42,8 @@ jobs:
     name: Validate and Build Plugin
     outputs:
       archive_name: ${{ steps.build.outputs.archive_name }}
+      version: ${{ steps.set_version.outputs.version }}
+      is_prerelease: ${{ steps.set_version.outputs.is_prerelease }}
     steps:
       - name: Validate inputs
         env:
@@ -70,6 +74,29 @@ jobs:
           fi
 
           echo "✓ Input validation passed"
+
+      - name: Set version
+        id: set_version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_NEXT: ${{ inputs.next }}
+        run: |
+          base_version="$INPUT_VERSION"
+          next="$INPUT_NEXT"
+
+          # Compute full version with -next.N suffix if provided
+          if [[ -n "$next" ]]; then
+            full_version="${base_version}-next.${next}"
+            is_prerelease="true"
+            echo "📦 Building prerelease: ${full_version}"
+          else
+            full_version="${base_version}"
+            is_prerelease="false"
+            echo "📦 Building stable release: ${full_version}"
+          fi
+
+          echo "version=${full_version}" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=${is_prerelease}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
 
@@ -121,7 +148,7 @@ jobs:
         id: build
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.set_version.outputs.version }}
         run: |
           PLUGIN_DIR="plugins/${PLUGIN_NAME}"
           ARCHIVE_NAME="${PLUGIN_NAME}-v${VERSION}.tar.gz"
@@ -169,7 +196,7 @@ jobs:
     permissions:
       contents: write
     outputs:
-      version: ${{ inputs.version }}
+      version: ${{ needs.validate-and-build.outputs.version }}
       plugin_name: ${{ inputs.plugin_name }}
       download_url: ${{ steps.release.outputs.download_url }}
     steps:
@@ -184,7 +211,7 @@ jobs:
         id: notes
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-and-build.outputs.version }}
         run: |
           # Extract description from marketplace.json
           DESCRIPTION=$(jq -r ".plugins[] | select(.name==\"$PLUGIN_NAME\") | .description" marketplace.json || echo "")
@@ -208,9 +235,9 @@ jobs:
         id: release
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-and-build.outputs.version }}
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          IS_PRERELEASE: ${{ inputs.prerelease }}
+          IS_PRERELEASE: ${{ needs.validate-and-build.outputs.is_prerelease }}
           ARCHIVE_NAME: ${{ needs.validate-and-build.outputs.archive_name }}
         run: |
           # Use plugin@version tag format (consistent with packages)
@@ -240,7 +267,7 @@ jobs:
   update-marketplace:
     runs-on: ubuntu-latest
     name: Update Marketplace
-    needs: [create-release]
+    needs: [validate-and-build, create-release]
     permissions:
       contents: write
     steps:
@@ -254,7 +281,7 @@ jobs:
       - name: Update plugin.json version
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-and-build.outputs.version }}
         run: |
           PLUGIN_JSON="plugins/${PLUGIN_NAME}/.claude-plugin/plugin.json"
 
@@ -280,7 +307,7 @@ jobs:
       - name: Update marketplace.json
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-and-build.outputs.version }}
           DOWNLOAD_URL: ${{ needs.create-release.outputs.download_url }}
         run: |
           # Update plugin version and download URL in marketplace.json
@@ -322,7 +349,7 @@ jobs:
       - name: Commit and push
         env:
           PLUGIN_NAME: ${{ inputs.plugin_name }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-and-build.outputs.version }}
         run: |
           PLUGIN_JSON="plugins/${PLUGIN_NAME}/.claude-plugin/plugin.json"
 
