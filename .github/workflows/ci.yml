@@ -25,20 +25,8 @@ jobs:
       - name: Run lint
         run: bun run check
 
-      - name: Run scripts test
-        run: bun run --filter 'scripts/*' test || echo "No scripts packages found"
-        env:
-          YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-      - name: Run packages tests
-        run: bun run --filter 'packages/*' test
-        env:
-          YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-      - name: Run plugin tests
-        run: bun run --filter 'plugins/*' test || echo "No plugin packages found"
+      - name: Run test
+        run: bun run test
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
