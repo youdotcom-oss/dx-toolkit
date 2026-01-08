@@ -1,6 +1,6 @@
-# You.com Plugin Marketplace
+# You.com Skills Marketplace
 
-Browse and install plugins that bring You.com's AI capabilities to your development workflow. Works with Claude Code, Cursor, Windsurf, and other AI coding assistants.
+Browse and install skills that bring You.com's AI capabilities to your development workflow. Works with Claude Code, Cursor, Windsurf, and other AI coding assistants.
 
 ---
 
@@ -99,7 +99,7 @@ Learn more: [agents.md specification](https://agents.md/)
 
 ---
 
-## 📦 Available Plugins
+## 📦 Available Skills
 
 ### Enterprise Integration
 
@@ -266,32 +266,32 @@ Cloud deployment and infrastructure automation (GCP, Azure, Databricks)
 
 ---
 
-## 💡 How Plugins Work
+## 💡 How Skills Work
 
 **For Claude Code users (--claude):**
-- Plugins add slash commands to your workflow
+- Skills provide interactive workflows for integration tasks
 - Install script automatically configures `.claude/settings.json` with marketplace
 - Local installation to `.claude/plugins/` for project isolation and security
 - Native integration with your IDE
-- Restart Claude Code to use installed plugins
+- Restart Claude Code to use installed skills
 
 **For Cursor users (--cursor):**
 - Cursor imports from [Claude's skills and plugins](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 - Install to `.claude/plugins/` (same location as Claude Code)
 - Enable in: Cursor Settings → Rules → Import Settings → "Claude skills and plugins"
-- Cursor determines when plugins are relevant based on context (agent-decided rules)
+- Cursor determines when skills are relevant based on context (agent-decided rules)
 - No manual file copying required
 
 **For other AI agents (--agents.md):**
 - Install to `.dx-toolkit/plugins/` (customizable via `--dir`)
 - Script automatically adds reference to your project's `AGENTS.md`
-- AI agents discover plugins via directory scan
+- AI agents discover skills via marketplace.json and directory scan
 - Works with Claude, Codex, Jules, Cody, Continue, VS Code, and 20+ agents
 - Universal compatibility via [agents.md specification](https://agents.md/)
 
 **All platforms:**
 - Access official You.com packages
-- Step-by-step setup guidance via plugin commands
+- Step-by-step setup guidance via interactive workflows
 - Environment configuration help
 - Troubleshooting support
 
@@ -325,9 +325,9 @@ Cloud deployment and infrastructure automation (GCP, Azure, Databricks)
 ---
 
 <details>
-<summary><strong>For Plugin Developers</strong></summary>
+<summary><strong>For Skill Developers</strong></summary>
 
-Want to contribute or build your own plugin? See:
+Want to contribute or build your own skill? See:
 - [Root AGENTS.md](../AGENTS.md) - Development guidelines
 - [marketplace.json](../marketplace.json) - Marketplace manifest
 - [Contributing Guide](../CONTRIBUTING.md) - How to contribute

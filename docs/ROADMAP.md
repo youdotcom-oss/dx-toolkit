@@ -4,7 +4,7 @@ Packages and plugins planned for the dx-toolkit monorepo.
 
 ---
 
-## Packages in Development (Target: 12/16/2025)
+## Packages in Development
 
 ### @youdotcom-oss/openai-sdk-plugin
 
