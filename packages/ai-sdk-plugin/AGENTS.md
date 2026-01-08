@@ -4,7 +4,7 @@ A Vercel AI SDK plugin providing You.com's search, AI agent, and content extract
 
 ---
 
-> **Note for end users**: If you want to use this plugin (not develop or contribute), see [README.md](./README.md) for setup instructions and usage examples.
+> **Note for end users**: If you want to use this plugin (not develop or contribute), see [README.md](./README.md) for setup and usage.
 
 **This guide (AGENTS.md) is for developers, contributors, and AI coding agents** who want to:
 
@@ -28,8 +28,6 @@ A Vercel AI SDK plugin providing You.com's search, AI agent, and content extract
 
 ## Quick Start
 
-### Setup Environment
-
 ```bash
 cd packages/ai-sdk-plugin
 
@@ -41,20 +39,65 @@ bun install
 echo "export YDC_API_KEY=your-youdotcom-api-key-here" > .env
 echo "export ANTHROPIC_API_KEY=your-anthropic-api-key-here" >> .env
 source .env
-```
 
-### Development Commands
-
-```bash
 # From package directory
 cd packages/ai-sdk-plugin
-
 bun test                       # Run all tests
-bun test:coverage              # Run tests with coverage report
-bun test:watch                 # Run tests in watch mode
 bun run check                  # Run all checks (biome + types)
-bun run check:write            # Auto-fix all issues
 ```
+
+## Code Style
+
+> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
+
+## AI SDK-Specific Patterns
+
+> **For AI SDK tool patterns**: See [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md)
+
+The ai-sdk-patterns skill covers:
+- Tool description best practices (write for AI models, not humans)
+- Input schema patterns (use schemas from `@youdotcom-oss/mcp`)
+- API key handling (automatic environment variable fallback)
+- Raw response returns (maximum flexibility for consumers)
+- Schema-driven smart queries
+
+### AI SDK Tool Pattern
+
+Each tool function follows this pattern:
+
+```typescript
+export const youToolName = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+
+  return tool({
+    description: 'Tool description for AI model',
+    inputSchema: ZodSchema,
+    execute: async (params) => {
+      if (!apiKey) {
+        throw new Error('YDC_API_KEY is required');
+      }
+
+      const response = await callApiUtility({
+        params,
+        YDC_API_KEY: apiKey,
+        getUserAgent,
+      });
+
+      return {
+        text: formatResponse(response),
+        data: response,
+      };
+    },
+  });
+};
+```
+
+**Key components**:
+- `config` - Optional configuration with API key
+- `tool()` - AI SDK tool wrapper
+- `inputSchema` - Zod schema for parameter validation
+- `execute()` - Async function that calls You.com API
+- Returns `{ text, data }` - Text for AI model, structured data for inspection
 
 ## Architecture
 
@@ -99,117 +142,6 @@ packages/ai-sdk-plugin/
 └── README.md                        # User documentation
 ```
 
-## AI SDK Tool Pattern
-
-### Tool Function Structure
-
-Each tool function follows this pattern:
-
-```typescript
-export const youToolName = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
-
-  return tool({
-    description: 'Tool description for AI model',
-    inputSchema: ZodSchema,
-    execute: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required');
-      }
-
-      const response = await callApiUtility({
-        params,
-        YDC_API_KEY: apiKey,
-        getUserAgent,
-      });
-
-      return {
-        text: formatResponse(response),
-        data: response,
-      };
-    },
-  });
-};
-```
-
-**Key components**:
-- `config` - Optional configuration with API key
-- `tool()` - AI SDK tool wrapper
-- `inputSchema` - Zod schema for parameter validation
-- `execute()` - Async function that calls You.com API
-- Returns `{ text, data }` - Text for AI model, structured data for inspection
-
-### Tool Configuration
-
-**Always provide API key via config or environment**:
-
-```typescript
-// ✅ From environment variable
-const search = youSearch();
-
-// ✅ From config
-const search = youSearch({ apiKey: process.env.YDC_API_KEY });
-
-// ❌ Will fail at execution time
-const search = youSearch({ apiKey: '' });
-```
-
-**Always validate API key before API calls**:
-
-```typescript
-// ✅ Check API key in execute function
-execute: async (params) => {
-  if (!apiKey) {
-    throw new Error('YDC_API_KEY is required');
-  }
-  const response = await callApi(...);
-}
-
-// ❌ Don't skip validation
-execute: async (params) => {
-  const response = await callApi(...); // May fail with unclear error
-}
-```
-
-### Response Format
-
-**Always return both text and structured data**:
-
-```typescript
-// ✅ Return both formats
-return {
-  text: formatSearchResults(response),  // For AI model
-  data: response,                        // For inspection/debugging
-};
-
-// ❌ Don't return only text
-return formatSearchResults(response);
-
-// ❌ Don't return only data
-return response;
-```
-
-**Text format should be human-readable**:
-
-```typescript
-// ✅ Formatted for readability
-text: `Found 10 results:
-
-1. Example.com
-   Latest AI developments in 2025
-   https://example.com/ai
-
-2. Tech News
-   Breaking: New AI model released
-   https://technews.com/new-model`
-
-// ❌ JSON dump
-text: JSON.stringify(results)
-
-// ❌ Raw API response
-text: results.toString()
-```
-
 ## Available Tools
 
 ### youSearch()
@@ -226,21 +158,8 @@ Web and news search using You.com Search API.
 - `country` (string, optional) - Country code filter
 - `safesearch` (string, optional) - Safe search level
 - `freshness` (string, optional) - Time range filter
-- `livecrawl` (string, optional) - Live-crawl sections for full content ("web", "news", "all")
-- `livecrawl_formats` (string, optional) - Format for crawled content ("html", "markdown")
-
-**Returns**: Web results with snippets and news articles
-
-**Example**:
-```typescript
-const result = await generateText({
-  model: 'anthropic/claude-sonnet-4.5',
-  tools: {
-    search: youSearch(),
-  },
-  prompt: 'What happened in AI last week?',
-});
-```
+- `livecrawl` (string, optional) - Live-crawl sections for full content
+- `livecrawl_formats` (string, optional) - Format for crawled content
 
 ### youExpress()
 
@@ -254,19 +173,6 @@ Fast AI agent with web search integration.
 - `input` (string) - Query or prompt
 - `tools` (array, optional) - Enable web search (default: enabled)
 
-**Returns**: AI-generated answer with optional web context
-
-**Example**:
-```typescript
-const result = await generateText({
-  model: 'anthropic/claude-sonnet-4.5',
-  tools: {
-    agent: youExpress(),
-  },
-  prompt: 'What are the benefits of MCP?',
-});
-```
-
 ### youContents()
 
 Web page content extraction in markdown or HTML format.
@@ -279,74 +185,9 @@ Web page content extraction in markdown or HTML format.
 - `urls` (array) - URLs to extract content from
 - `format` (string, optional) - Output format ('markdown' or 'html')
 
-**Returns**: Extracted page content
+## Testing
 
-**Example**:
-```typescript
-const result = await generateText({
-  model: 'anthropic/claude-sonnet-4.5',
-  tools: {
-    extract: youContents(),
-  },
-  prompt: 'Extract and summarize vercel.com/ai',
-});
-```
-
-## Development Workflow
-
-### Adding New Features
-
-**Pattern**: All new features must maintain minimal abstraction overhead.
-
-**When adding tool parameters**:
-
-1. **Update schema in @youdotcom-oss/mcp** - Schemas are maintained in the MCP package
-2. **No changes needed in this package** - Tool automatically uses updated schema
-3. **Add tests** - Test new parameters in integration.spec.ts
-4. **Update TSDoc** - Document new parameters in source code with TSDoc comments
-
-**When adding new tools**:
-
-1. **Create tool export in src/main.ts**:
-```typescript
-export const youNewTool = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
-
-  return tool({
-    description: 'Clear description for AI model',
-    inputSchema: NewToolSchema, // From @youdotcom-oss/mcp
-    execute: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required');
-      }
-
-      const response = await callNewToolUtility({
-        params,
-        YDC_API_KEY: apiKey,
-        getUserAgent,
-      });
-
-      return {
-        text: formatNewToolResponse(response),
-        data: response,
-      };
-    },
-  });
-};
-```
-
-2. **Add integration tests**
-3. **Add example in examples/**
-4. **Update README.md and add TSDoc comments in source code**
-
-### Testing Strategy
-
-**Integration Tests** (`src/tests/integration.spec.ts`):
-- Test all three tools with real API calls
-- Test error handling (missing API key, invalid key)
-- Test tool composition (multiple tools together)
-- Test with different AI models
-- Test streaming responses
+> **For universal test patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
 
 ### Running Tests
 
@@ -369,38 +210,14 @@ bun test:watch
 - `ANTHROPIC_API_KEY` environment variable
 - Stable network connection
 
-**For universal test patterns** (test() vs it(), retry configuration, error handling, assertion anti-patterns), see the [root AGENTS.md](../../AGENTS.md#universal-code-patterns).
+### Integration Tests
 
-## Code Quality
-
-### Automated Checks
-
-```bash
-# Run all checks (CI command)
-bun run check              # biome + types
-
-# Individual checks
-bun run check:biome        # Lint and format
-bun run check:types        # TypeScript errors
-
-# Auto-fix
-bun run check:write        # Fix all auto-fixable issues
-```
-
-### AI SDK Tool Patterns
-
-> **For AI SDK tool patterns**, see [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md)
-
-The ai-sdk-patterns skill covers:
-- Tool description best practices (write for AI models, not humans)
-- Input schema patterns (use schemas from `@youdotcom-oss/mcp`)
-- API key handling (automatic environment variable fallback)
-- Raw response returns (maximum flexibility for consumers)
-- Schema-driven smart queries
-
-### Code Style
-
-> **For universal code patterns**, see [`.claude/skills/code-patterns`](../../.claude/skills/code-patterns/SKILL.md)
+`src/tests/integration.spec.ts`:
+- Test all three tools with real API calls
+- Test error handling (missing API key, invalid key)
+- Test tool composition (multiple tools together)
+- Test with different AI models
+- Test streaming responses
 
 ## Troubleshooting
 
@@ -442,25 +259,6 @@ await tool.execute?.({ query: 'test' });
 - Run specific test suites instead of all tests
 - Check API key rate limits at [you.com/platform](https://you.com/platform/api-keys)
 
-### Integration Test Failures
-
-**Symptom**: Tests fail consistently despite valid API key
-
-**Troubleshooting**:
-```bash
-# Check API key is valid
-echo $YDC_API_KEY
-
-# Check ANTHROPIC_API_KEY is set
-echo $ANTHROPIC_API_KEY
-
-# Test individual tool
-bun test src/tests/integration.spec.ts -t "basic web search"
-
-# Run with verbose output
-bun test --verbose src/tests/integration.spec.ts
-```
-
 ## Contributing
 
 See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
@@ -477,6 +275,12 @@ fix(ai-sdk-plugin): handle empty search results
 See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documentation. This package uses the shared `.github/workflows/_publish-package.yml` workflow.
 
 **Package-specific**: Workflow name is "Publish ai-sdk-plugin Release"
+
+## Related Skills
+
+- [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md) - AI SDK tool patterns
+- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
+- [`.claude/skills/documentation`](../../.claude/skills/documentation/SKILL.md) - Documentation standards
 
 ## Support
 
