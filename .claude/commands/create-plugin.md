@@ -457,7 +457,7 @@ Your new plugin `{plugin-name}` has been created at `plugins/{plugin-name}/`
 
 3. **Add to MARKETPLACE.md** (REQUIRED)
    - Add plugin entry under appropriate category in `docs/MARKETPLACE.md`
-   - See `.claude/skills/plugin-creation` for format
+   - See `.claude/rules/workflows.md` for format
    - DO NOT include version numbers
 
 4. **Test locally**
@@ -480,7 +480,7 @@ Your new plugin `{plugin-name}` has been created at `plugins/{plugin-name}/`
 - Updated: `marketplace.json`
 
 ### Documentation:
-- Plugin creation guide: `.claude/skills/plugin-creation/skill.md`
+- Plugin creation guide: `.claude/rules/workflows.md`
 - Plugin marketplace docs: `docs/MARKETPLACE.md`
 
 ### Ready to implement!
@@ -512,6 +512,6 @@ Before completing:
 
 ## See Also
 
-- Plugin creation workflow: `.claude/skills/plugin-creation/skill.md`
+- Plugin creation workflow: `.claude/rules/workflows.md`
 - Plugin marketplace documentation: `docs/MARKETPLACE.md`
 - Existing plugins for reference: `plugins/*/`

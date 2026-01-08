@@ -1,13 +1,6 @@
----
-name: code-patterns
-description: Universal code patterns and best practices for dx-toolkit (Bun APIs, testing, error handling, type guards)
----
-
 # Universal Code Patterns
 
 Universal code patterns and best practices for dx-toolkit. Use these patterns consistently across all packages in the monorepo.
-
----
 
 ## Arrow Functions
 

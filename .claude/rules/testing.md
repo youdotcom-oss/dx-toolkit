@@ -1,13 +1,6 @@
----
-name: performance-testing
-description: Performance testing and monitoring system for dx-toolkit packages - measurements, thresholds, regression handling
----
-
 # Performance Testing & Monitoring
 
 Centralized performance monitoring system for dx-toolkit packages. Use these patterns when adding performance tests or investigating regressions.
-
----
 
 ## Centralized Performance Monitoring
 
@@ -136,9 +129,8 @@ const results = await Promise.all([
 4. **Use realistic scenarios** - Measure actual use cases, not synthetic benchmarks
 5. **Monitor trends** - Look for gradual performance degradation over time
 
-## Related Resources
+## Resources
 
 - Performance documentation: `docs/PERFORMANCE.md`
 - Measurement scripts: `scripts/performance/`
 - Weekly workflow: `.github/workflows/weekly-performance.yml`
-- Root AGENTS.md: Performance Testing section

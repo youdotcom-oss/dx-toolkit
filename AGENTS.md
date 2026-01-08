@@ -10,30 +10,33 @@ Open-source toolkit enabling developers to integrate You.com's AI capabilities i
 
 > **For a user-focused quick start**, see the [root README.md](./README.md). This guide (AGENTS.md) is for internal maintainers and contributors who need comprehensive development details.
 
-## Skill-Based Organization
+## Rules and Skills Organization
 
-This monorepo uses [Claude Code Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills) for efficient, on-demand knowledge loading:
+This monorepo uses both rules (`.claude/rules/`) and skills (`.claude/skills/`) for efficient knowledge organization:
 
-**Available Skills** (in `.claude/skills/`):
-- **code-patterns** - Universal code patterns (arrow functions, Bun APIs, test patterns, error handling, type guards)
+**Rules** (in `.claude/rules/`) - Universal development patterns:
+- **code-patterns.md** - Universal code patterns (arrow functions, Bun APIs, test patterns, error handling, type guards)
+- **git-workflow.md** - Git conventions (branching, commits, versioning, gh CLI usage)
+- **testing.md** - Performance monitoring system (measurements, thresholds, regression handling)
+- **workflows.md** - Package and plugin creation workflows (implementation, testing, publishing)
+
+**Skills** (in `.claude/skills/`) - Package-specific patterns:
 - **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
-- **git-workflow** - Git conventions (branching, commits, versioning, gh CLI usage)
 - **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
 - **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
 - **teams-ai-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
-- **package-creation** - Post-creation workflow (implementation, testing, publishing)
-- **performance-testing** - Performance monitoring system (measurements, thresholds, regression handling)
 
 **Benefits**:
-- **Progressive disclosure**: Skill metadata (~100 tokens) loads first, full content (<5k tokens) loads on-demand
-- **Token efficiency**: ~43% reduction in always-loaded context (~8,650 tokens moved to on-demand skills)
-- **Single source of truth**: Universal patterns in skills, package-specific patterns in package AGENTS.md
-- **Maintainability**: Update patterns once in skills, not in every package AGENTS.md
+- **Reduced overhead**: Rules use plain markdown without frontmatter metadata
+- **Clear organization**: Rules for universal patterns, skills for package-specific patterns
+- **Token efficiency**: Simpler structure, easier discovery
+- **Single source of truth**: Update patterns once, referenced everywhere
+- **Maintainability**: Consistent pattern across the monorepo
 
 Throughout this guide, you'll see references like:
-> **For universal code patterns**, see `.claude/skills/code-patterns`
+> **For universal code patterns**, see `.claude/rules/code-patterns.md`
 
-These indicate that detailed information is available in the referenced skill.
+These indicate that detailed information is available in the referenced rule file.
 
 ---
 
@@ -462,9 +465,9 @@ Packages depending on other workspace packages should use the **bundled pattern*
 
 ### Universal Code Patterns
 
-> **For universal code patterns** (arrow functions, Bun APIs, test patterns, error handling, etc.), see `.claude/skills/code-patterns`
+> **For universal code patterns** (arrow functions, Bun APIs, test patterns, error handling, etc.), see `.claude/rules/code-patterns.md`
 
-This skill covers:
+This rule covers:
 - Arrow functions and function declarations
 - Numeric separators for readability
 - Bun APIs over Node.js APIs
@@ -671,9 +674,9 @@ Read and follow the instructions in `.claude/commands/create-package.md`
 
 ### Post-Creation Workflow
 
-> **For complete post-creation workflow** (implementation, testing, publishing), see `.claude/skills/package-creation`
+> **For complete post-creation workflow** (implementation, testing, publishing), see `.claude/rules/workflows.md`
 
-This skill covers:
+This rule covers:
 - Implementing package logic with TSDoc comments
 - Registering package documentation in root CLAUDE.md
 - Adding performance monitoring (optional, API wrappers only)
@@ -841,9 +844,9 @@ Before publishing package documentation:
 
 ## Performance Testing & Monitoring
 
-> **For complete performance testing details** (centralized monitoring, running measurements, adding to new packages), see `.claude/skills/performance-testing`
+> **For complete performance testing details** (centralized monitoring, running measurements, adding to new packages), see `.claude/rules/testing.md`
 
-This skill covers:
+This rule covers:
 - Centralized weekly monitoring architecture
 - Running measurements locally and in CI
 - Package thresholds and regression handling

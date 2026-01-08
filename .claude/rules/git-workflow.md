@@ -1,13 +1,6 @@
----
-name: git-workflow
-description: Git workflow, branching strategy, commit conventions, and release process for dx-toolkit
----
-
 # Git Workflow
 
 Git workflow, branching strategy, commit conventions, and release process for dx-toolkit monorepo.
-
----
 
 ## Working with GitHub Issues and PRs
 
@@ -114,8 +107,7 @@ This convention follows industry standards used by Node.js and most major projec
 5. **Use fast-forward merges** - Cleaner history than rebasing
 6. **Review gh CLI output** - Verify commands target correct repository
 
-## Related Resources
+## Resources
 
-- Conventional Commits: https://www.conventionalcommits.org/
-- GitHub CLI: https://cli.github.com/
-- Root AGENTS.md: Git Workflow section
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [GitHub CLI](https://cli.github.com/)
