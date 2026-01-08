@@ -1,6 +1,13 @@
 ---
-name: integrate-ai-sdk
-description: Integrate Vercel AI SDK applications with You.com tools
+name: ai-sdk-integration
+description: Integrate Vercel AI SDK applications with You.com tools (web search, AI agent, content extraction). Use when developer mentions AI SDK, Vercel AI SDK, generateText, streamText, or You.com integration with AI SDK.
+license: MIT
+compatibility: Requires Node.js 18+ and npm/bun/yarn/pnpm
+metadata:
+  author: youdotcom-oss
+  version: "0.2.0"
+  category: workflow
+  keywords: vercel,ai-sdk,you.com,integration,anthropic,openai
 ---
 
 # Integrate AI SDK with You.com Tools
@@ -173,6 +180,123 @@ Global checklist:
 
 **Issue**: "Custom env var not working"
 **Fix**: Pass to each tool: `youSearch({ apiKey })`
+
+## Advanced: Tool Development Patterns
+
+For developers creating custom AI SDK tools or contributing to @youdotcom-oss/ai-sdk-plugin:
+
+### Tool Function Structure
+
+Each tool function follows this pattern:
+
+```typescript
+export const youToolName = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+
+  return tool({
+    description: 'Tool description for AI model',
+    inputSchema: ZodSchema,
+    execute: async (params) => {
+      if (!apiKey) {
+        throw new Error('YDC_API_KEY is required');
+      }
+
+      const response = await callApiUtility({
+        params,
+        YDC_API_KEY: apiKey,
+        getUserAgent,
+      });
+
+      // Return raw API response for maximum flexibility
+      return response;
+    },
+  });
+};
+```
+
+### Input Schemas Enable Smart Queries
+
+Always use schemas from `@youdotcom-oss/mcp`:
+
+```typescript
+// ✅ Import from @youdotcom-oss/mcp
+import { SearchQuerySchema } from '@youdotcom-oss/mcp';
+
+export const youSearch = (config: YouToolsConfig = {}) => {
+  return tool({
+    description: '...',
+    inputSchema: SearchQuerySchema,  // Enables AI to use all search parameters
+    execute: async (params) => { ... },
+  });
+};
+
+// ❌ Don't duplicate or simplify schemas
+const MySearchSchema = z.object({ query: z.string() });  // Missing filters!
+```
+
+**Why this matters:**
+- Rich schemas enable AI to use advanced query parameters (filters, freshness, country, etc.)
+- AI can construct more intelligent queries based on user intent
+- Prevents duplicating schema definitions across packages
+- Ensures consistency with MCP server schemas
+
+### API Key Handling
+
+Always provide environment variable fallback and validate before API calls:
+
+```typescript
+// ✅ Automatic environment variable fallback
+const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+
+// ✅ Check API key in execute function
+execute: async (params) => {
+  if (!apiKey) {
+    throw new Error('YDC_API_KEY is required');
+  }
+  const response = await callApi(...);
+}
+```
+
+### Response Format
+
+Always return raw API response for maximum flexibility:
+
+```typescript
+// ✅ Return raw API response
+execute: async (params) => {
+  const response = await fetchSearchResults({
+    searchQuery: params,
+    YDC_API_KEY: apiKey,
+    getUserAgent,
+  });
+
+  return response;  // Raw response for maximum flexibility
+}
+
+// ❌ Don't format or transform responses
+return {
+  text: formatResponse(response),
+  data: response,
+};
+```
+
+**Why raw responses?**
+- Maximum flexibility for AI SDK to process results
+- No information loss from formatting
+- AI SDK handles presentation layer
+- Easier to debug (see actual API response)
+
+### Tool Descriptions
+
+Write descriptions that guide AI behavior:
+
+```typescript
+// ✅ Clear guidance for AI model
+description: 'Search the web for current information, news, articles, and content using You.com. Returns web results with snippets and news articles. Use this when you need up-to-date information or facts from the internet.'
+
+// ❌ Too brief
+description: 'Search the web'
+```
 
 ## Additional Resources
 

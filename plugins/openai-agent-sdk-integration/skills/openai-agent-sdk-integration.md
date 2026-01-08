@@ -1,6 +1,13 @@
 ---
-name: integrate-openai-agent
-description: Integrate OpenAI Agents SDK with You.com MCP server
+name: openai-agent-sdk-integration
+description: Integrate OpenAI Agents SDK with You.com MCP server - Hosted and Streamable HTTP support for Python and TypeScript. Use when developer mentions OpenAI Agents SDK, OpenAI agents, or integrating OpenAI with MCP.
+license: MIT
+compatibility: Python 3.10+ or Node.js 18+ with TypeScript
+metadata:
+  author: youdotcom-oss
+  version: "0.2.0"
+  category: workflow
+  keywords: openai,agent-sdk,mcp,you.com,integration,hosted,streamable-http
 ---
 
 # Integrate OpenAI Agents SDK with You.com MCP
@@ -19,13 +26,13 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
 3. **Install Package**
    * Python: `pip install openai-agents`
    * TypeScript: `npm install @openai/agents`
-   
+
 4. **Ask: Environment Variables**
-   
+
    **For Both Modes:**
    * `YDC_API_KEY` (You.com API key for Bearer token)
    * `OPENAI_API_KEY` (OpenAI API key)
-   
+
    Have they set them?
    * If NO: Guide to get keys:
      - YDC_API_KEY: https://you.com/platform/api-keys
@@ -36,19 +43,19 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
    * EXISTING file: Ask which file to integrate into (add MCP config)
 
 6. **Create/Update File**
-   
+
    **For NEW files:**
    * Use the complete template code from the "Complete Templates" section below
    * User can run immediately with their API keys set
-   
+
    **For EXISTING files:**
    * Add MCP server configuration to their existing code
-   
+
    **Hosted MCP configuration block (Python)**:
    ```python
    from agents import Agent, Runner
    from agents.mcp import HostedMCPTool
-   
+
    agent = Agent(
        name="Assistant",
        instructions="Use You.com tools to answer questions.",
@@ -67,11 +74,11 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
        ],
    )
    ```
-   
+
    **Hosted MCP configuration block (TypeScript)**:
    ```typescript
    import { Agent, hostedMcpTool } from '@openai/agents';
-   
+
    const agent = new Agent({
      name: 'Assistant',
      instructions: 'Use You.com tools to answer questions.',
@@ -86,12 +93,12 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
      ],
    });
    ```
-   
+
    **Streamable HTTP configuration block (Python)**:
    ```python
    from agents import Agent, Runner
    from agents.mcp import MCPServerStreamableHttp
-   
+
    async with MCPServerStreamableHttp(
        name="You.com MCP Server",
        params={
@@ -108,11 +115,11 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
            mcp_servers=[server],
        )
    ```
-   
+
    **Streamable HTTP configuration block (TypeScript)**:
    ```typescript
    import { Agent, MCPServerStreamableHttp } from '@openai/agents';
-   
+
    const mcpServer = new MCPServerStreamableHttp({
      url: 'https://api.you.com/mcp',
      name: 'You.com MCP Server',
@@ -122,7 +129,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
        },
      },
    });
-   
+
    const agent = new Agent({
      name: 'Assistant',
      instructions: 'Use You.com tools to answer questions.',
@@ -192,7 +199,7 @@ async def main():
         agent,
         "Search for the latest AI news from this week"
     )
-    
+
     print(result.final_output)
 
 
@@ -257,7 +264,7 @@ async def main():
             agent,
             "Search for the latest AI news from this week"
         )
-        
+
         print(result.final_output)
 
 
@@ -679,6 +686,65 @@ const mcpServer = new MCPServerStreamableHttp({
 ```
 
 </details>
+
+## Advanced: MCP Server Development Patterns
+
+For developers creating custom MCP tools or contributing to @youdotcom-oss/mcp:
+
+### Schema Design
+
+Always use Zod for input/output validation:
+
+```ts
+export const MyToolInputSchema = z.object({
+  query: z.string().min(1).describe("Search query"),
+  limit: z.number().optional().describe("Max results"),
+});
+```
+
+**Why this pattern?**
+- Zod provides runtime validation and TypeScript types
+- `.describe()` adds documentation for MCP tool parameters
+- Schema validation catches invalid inputs before API calls
+
+### Error Handling
+
+Always use try/catch with typed error handling:
+
+```ts
+try {
+  const response = await apiCall();
+  return formatResponse(response);
+} catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : String(err);
+  await logger({ level: "error", data: `API call failed: ${errorMessage}` });
+  return {
+    content: [{ type: "text", text: `Error: ${errorMessage}` }],
+    isError: true,
+  };
+}
+```
+
+**Why this pattern?**
+- MCP tools must return structured responses, never throw
+- `err: unknown` ensures type safety in catch blocks
+- User-friendly error messages in `content`
+
+### Response Format
+
+Return both `content` and `structuredContent`:
+
+```ts
+return {
+  content: [{ type: "text", text: formattedText }],
+  structuredContent: responseData,
+};
+```
+
+**Why this pattern?**
+- `content` provides human-readable text for display
+- `structuredContent` provides machine-readable data
+- MCP clients can choose which format to use
 
 ## Additional Resources
 

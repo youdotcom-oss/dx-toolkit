@@ -23,9 +23,9 @@ Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, w
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
 Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
-## Marketplace
+## Skills
 
-Cross-platform plugins for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI workflows, and deployment automation.
+Cross-platform skills for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI SDK workflows, and agent SDK integrations.
 
 ### [ai-sdk-integration](./plugins/ai-sdk-integration/)
 Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK applications - interactive setup workflow with smart integration. **[Documentation →](./plugins/ai-sdk-integration/README.md)**

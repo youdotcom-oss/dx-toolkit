@@ -1,6 +1,13 @@
 ---
-name: integrate-claude-agent
-description: Integrate Claude Agent SDK with You.com HTTP MCP server
+name: claude-agent-sdk-integration
+description: Integrate Claude Agent SDK with You.com HTTP MCP server for Python and TypeScript. Use when developer mentions Claude Agent SDK, Anthropic Agent SDK, or integrating Claude with MCP tools.
+license: MIT
+compatibility: Python 3.10+ or TypeScript 5.2+ (for v2), Node.js 18+
+metadata:
+  author: youdotcom-oss
+  version: "0.2.0"
+  category: workflow
+  keywords: claude,anthropic,agent-sdk,mcp,you.com,integration,http
 ---
 
 # Integrate Claude Agent SDK with You.com MCP
@@ -19,7 +26,7 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
 3. **Install Package**
    * Python: `pip install claude-agent-sdk`
    * TypeScript: `npm install @anthropic-ai/claude-agent-sdk`
-   
+
 4. **Ask: Environment Variables**
    * Using standard `YDC_API_KEY` and `ANTHROPIC_API_KEY`?
    * Or custom names?
@@ -33,17 +40,17 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
    * EXISTING file: Ask which file to integrate into (add HTTP MCP config)
 
 6. **Create/Update File**
-   
+
    **For NEW files:**
    * Use the complete template code from the "Complete Templates" section below
    * User can run immediately with their API keys set
-   
+
    **For EXISTING files:**
    * Add HTTP MCP server configuration to their existing code
    * Python configuration block:
      ```python
      from claude_agent_sdk import query, ClaudeAgentOptions
-     
+
      options = ClaudeAgentOptions(
          mcp_servers={
              "ydc": {
@@ -61,7 +68,7 @@ Interactive workflow to set up Claude Agent SDK with You.com's HTTP MCP server.
          ]
      )
      ```
-   
+
    * TypeScript configuration block:
      ```typescript
      const options = {
@@ -497,6 +504,65 @@ try {
 Choose v1 during setup for broader TypeScript compatibility.
 
 </details>
+
+## Advanced: MCP Server Development Patterns
+
+For developers creating custom MCP tools or contributing to @youdotcom-oss/mcp:
+
+### Schema Design
+
+Always use Zod for input/output validation:
+
+```ts
+export const MyToolInputSchema = z.object({
+  query: z.string().min(1).describe("Search query"),
+  limit: z.number().optional().describe("Max results"),
+});
+```
+
+**Why this pattern?**
+- Zod provides runtime validation and TypeScript types
+- `.describe()` adds documentation for MCP tool parameters
+- Schema validation catches invalid inputs before API calls
+
+### Error Handling
+
+Always use try/catch with typed error handling:
+
+```ts
+try {
+  const response = await apiCall();
+  return formatResponse(response);
+} catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : String(err);
+  await logger({ level: "error", data: `API call failed: ${errorMessage}` });
+  return {
+    content: [{ type: "text", text: `Error: ${errorMessage}` }],
+    isError: true,
+  };
+}
+```
+
+**Why this pattern?**
+- MCP tools must return structured responses, never throw
+- `err: unknown` ensures type safety in catch blocks
+- User-friendly error messages in `content`
+
+### Response Format
+
+Return both `content` and `structuredContent`:
+
+```ts
+return {
+  content: [{ type: "text", text: formattedText }],
+  structuredContent: responseData,
+};
+```
+
+**Why this pattern?**
+- `content` provides human-readable text for display
+- `structuredContent` provides machine-readable data
+- MCP clients can choose which format to use
 
 ## Additional Resources
 

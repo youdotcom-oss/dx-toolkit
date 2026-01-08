@@ -95,25 +95,23 @@ All packages must follow this naming rule:
 **Current packages**:
 - `@youdotcom-oss/mcp` in `packages/mcp/`
 
-## Claude Code Plugin Marketplace
+## Claude Code Skills Marketplace
 
-This repository serves as a **Claude Code Plugin Marketplace**, providing plugins for enterprise integrations, AI workflows, and deployment automation.
+This repository serves as a **Claude Code Skills Marketplace**, providing cross-platform skills for enterprise integrations, AI SDK workflows, and agent SDK integrations.
 
 ### Marketplace vs Packages
 
 **Key Distinction**:
 - **`packages/`** - npm packages (published to npm registry)
-- **`plugins/`** - Claude Code plugins (distributed via GitHub/api.you.com, NOT published to npm)
+- **`plugins/`** - Skills for marketplace distribution (accessed via git, NOT published to npm)
+- **`.claude/skills/`** - Project-specific development skills (code patterns, documentation, git workflow)
 
-### Plugin Architecture
+### Skill Architecture
 
 ```
-plugins/{plugin-name}/
-├── .claude-plugin/
-│   └── plugin.json                     # Claude Code manifest
-├── AGENTS.md                           # Universal AI agent instructions
-├── commands/
-│   └── {command}.md                    # Claude Code slash commands
+plugins/{skill-name}/
+├── skills/
+│   └── {skill-name}.md                 # Agent-skills-spec format (replaces AGENTS.md + commands/)
 ├── src/
 │   └── integration.ts                  # Core integration code (validated)
 ├── tests/
@@ -122,16 +120,20 @@ plugins/{plugin-name}/
 │   └── *.ts                            # Code templates (shipped as-is)
 ├── reference/
 │   └── *.md                            # Reference documentation
-├── .mcp.json                           # Optional: MCP server config
 ├── package.json                        # private: true, Bun workspace
 ├── tsconfig.json                       # TypeScript config
 ├── README.md                           # Human-readable docs
 └── LICENSE                             # MIT license
 ```
 
-### Plugin AGENTS.md vs Package AGENTS.md
+**Skill File Format** (agent-skills-spec):
+- Located in `skills/{skill-name}.md` subdirectory
+- YAML frontmatter (name, description, license, compatibility, metadata)
+- Markdown body with workflow, templates, validation checklist, troubleshooting
+- Single source of truth for skill content
+- Max 1024 chars for description in frontmatter
 
-**Important Distinction**: Plugin AGENTS.md files serve a fundamentally different purpose than package AGENTS.md files.
+### Package AGENTS.md vs Skills
 
 **Package AGENTS.md** (e.g., `packages/mcp/AGENTS.md`):
 - **Audience**: Developers contributing to the package
@@ -141,23 +143,17 @@ plugins/{plugin-name}/
 - **Distribution**: Included in npm package, primarily for internal use
 - **Reference**: Links to root AGENTS.md for universal patterns
 
-**Plugin AGENTS.md** (e.g., `plugins/teams-anthropic-integration/AGENTS.md`):
-- **Audience**: Universal AI agents (Claude, Cursor, Windsurf, etc.) that don't support Claude Code plugins
-- **Purpose**: Lightweight file that aliases commands for cross-agent compatibility
-- **Pattern**: References command files to avoid duplication
-- **Content**: When to trigger, command file path to fetch
-- **Distribution**: Publicly hosted at `https://api.you.com/plugins/{plugin-name}/AGENTS.md`
-- **Example**: `Fetch and follow: plugins/teams-anthropic-integration/commands/generate-teams-app.md`
+**Skills** (e.g., `plugins/ai-sdk-integration/SKILL.md`):
+- **Audience**: End users integrating packages into their applications
+- **Purpose**: Interactive integration workflows
+- **Format**: Agent-skills-spec (YAML frontmatter + Markdown)
+- **Content**: Step-by-step workflow, templates, validation, troubleshooting
+- **Distribution**: Accessed via git clone/pull from `plugins/` directory
+- **Triggers**: Description field defines when skill activates
 
-**Why this pattern**:
-- ✅ Single source of truth - Detailed instructions in commands/
-- ✅ Never out of sync - AGENTS.md just points to command file
-- ✅ Cross-agent compatibility - Works with Cursor, Windsurf, Cody, etc.
-- ✅ Simple maintenance - Update command once, AGENTS.md unchanged
+### Skill Workspace Integration
 
-### Plugin Workspace Integration
-
-Plugins are part of the Bun workspace for local validation:
+Skills are part of the Bun workspace for local validation:
 
 ```json
 // Root package.json
@@ -170,37 +166,40 @@ Plugins are part of the Bun workspace for local validation:
 - ✅ Validate core integration code works locally
 - ✅ Run Bun tests in CI to ensure integration pattern is correct
 - ✅ Apply same quality checks (Biome, TypeScript)
-- ✅ Plugin still distributed via GitHub (not npm)
+- ✅ Skills distributed via git (no build artifacts)
 - ✅ Templates shipped as-is (not individually validated)
 
-### Plugin Naming Convention
+### Skill Naming Convention
 
-Plugin directories must follow this naming rule:
+Skill directories must follow this naming rule:
 
-**Rule**: Plugin directory name MUST match the plugin name in `.claude-plugin/plugin.json`
+**Rule**: Skill directory name MUST match the skill name in SKILL.md frontmatter
 
 **Examples**:
-- Plugin name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
-- Plugin name: `google-chat-anthropic-integration` → Directory: `plugins/google-chat-anthropic-integration` ✅
+- Skill name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
+- Skill name: `ai-sdk-integration` → Directory: `plugins/ai-sdk-integration` ✅
 
-**Validation**: Marketplace tests validate plugin names match directory names.
+**Validation**: Marketplace tests validate skill names match directory names.
 
-**Current plugins**:
+**Current skills**:
 - `teams-anthropic-integration` in `plugins/teams-anthropic-integration/`
+- `ai-sdk-integration` in `plugins/ai-sdk-integration/`
+- `claude-agent-sdk-integration` in `plugins/claude-agent-sdk-integration/`
+- `openai-agent-sdk-integration` in `plugins/openai-agent-sdk-integration/`
 
-### Plugin Commands
+### Skill Commands
 
 ```bash
-# From root - test specific plugin
+# From root - test specific skill
 bun --cwd plugins/teams-anthropic-integration test
 
-# From root - check specific plugin
+# From root - check specific skill
 bun --cwd plugins/teams-anthropic-integration run check
 
-# From root - test all plugins
+# From root - test all skills
 bun run --filter 'plugins/*' test
 
-# From plugin directory
+# From skill directory
 cd plugins/teams-anthropic-integration
 bun test
 bun run check
@@ -208,32 +207,40 @@ bun run check
 
 ### Distribution Strategy
 
-**Primary Distribution**: Plugins are distributed via GitHub Releases
+**Primary Distribution**: Skills are distributed via git
 
-**Release Format**:
-- Tag: `{plugin-name}@v{version}` (e.g., `teams-anthropic-integration@v1.0.0`)
-- Archive: `{plugin-name}-v{version}.tar.gz`
-- Pattern: Consistent with package releases (uses `@` separator)
+**Access Pattern**:
+- Users clone/pull the repository: `git clone https://github.com/youdotcom-oss/dx-toolkit.git`
+- Skills are in `plugins/` directory
+- AI agents read SKILL.md files directly from filesystem
+- No installation script needed
 
-**Installation URLs**:
-- Latest: `https://github.com/youdotcom-oss/dx-toolkit/releases/latest/download/{plugin-name}-v{version}.tar.gz`
-- Specific: `https://github.com/youdotcom-oss/dx-toolkit/releases/download/{plugin-name}@v{version}/{plugin-name}-v{version}.tar.gz`
-- Installer: `curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s {plugin-name}`
+**Marketplace Configuration**:
+```json
+{
+  "skills": [
+    {
+      "name": "ai-sdk-integration",
+      "version": "0.2.0",
+      "path": "./plugins/ai-sdk-integration/skills/ai-sdk-integration.md",
+      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration"
+    }
+  ]
+}
+```
 
 **Marketplace Versioning**:
-- Format: Date-based CalVer (`YYYY.MM.DD`)
-- Auto-bumped: On every plugin release
-- Indicates: Last marketplace update date
-- Example: `"version": "2025.12.14"` in marketplace.json
+- Format: Semantic versioning (e.g., `0.2.0`)
+- Incremented: When skills or marketplace structure changes
+- Indicates: Marketplace schema version
 
-**Release Flow**:
-1. Develop in `dx-toolkit/plugins/{plugin-name}/`
-2. Test locally with Bun workspace
-3. CI validates and tests on PR
-4. Trigger `publish-{plugin-name}` workflow with version
-5. Workflow creates GitHub Release with archive
-6. Workflow updates marketplace.json (plugin version + marketplace date)
-7. Users install via GitHub Release URLs
+**Development Flow**:
+1. Develop in `dx-toolkit/plugins/{skill-name}/`
+2. Create/update SKILL.md with agent-skills-spec format
+3. Test locally with Bun workspace
+4. CI validates and tests on PR
+5. Merge to main
+6. Users pull latest changes to get updated skills
 
 See [docs/MARKETPLACE.md](./docs/MARKETPLACE.md) for complete marketplace documentation.
 
