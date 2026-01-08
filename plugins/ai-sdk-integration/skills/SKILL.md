@@ -172,8 +172,8 @@ Global checklist:
 **Issue**: "Tool execution fails with 401"
 **Fix**: Verify API key is valid
 
-**Issue**: "streamText loops infinitely"
-**Fix**: If Anthropic, add `stopWhen: stepCountIs(3)`
+**Issue**: "Incomplete or missing response"
+**Fix**: If using streamText, increase the step count. Start with 3 and iterate up as needed (see README troubleshooting)
 
 **Issue**: "textStream is not iterable"
 **Fix**: Destructure: `const { textStream } = streamText(...)`

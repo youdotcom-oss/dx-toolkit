@@ -21,7 +21,7 @@
       "version": "0.2.0",
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
-      "path": "./plugins/teams-anthropic-integration/skills/teams-anthropic-integration.md",
+      "path": "./plugins/teams-anthropic-integration/skills/SKILL.md",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration",
       "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
     },
@@ -30,7 +30,7 @@
       "version": "0.2.0",
       "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
       "category": "workflow",
-      "path": "./plugins/ai-sdk-integration/skills/ai-sdk-integration.md",
+      "path": "./plugins/ai-sdk-integration/skills/SKILL.md",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration",
       "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"]
     },
@@ -39,7 +39,7 @@
       "version": "0.2.0",
       "description": "Integrate Claude Agent SDK with You.com HTTP MCP server for Python and TypeScript",
       "category": "workflow",
-      "path": "./plugins/claude-agent-sdk-integration/skills/claude-agent-sdk-integration.md",
+      "path": "./plugins/claude-agent-sdk-integration/skills/SKILL.md",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration",
       "keywords": ["claude", "anthropic", "agent-sdk", "mcp", "you.com", "integration"]
     },
@@ -48,7 +48,7 @@
       "version": "0.2.0",
       "description": "Integrate OpenAI Agents SDK with You.com MCP server - Hosted and Streamable HTTP support",
       "category": "workflow",
-      "path": "./plugins/openai-agent-sdk-integration/skills/openai-agent-sdk-integration.md",
+      "path": "./plugins/openai-agent-sdk-integration/skills/SKILL.md",
       "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/openai-agent-sdk-integration",
       "keywords": ["openai", "agent-sdk", "mcp", "you.com", "integration", "hosted", "streamable-http"]
     }
