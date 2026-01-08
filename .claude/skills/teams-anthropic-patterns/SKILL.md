@@ -60,20 +60,20 @@ bun run check                  # Run all checks
 Use the typescript-lsp skill to understand the Teams.ai + Anthropic package codebase:
 
 ```bash
-# Get type information for AnthropicChatModel
-bun .claude/skills/typescript-lsp/scripts/lsp-hover.ts packages/teams-anthropic/src/models/anthropic-chat-model.ts 48 13
+# Get type information for chat model
+bun .claude/skills/typescript-lsp/scripts/lsp-hover.ts packages/teams-anthropic/src/chat-model.ts 20 13
 
 # List all exports from main.ts
 bun .claude/skills/typescript-lsp/scripts/lsp-analyze.ts packages/teams-anthropic/src/main.ts --exports
 
-# Explore message transformer functions
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/utils/message-transformer.ts
+# Explore utility functions
+bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/teams-anthropic.utils.ts
 
 # Find references to Memory API usage
 bun .claude/skills/typescript-lsp/scripts/lsp-find.ts "memory.push"
 
-# Check AnthropicModel enum structure
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/models/anthropic-model.enum.ts
+# Check type definitions
+bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/teams-anthropic.types.ts
 ```
 
 **When to use LSP tools:**
@@ -289,10 +289,9 @@ graph TD
 
 ### Core Files
 
-- **`src/models/anthropic-model.enum.ts`** - Type-safe model enum with helper functions
-- **`src/types/options.ts`** - Configuration types for AnthropicChatModel
-- **`src/utils/message-transformer.ts`** - Critical message format conversion (Teams.ai ↔ Anthropic)
-- **`src/models/anthropic-chat-model.ts`** - Main IChatModel implementation with function execution
+- **`src/chat-model.ts`** - Main IChatModel implementation with function execution
+- **`src/teams-anthropic.types.ts`** - Type definitions and configuration options
+- **`src/teams-anthropic.utils.ts`** - Message format conversion utilities (Teams.ai ↔ Anthropic)
 - **`src/main.ts`** - Public API exports
 
 ## Testing

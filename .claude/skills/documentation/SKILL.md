@@ -1,6 +1,13 @@
 ---
 name: documentation
 description: Documentation standards for README.md and AGENTS.md files - tone, structure, thin AGENTS.md philosophy
+license: MIT
+compatibility: None required
+metadata:
+  author: youdotcom-oss
+  version: "1.0.0"
+  category: development
+  keywords: [documentation, readme, agents-md, thin-agents, tsdoc]
 ---
 
 # Documentation Standards
