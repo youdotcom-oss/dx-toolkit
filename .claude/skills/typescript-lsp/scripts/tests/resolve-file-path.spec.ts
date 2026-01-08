@@ -15,15 +15,15 @@ describe('resolveFilePath', () => {
   });
 
   test('resolves package export path via Bun.resolve', async () => {
-    const packagePath = 'plaited/workshop/get-paths.ts';
+    const packagePath = '@youdotcom-oss/mcp/src/search/search.schemas.ts';
     const result = await resolveFilePath(packagePath);
 
-    expect(result).toEndWith('/src/workshop/get-paths.ts');
+    expect(result).toEndWith('/src/search/search.schemas.ts');
     expect(result.startsWith('/')).toBe(true);
   });
 
   test('resolves main package export', async () => {
-    const packagePath = 'plaited';
+    const packagePath = '@youdotcom-oss/mcp';
     const result = await resolveFilePath(packagePath);
 
     expect(result).toEndWith('/src/main.ts');
@@ -37,9 +37,9 @@ describe('resolveFilePath', () => {
   });
 
   test('resolves nested package export', async () => {
-    const packagePath = 'plaited/testing';
+    const packagePath = '@youdotcom-oss/mcp/src/utils.ts';
     const result = await resolveFilePath(packagePath);
 
-    expect(result).toEndWith('/src/testing.ts');
+    expect(result).toEndWith('/src/utils.ts');
   });
 });

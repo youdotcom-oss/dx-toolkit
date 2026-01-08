@@ -1,20 +1,29 @@
-# Vercel AI SDK Plugin for You.com - Development Guide
-
-A Vercel AI SDK plugin providing You.com's search, AI agent, and content extraction capabilities as native AI SDK tools.
-
+---
+name: ai-sdk-plugin-patterns
+description: Vercel AI SDK plugin development patterns including tool configuration, schema validation, API key handling, and response formatting. Use when developing or contributing to @youdotcom-oss/ai-sdk-plugin package.
+license: MIT
+compatibility: Bun >= 1.2.21, AI SDK >= 5.0.0
+metadata:
+  author: youdotcom-oss
+  version: "1.0.0"
+  category: development
+  keywords: [ai-sdk, vercel, tool-development, api-integration, zod]
 ---
 
-> **Note for end users**: If you want to use this plugin (not develop or contribute), see [README.md](./README.md) for setup and usage.
+# AI SDK Plugin Development Patterns
 
-**This guide (AGENTS.md) is for developers, contributors, and AI coding agents** who want to:
+Development patterns for building Vercel AI SDK plugins that integrate You.com APIs as native AI SDK tools.
 
-- Set up a local development environment
-- Understand the plugin architecture
-- Contribute code or bug fixes
-- Run tests and quality checks
-- Review pull requests
+> **For end users**: See [packages/ai-sdk-plugin/README.md](../../packages/ai-sdk-plugin/README.md) for setup and usage.
+> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
 
----
+## When to Use This Skill
+
+Use this skill when:
+- Developing or contributing to `@youdotcom-oss/ai-sdk-plugin` package
+- Implementing AI SDK tools
+- Debugging AI SDK integration issues
+- Understanding AI SDK tool patterns and conventions
 
 ## Tech Stack
 
@@ -24,7 +33,6 @@ A Vercel AI SDK plugin providing You.com's search, AI agent, and content extract
 - **Validation**: Zod ^4.1.13 (via @youdotcom-oss/mcp)
 - **Testing**: Bun test (built-in test runner)
 - **Code Quality**: Biome 2.3.8 (linter + formatter)
-- **Type Checking**: TypeScript 5.9.3
 
 ## Quick Start
 
@@ -43,23 +51,10 @@ source .env
 # From package directory
 cd packages/ai-sdk-plugin
 bun test                       # Run all tests
-bun run check                  # Run all checks (biome + types)
+bun run check                  # Run all checks
 ```
 
-## Code Style
-
-> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
-
 ## AI SDK-Specific Patterns
-
-> **For AI SDK tool patterns**: See [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md)
-
-The ai-sdk-patterns skill covers:
-- Tool description best practices (write for AI models, not humans)
-- Input schema patterns (use schemas from `@youdotcom-oss/mcp`)
-- API key handling (automatic environment variable fallback)
-- Raw response returns (maximum flexibility for consumers)
-- Schema-driven smart queries
 
 ### AI SDK Tool Pattern
 
@@ -98,6 +93,118 @@ export const youToolName = (config: YouToolsConfig = {}) => {
 - `inputSchema` - Zod schema for parameter validation
 - `execute()` - Async function that calls You.com API
 - Returns `{ text, data }` - Text for AI model, structured data for inspection
+
+### Tool Description Best Practices
+
+Write tool descriptions for AI models, not humans:
+
+```typescript
+// ✅ Good - Clear, actionable, includes use cases
+description: 'Search the web for current information. Use for news, facts, weather, recent events, or any query requiring up-to-date data from the internet.'
+
+// ❌ Bad - Too technical, focused on implementation
+description: 'Executes HTTP GET request to You.com Search API with query parameters and returns JSON response with web results.'
+
+// ❌ Bad - Too generic
+description: 'Web search tool'
+```
+
+**Why this matters:**
+- AI models use descriptions to decide when to invoke tools
+- Clear descriptions improve tool selection accuracy
+- Include use cases helps models understand appropriate contexts
+
+### API Key Handling
+
+Always provide API key via config or environment:
+
+```typescript
+// ✅ From environment variable
+const search = youSearch();
+
+// ✅ From config
+const search = youSearch({ apiKey: process.env.YDC_API_KEY });
+
+// ❌ Will fail at execution time
+const search = youSearch({ apiKey: '' });
+```
+
+**Validate API key before API calls**:
+
+```typescript
+// ✅ Check API key in execute function
+execute: async (params) => {
+  if (!apiKey) {
+    throw new Error('YDC_API_KEY is required');
+  }
+  const response = await callApi(...);
+}
+
+// ❌ Don't skip validation
+execute: async (params) => {
+  const response = await callApi(...); // May fail with unclear error
+}
+```
+
+### Response Format
+
+**Always return both text and structured data**:
+
+```typescript
+// ✅ Return both formats
+return {
+  text: formatSearchResults(response),  // For AI model
+  data: response,                        // For inspection/debugging
+};
+
+// ❌ Don't return only text
+return formatSearchResults(response);
+
+// ❌ Don't return only data
+return response;
+```
+
+**Text format should be human-readable**:
+
+```typescript
+// ✅ Formatted for readability
+text: `Found 10 results:
+
+1. Example.com
+   Latest AI developments in 2025
+   https://example.com/ai
+
+2. Tech News
+   Breaking: New AI model released
+   https://technews.com/new-model`
+
+// ❌ JSON dump
+text: JSON.stringify(results)
+
+// ❌ Raw API response
+text: results.toString()
+```
+
+### Input Schema Patterns
+
+Use schemas from `@youdotcom-oss/mcp` for consistency:
+
+```typescript
+import { SearchQuerySchema } from '@youdotcom-oss/mcp';
+
+export const youSearch = (config: YouToolsConfig = {}) => {
+  return tool({
+    description: '...',
+    inputSchema: SearchQuerySchema, // ✅ Reuse existing schema
+    execute: async (params) => { ... }
+  });
+};
+```
+
+**Why reuse schemas?**
+- Single source of truth for API parameters
+- Consistent validation across MCP server and AI SDK plugin
+- Automatic updates when API parameters change
 
 ## Architecture
 
@@ -187,7 +294,14 @@ Web page content extraction in markdown or HTML format.
 
 ## Testing
 
-> **For universal test patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
+### Integration Tests
+
+`src/tests/integration.spec.ts`:
+- Test all three tools with real API calls
+- Test error handling (missing API key, invalid key)
+- Test tool composition (multiple tools together)
+- Test with different AI models
+- Test streaming responses
 
 ### Running Tests
 
@@ -209,15 +323,6 @@ bun test:watch
 - `YDC_API_KEY` environment variable
 - `ANTHROPIC_API_KEY` environment variable
 - Stable network connection
-
-### Integration Tests
-
-`src/tests/integration.spec.ts`:
-- Test all three tools with real API calls
-- Test error handling (missing API key, invalid key)
-- Test tool composition (multiple tools together)
-- Test with different AI models
-- Test streaming responses
 
 ## Troubleshooting
 
@@ -259,6 +364,18 @@ await tool.execute?.({ query: 'test' });
 - Run specific test suites instead of all tests
 - Check API key rate limits at [you.com/platform](https://you.com/platform/api-keys)
 
+## Publishing
+
+See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documentation. This package uses the shared `.github/workflows/_publish-package.yml` workflow.
+
+**Package-specific**: Workflow name is "Publish ai-sdk-plugin Release"
+
+## Related Skills
+
+- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
+- [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
+- [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards
+
 ## Contributing
 
 See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
@@ -269,22 +386,3 @@ See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../C
 feat(ai-sdk-plugin): add support for image search
 fix(ai-sdk-plugin): handle empty search results
 ```
-
-## Publishing
-
-See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documentation. This package uses the shared `.github/workflows/_publish-package.yml` workflow.
-
-**Package-specific**: Workflow name is "Publish ai-sdk-plugin Release"
-
-## Related Skills
-
-- [`.claude/skills/ai-sdk-patterns`](../../.claude/skills/ai-sdk-patterns/SKILL.md) - AI SDK tool patterns
-- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
-- [`.claude/skills/documentation`](../../.claude/skills/documentation/SKILL.md) - Documentation standards
-
-## Support
-
-- **Package Issues**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **API Issues**: Check [README.md](./README.md) for usage examples and [You.com Platform](https://you.com/platform) for API keys
-- **Performance Issues**: See [PERFORMANCE.md](../../docs/PERFORMANCE.md)
-- **Email**: support@you.com

@@ -1,20 +1,29 @@
-# @youdotcom-oss/teams-anthropic Development Guide
-
-Developer documentation for the Anthropic SDK integration for Microsoft Teams.ai.
-
+---
+name: teams-anthropic-patterns
+description: Teams.ai framework patterns with Anthropic SDK integration including Memory API usage, function calling, streaming, and message transformation. Use when developing or contributing to @youdotcom-oss/teams-anthropic package.
+license: MIT
+compatibility: Bun >= 1.2.21, Teams.ai >= 2.0.5, Anthropic SDK >= 0.38.0
+metadata:
+  author: youdotcom-oss
+  version: "1.0.0"
+  category: development
+  keywords: [teams-ai, anthropic, microsoft-teams, function-calling, streaming]
 ---
 
-> **Note for end users**: If you want to use this package (not develop or contribute), see [README.md](./README.md) for setup instructions and usage examples.
+# Teams.ai + Anthropic Integration Patterns
 
-**This guide (AGENTS.md) is for developers, contributors, and AI coding agents** who want to:
+Development patterns for integrating Anthropic SDK with Microsoft Teams.ai framework.
 
-- Set up a local development environment
-- Understand the codebase architecture
-- Contribute code or bug fixes
-- Run tests and quality checks
-- Review pull requests
+> **For end users**: See [packages/teams-anthropic/README.md](../../packages/teams-anthropic/README.md) for setup and usage.
+> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
 
----
+## When to Use This Skill
+
+Use this skill when:
+- Developing or contributing to `@youdotcom-oss/teams-anthropic` package
+- Implementing Teams.ai applications with Anthropic models
+- Debugging Teams.ai + Anthropic integration issues
+- Understanding Teams.ai Memory API and Anthropic streaming patterns
 
 ## Tech Stack
 
@@ -44,15 +53,7 @@ bun test                       # Run tests
 bun run check                  # Run all checks
 ```
 
-## Code Style
-
-> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
-
-> **For Teams.ai and Anthropic patterns**: See [`.claude/skills/teams-ai-patterns`](../../.claude/skills/teams-ai-patterns/SKILL.md)
-
 ## Teams.ai-Specific Patterns
-
-The teams-ai-patterns skill covers all framework-specific patterns. Key patterns include:
 
 ### Memory API
 
@@ -67,6 +68,11 @@ const messages = await memory.values();
 await memory.addMessage(message);
 const messages = await memory.getMessages();
 ```
+
+**Why this pattern?**
+- `push()` and `values()` are the correct Teams.ai Memory API methods
+- `addMessage()` and `getMessages()` don't exist on IMemory interface
+- TypeScript will catch these errors if you use the wrong methods
 
 ### FunctionMessage Structure
 
@@ -87,6 +93,11 @@ const fnResult: Message = {
 };
 ```
 
+**Why this pattern?**
+- Anthropic API requires function_id to match tool use blocks
+- Without function_id, Claude can't correlate results with tool calls
+- TypeScript enforces this at compile time
+
 ### Function Handler Access
 
 Access handler property from function definition object, NEVER call directly:
@@ -104,6 +115,11 @@ const fn = options.functions[fnCall.name];
 const result = await fn(fnCall.arguments);
 ```
 
+**Why this pattern?**
+- Teams.ai function definitions are objects with `handler` property
+- Direct function call doesn't work with Teams.ai structure
+- Type assertion ensures TypeScript knows about handler property
+
 ### Anthropic Streaming
 
 Use `messages.stream()` method, NOT `create()` with stream flag:
@@ -120,6 +136,11 @@ requestParams.stream = true;
 const stream = await this._anthropic.messages.create(requestParams);
 ```
 
+**Why this pattern?**
+- `messages.stream()` has correct TypeScript types for streaming
+- `create()` with `stream: true` causes type errors
+- `stream()` method provides better event handling
+
 ### System Message Extraction
 
 Anthropic requires system messages as separate parameter, not in conversation array:
@@ -130,29 +151,45 @@ const systemMessage = extractSystemMessage(
 );
 ```
 
+**Why this pattern?**
+- Anthropic API has dedicated `system` parameter
+- System messages in conversation array cause API errors
+- Extraction utility handles both standalone and embedded system messages
+
+### Content Block Type Assertions
+
+Use explicit type assertions for Anthropic content blocks:
+
+```typescript
+// ✅ Correct - explicit type check and assertion
+for (const block of message.content) {
+  if (block.type === 'text') {
+    const textBlock = block as Anthropic.TextBlock;
+    textContent += textBlock.text;
+  } else if (block.type === 'tool_use') {
+    const toolBlock = block as Anthropic.ToolUseBlock;
+    functionCalls.push({
+      id: toolBlock.id,
+      name: toolBlock.name,
+      arguments: toolBlock.input,
+    });
+  }
+}
+
+// ❌ Wrong - no type assertion
+for (const block of message.content) {
+  if (block.type === 'text') {
+    textContent += block.text; // TypeScript error
+  }
+}
+```
+
+**Why this pattern?**
+- Anthropic SDK uses discriminated unions for content blocks
+- Type assertions help TypeScript narrow types correctly
+- Explicit checks prevent runtime errors
+
 ## Architecture
-
-### Package Structure
-
-```
-packages/teams-anthropic/
-├── src/
-│   ├── models/
-│   │   ├── anthropic-model.enum.ts      # Type-safe model enum + helpers
-│   │   └── anthropic-chat-model.ts      # IChatModel implementation
-│   ├── types/
-│   │   └── options.ts                   # Configuration types
-│   ├── utils/
-│   │   └── message-transformer.ts       # Message format conversion
-│   ├── tests/
-│   │   ├── message-transformer.spec.ts  # Transformer unit tests
-│   │   ├── anthropic-model.enum.spec.ts # Enum unit tests
-│   │   └── integration.spec.ts          # Integration tests
-│   └── main.ts                          # Public API exports
-├── examples/                            # Usage examples
-├── dist/                                # Compiled output
-└── package.json                         # Bundled package config
-```
 
 ### System Architecture
 
@@ -230,8 +267,6 @@ graph TD
 
 ## Testing
 
-> **For universal test patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
-
 ### Test Organization
 
 - **Unit Tests**: `src/tests/*.spec.ts` - Test individual utilities and components
@@ -278,34 +313,6 @@ const memory = new LocalMemory();
 await model.send({ role: 'user', content: 'My name is Alice.' }, { messages: memory });
 await model.send({ role: 'user', content: 'What is my name?' }, { messages: memory });
 ```
-
-## Building and Publishing
-
-### Build Configuration
-
-**Pattern**: Bundled package (single compiled file with external dependencies)
-
-```bash
-# Build for production
-bun run build
-
-# Outputs:
-# - dist/main.js (compiled entry point)
-# - dist/main.d.ts (type definitions)
-```
-
-**Why bundle?**
-- Single file distribution (easier consumption)
-- Reduced installation time (fewer dependencies)
-- External dependencies avoid duplication in user's node_modules
-
-### Publishing
-
-This package is published to npm via `.github/workflows/publish-teams-anthropic.yml`.
-
-See [root AGENTS.md](../../AGENTS.md#publishing) for complete workflow documentation.
-
-**IMPORTANT**: If you add dependencies on other workspace packages, use exact version numbers. The publish workflow will automatically keep them in sync.
 
 ## Troubleshooting
 
@@ -395,6 +402,40 @@ source .env
 bun test
 ```
 
+## Building and Publishing
+
+### Build Configuration
+
+**Pattern**: Bundled package (single compiled file with external dependencies)
+
+```bash
+# Build for production
+bun run build
+
+# Outputs:
+# - dist/main.js (compiled entry point)
+# - dist/main.d.ts (type definitions)
+```
+
+**Why bundle?**
+- Single file distribution (easier consumption)
+- Reduced installation time (fewer dependencies)
+- External dependencies avoid duplication in user's node_modules
+
+### Publishing
+
+This package is published to npm via `.github/workflows/publish-teams-anthropic.yml`.
+
+See [root AGENTS.md](../../AGENTS.md#publishing) for complete workflow documentation.
+
+**IMPORTANT**: If you add dependencies on other workspace packages, use exact version numbers. The publish workflow will automatically keep them in sync.
+
+## Related Skills
+
+- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
+- [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
+- [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards
+
 ## Contributing
 
 See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
@@ -405,16 +446,3 @@ See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../C
 feat(teams-anthropic): add new memory adapter
 fix(teams-anthropic): resolve streaming issue
 ```
-
-## Related Skills
-
-- [`.claude/skills/teams-ai-patterns`](../../.claude/skills/teams-ai-patterns/SKILL.md) - Teams.ai framework patterns
-- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
-- [`.claude/skills/documentation`](../../.claude/skills/documentation/SKILL.md) - Documentation standards
-
-## Support
-
-- **Package Issues**: Create issue in [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **Troubleshooting**: [README.md](./README.md#troubleshooting)
-- **Memory Adapters**: [docs/MEMORY_ADAPTERS.md](./docs/MEMORY_ADAPTERS.md)
-- **Email**: support@you.com

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { LspClient } from '../lsp-client.ts';
 
 const rootUri = `file://${process.cwd()}`;
-const testFile = `${process.cwd()}/src/ui/b-element.ts`;
+const testFile = `${process.cwd()}/packages/mcp/src/main.ts`;
 const testUri = `file://${testFile}`;
 
 describe('LspClient', () => {
@@ -103,7 +103,7 @@ describe('LspClient', () => {
       const text = await Bun.file(testFile).text();
       client.openDocument(testUri, 'typescript', 1, text);
 
-      const result = await client.workspaceSymbols('bElement');
+      const result = await client.workspaceSymbols('getMcpServer');
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
