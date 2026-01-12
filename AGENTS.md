@@ -107,16 +107,6 @@ This repository serves as a **Claude Code Skills Marketplace**, providing cross-
 plugins/{skill-name}/
 ├── skills/
 │   └── {skill-name}.md                 # Agent-skills-spec format (replaces AGENTS.md + commands/)
-├── src/
-│   └── integration.ts                  # Core integration code (validated)
-├── tests/
-│   └── integration.spec.ts             # Bun tests (runs in CI)
-├── templates/
-│   └── *.ts                            # Code templates (shipped as-is)
-├── reference/
-│   └── *.md                            # Reference documentation
-├── package.json                        # private: true, Bun workspace
-├── tsconfig.json                       # TypeScript config
 ├── README.md                           # Human-readable docs
 └── LICENSE                             # MIT license
 ```
@@ -124,7 +114,7 @@ plugins/{skill-name}/
 **Skill File Format** (agent-skills-spec):
 - Located in `skills/{skill-name}.md` subdirectory
 - YAML frontmatter (name, description, license, compatibility, metadata)
-- Markdown body with workflow, templates, validation checklist, troubleshooting
+- Markdown body with workflow, assets, validation checklist, troubleshooting
 - Single source of truth for skill content
 - Max 1024 chars for description in frontmatter
 
@@ -142,7 +132,7 @@ plugins/{skill-name}/
 - **Audience**: End users integrating packages into their applications
 - **Purpose**: Interactive integration workflows for specific platforms/frameworks
 - **Format**: Agent-skills-spec (YAML frontmatter + Markdown)
-- **Content**: Step-by-step workflow, templates, validation, troubleshooting
+- **Content**: Step-by-step workflow, assets, validation, troubleshooting
 - **Distribution**: Accessed via git clone/pull, listed in marketplace.json
 - **Examples**: `plugins/ai-sdk-integration/skills/`, `plugins/teams-anthropic-integration/skills/`
 
@@ -158,11 +148,9 @@ Skills are part of the Bun workspace for local validation:
 ```
 
 **Benefits**:
-- ✅ Validate core integration code works locally
-- ✅ Run Bun tests in CI to ensure integration pattern is correct
-- ✅ Apply same quality checks (Biome, TypeScript)
 - ✅ Skills distributed via git (no build artifacts)
-- ✅ Templates shipped as-is (not individually validated)
+- ✅ Assets shipped as-is (Markdown files, no code validation needed)
+- ✅ Workspace integration enables format checks on Markdown files
 
 ### Skill Naming Convention
 
