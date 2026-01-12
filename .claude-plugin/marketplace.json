@@ -8,13 +8,13 @@
   },
   "metadata": {
     "description": "Claude Code Skills Marketplace for You.com developer tools - AI SDK integrations, agent SDK workflows, and enterprise integrations",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "ai-sdk-integration",
-      "source": "./plugins/ai-sdk-integration",
+      "source": "./ai-sdk-integration",
       "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration",
@@ -23,7 +23,7 @@
     },
     {
       "name": "claude-agent-sdk-integration",
-      "source": "./plugins/claude-agent-sdk-integration",
+      "source": "./claude-agent-sdk-integration",
       "description": "Integrate Claude Agent SDK with You.com HTTP MCP server for Python and TypeScript",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration",
@@ -32,7 +32,7 @@
     },
     {
       "name": "openai-agent-sdk-integration",
-      "source": "./plugins/openai-agent-sdk-integration",
+      "source": "./openai-agent-sdk-integration",
       "description": "Integrate OpenAI Agents SDK with You.com MCP server - Hosted and Streamable HTTP support",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/openai-agent-sdk-integration",
@@ -41,7 +41,7 @@
     },
     {
       "name": "teams-anthropic-integration",
-      "source": "./plugins/teams-anthropic-integration",
+      "source": "./teams-anthropic-integration",
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration",
