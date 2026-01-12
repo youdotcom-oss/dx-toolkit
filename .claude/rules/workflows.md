@@ -14,13 +14,7 @@ Use these steps after creating a package with the create-package command.
 - Add tests in `src/tests/` directory
 - Run `bun run check` from package directory to verify code quality
 
-### 2. Register Package Documentation
-
-- Add your package's AGENTS.md reference to root `CLAUDE.md`
-- This ensures Claude Code can access package development guidelines
-- Format: `@packages/{package-name}/AGENTS.md`
-
-### 3. Create Package-Specific Skill (Optional)
+### 2. Create Package-Specific Skill (Optional)
 
 **When to create a package-specific skill:**
 - Package introduces framework-specific patterns (e.g., Teams.ai Memory API, Anthropic streaming)
@@ -31,7 +25,7 @@ Use these steps after creating a package with the create-package command.
 **When NOT to create a skill:**
 - Patterns are universal (belong in `.claude/rules/code-patterns.md`)
 - Package has minimal integration patterns (<50 lines)
-- Patterns fit better in package AGENTS.md (very package-specific, not reusable)
+- Patterns are too package-specific and not reusable across the codebase
 
 **Skill directory structure:**
 ```
@@ -66,8 +60,7 @@ Package-specific patterns for `@youdotcom-oss/{package-name}`. Use these pattern
 
 2. Add pattern sections with clear ✅/❌ code examples
 3. Explain "Why this pattern?" for each
-4. Reference skill from package AGENTS.md: `> **For {package} patterns**, see '.claude/skills/{package-name}-patterns'`
-5. Add skill to root AGENTS.md skill list (lines 11-18 in Skill-Based Organization section)
+4. Add skill to root AGENTS.md skill list (lines 11-18 in Rules and Skills Organization section)
 
 **Best practices:**
 - Focus on framework/domain-specific patterns only
@@ -76,14 +69,14 @@ Package-specific patterns for `@youdotcom-oss/{package-name}`. Use these pattern
 - Test that skill is discoverable and loadable
 - Update root AGENTS.md to document the new skill
 
-### 4. Add Performance Monitoring (Optional)
+### 3. Add Performance Monitoring (Optional)
 
 - Only required for packages that wrap You.com APIs directly
 - Add measurements to `scripts/performance/measure.ts`
 - See `.claude/rules/testing.md` for detailed instructions
 - Skip for utility libraries, CLI tools, or packages without API wrappers
 
-### 5. Test Locally
+### 4. Test Locally
 
 ```bash
 cd packages/{package-name}
@@ -92,14 +85,14 @@ bun run check            # Check code quality
 bun run build            # Build package (if bundled pattern)
 ```
 
-### 6. Test Publish Workflow
+### 5. Test Publish Workflow
 
 - Test with prerelease before first stable release
 - Go to: `https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/publish-{package-name}.yml`
 - Enter version `0.1.0` with next `1` to create `0.1.0-next.1`
 - Verify workflow succeeds and package appears on npm
 
-### 7. First Stable Release
+### 6. First Stable Release
 
 - Push package code to main branch
 - Trigger publish workflow with version `0.1.0` (no next value)
@@ -113,8 +106,7 @@ bun run build            # Build package (if bundled pattern)
 3. **Document with TSDoc** - Add API docs directly in code, not separate API.md
 4. **Follow patterns** - Use appropriate rules and skills for implementation
 5. **Check quality** - Run `bun run check` before committing
-6. **Register docs** - Add AGENTS.md to root CLAUDE.md
-7. **Create skills for substantial patterns** - If package introduces 50+ lines of framework-specific patterns, create a skill
+6. **Create skills for substantial patterns** - If package introduces 50+ lines of framework-specific patterns, create a skill
 
 ## Plugin Creation Workflow
 
