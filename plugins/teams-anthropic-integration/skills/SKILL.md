@@ -7,7 +7,7 @@ metadata:
   author: youdotcom-oss
   version: "0.2.0"
   category: enterprise-integration
-  keywords: microsoft-teams,mcp,you.com,integration,anthropic,claude
+  keywords: microsoft-teams,mcp,you.com,integration,anthropic,claude, web-search, search, crawling, scraping
 ---
 
 # Generate Teams App with You.com MCP

@@ -5,7 +5,7 @@ allowed-tools: Bash, mcp__agent-skills-spec__*
 
 # Validate Skills
 
-Validate skill directories against the AgentSkills specification using the `agent-skills-spec` MCP server.
+Validate skill directories against the AgentSkills specification.
 
 **Paths to validate:** $ARGUMENTS (default: `.claude/skills/`)
 
@@ -14,7 +14,13 @@ Validate skill directories against the AgentSkills specification using the `agen
 ### Step 1: Run Validation
 
 ```bash
-bun plaited validate-skill $ARGUMENTS
+bun scripts/validate-skills.ts $ARGUMENTS
+```
+
+Or if the script is executable:
+
+```bash
+./scripts/validate-skills.ts $ARGUMENTS
 ```
 
 ### Step 2: Report Results

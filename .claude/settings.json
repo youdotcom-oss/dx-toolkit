@@ -19,8 +19,8 @@
       "Bash(docker stop:*)"
     ]
   },
-  "enabledMcpjsonServers": ["ydc-server"],
   "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["ydc-server"],
   "hooks": {
     "UserPromptSubmit": [
       {

@@ -55,36 +55,6 @@ bun test                       # Run tests
 bun run check                  # Run all checks
 ```
 
-## Exploring the Package
-
-> **For TypeScript code exploration**: See [`.claude/skills/typescript-lsp`](../typescript-lsp/) for LSP-based analysis tools.
-
-Use the typescript-lsp skill to understand the MCP package codebase:
-
-```bash
-# Get type information for a symbol
-bun .claude/skills/typescript-lsp/scripts/lsp-hover.ts packages/mcp/src/main.ts 10 15
-
-# List all exports in a file
-bun .claude/skills/typescript-lsp/scripts/lsp-analyze.ts packages/mcp/src/main.ts --exports
-
-# Find all references to a symbol
-bun .claude/skills/typescript-lsp/scripts/lsp-references.ts packages/mcp/src/main.ts 10 15
-
-# Search for symbols across the package
-bun .claude/skills/typescript-lsp/scripts/lsp-find.ts SearchQuerySchema
-
-# List all symbols in a file
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/mcp/src/search/search.schemas.ts
-```
-
-**When to use LSP tools:**
-- Understanding MCP tool registration patterns
-- Verifying Zod schema structures
-- Finding API utility implementations
-- Exploring message transformation logic
-- Checking function signatures before using
-
 ## MCP-Specific Patterns
 
 ### Schema Design with Zod
@@ -304,7 +274,6 @@ After npm publish, this package triggers:
 
 ## Related Skills
 
-- [`.claude/skills/typescript-lsp`](../typescript-lsp/) - TypeScript code exploration with LSP
 - [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
 - [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
 - [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards

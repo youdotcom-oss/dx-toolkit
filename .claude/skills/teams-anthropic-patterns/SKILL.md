@@ -53,36 +53,6 @@ bun test                       # Run tests
 bun run check                  # Run all checks
 ```
 
-## Exploring the Package
-
-> **For TypeScript code exploration**: See [`.claude/skills/typescript-lsp`](../typescript-lsp/) for LSP-based analysis tools.
-
-Use the typescript-lsp skill to understand the Teams.ai + Anthropic package codebase:
-
-```bash
-# Get type information for chat model
-bun .claude/skills/typescript-lsp/scripts/lsp-hover.ts packages/teams-anthropic/src/chat-model.ts 20 13
-
-# List all exports from main.ts
-bun .claude/skills/typescript-lsp/scripts/lsp-analyze.ts packages/teams-anthropic/src/main.ts --exports
-
-# Explore utility functions
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/teams-anthropic.utils.ts
-
-# Find references to Memory API usage
-bun .claude/skills/typescript-lsp/scripts/lsp-find.ts "memory.push"
-
-# Check type definitions
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/teams-anthropic/src/teams-anthropic.types.ts
-```
-
-**When to use LSP tools:**
-- Understanding IChatModel implementation patterns
-- Verifying Teams.ai Memory API methods
-- Exploring message transformation logic (Teams.ai ↔ Anthropic)
-- Checking Anthropic streaming patterns
-- Finding function execution handlers
-
 ## Teams.ai-Specific Patterns
 
 ### Memory API
@@ -461,7 +431,6 @@ See [root AGENTS.md](../../AGENTS.md#publishing) for complete workflow documenta
 
 ## Related Skills
 
-- [`.claude/skills/typescript-lsp`](../typescript-lsp/) - TypeScript code exploration with LSP
 - [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
 - [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
 - [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards

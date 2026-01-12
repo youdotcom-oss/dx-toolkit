@@ -7,7 +7,7 @@ metadata:
   author: youdotcom-oss
   version: "0.2.0"
   category: workflow
-  keywords: vercel,ai-sdk,you.com,integration,anthropic,openai
+  keywords: vercel,ai-sdk,you.com,integration,anthropic,openai, web-search, search, crawling, scraping
 ---
 
 # Integrate AI SDK with You.com Tools

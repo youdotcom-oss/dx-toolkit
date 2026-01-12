@@ -118,16 +118,16 @@ bun run build            # Build package (if bundled pattern)
 
 ## Plugin Creation Workflow
 
-Use these steps after creating a plugin. Plugins are lightweight - just commands in markdown files.
+Use these steps after creating a plugin. Plugins are lightweight skills for AI agents.
 
 ### Plugin vs Package
 
-**Plugins** (Claude Code plugins):
+**Plugins** (AI agent skills):
 - Located in `plugins/` directory
-- Distributed via GitHub releases (not npm)
-- Simple structure: just markdown commands + manifest
+- Distributed via git (listed in marketplace.json)
+- Simple structure: skill files in `skills/` directory
 - Used by Claude Code, Cursor, and other AI agents
-- No build process, no dependencies
+- No build process, no separate release required
 
 **Packages** (npm packages):
 - Located in `packages/` directory
@@ -138,101 +138,96 @@ Use these steps after creating a plugin. Plugins are lightweight - just commands
 ### Plugin Structure
 
 ```
-plugins/{plugin-name}/
-├── .claude-plugin/
-│   └── plugin.json              # Plugin manifest (required)
-├── AGENTS.md                    # Universal AI agent instructions
-├── commands/
-│   └── {command}.md            # Command implementation files
-├── README.md                    # User-facing documentation
+plugins/{skill-name}/
+├── skills/
+│   └── {skill-name}.md         # Agent-skills-spec format (YAML frontmatter + Markdown)
+├── README.md                    # User documentation
+├── src/                         # Integration code (if any)
+├── tests/                       # Tests (if any)
 └── LICENSE                      # MIT license
 ```
 
-That's it! No package.json, no tsconfig.json, no src directory.
+That's it! No `.claude-plugin/` directory, no `commands/`, no `AGENTS.md` at plugin root.
 
-### 1. Implement Command Files
+### 1. Create Skill File
 
-**Commands directory pattern:**
-- Create `commands/{command-name}.md` for each slash command
-- Use frontmatter with name and description
-- Write complete workflow with step-by-step instructions
-- Include code examples and configuration blocks
+**Location:** `plugins/{skill-name}/skills/{skill-name}.md`
 
-**Example command file structure:**
+**Format:** Agent-skills-spec (YAML frontmatter + Markdown body)
+
+**Example skill file structure:**
 ```markdown
 ---
-name: command-name
-description: Brief description of what this command does
+name: skill-name
+description: Brief description (max 1024 chars) explaining when this skill should trigger
+license: MIT
+compatibility:
+  - claude
+  - cursor
+  - cody
+metadata:
+  version: "0.1.0"
+  author: "You.com"
 ---
 
-# Command Title
+# Skill Title
 
 Interactive workflow to achieve X.
 
+## Prerequisites
+
+- List required packages
+- Environment variables needed
+- Account requirements
+
 ## Workflow
 
-1. **Ask: First Question**
-   * What information do you need?
+**Step 1: Gather Information**
 
-2. **Validate Input**
-   * Check prerequisites
-   * Verify environment variables
+Ask the user:
+- What framework are they using?
+- What configuration do they need?
 
-3. **Create/Update Files**
-   * Use complete templates
-   * Show configuration examples
+**Step 2: Install Dependencies**
 
-## Complete Templates
-
-### Template Name
-
-\```language
-// Complete, runnable code
-\```
+```bash
+npm install @youdotcom-oss/package-name
 ```
 
-### 2. Write AGENTS.md
+**Step 3: Create Configuration**
 
-**Purpose:** Lightweight alias file for non-Claude Code AI agents
+Use this template:
 
-**Pattern:**
-```markdown
-# Plugin Name
+\```typescript
+// Complete, runnable code template
+\```
 
-> For AI coding agents: Brief description
+**Step 4: Validation**
 
-## When to Use
+Test the integration:
+- [ ] Configuration file created
+- [ ] Dependencies installed
+- [ ] Environment variables set
 
-Trigger this integration when developer mentions:
-- "keyword phrase 1"
-- "keyword phrase 2"
+## Troubleshooting
 
-## Integration Instructions
+**Issue: Common problem**
 
-**Fetch and follow the complete integration workflow:**
-
-`commands/{command-name}.md`
-
-This file contains:
-- Complete step-by-step workflow
-- Language/framework selection
-- Configuration patterns
-- Template integration guide
-- Validation checklist
-
-## For Claude Code Users
-
-Use the slash command: `/{command-name}`
+Solution: How to fix it
 
 ## Additional Resources
 
-* Plugin README: https://api.you.com/plugins/{plugin-name}/README.md
-* Relevant external docs
+- [Package README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/package-name)
+- [External docs](https://example.com)
 ```
 
-**Key Principle:** Never duplicate content. AGENTS.md just points to command files.
+**Key Points:**
+- Single source of truth - all workflow content in skill file
+- YAML frontmatter with required fields (name, description, license, compatibility, metadata)
+- Markdown body with complete workflow, templates, validation, troubleshooting
+- Description field (max 1024 chars) defines when skill activates
 
-### 3. Write README.md
+### 2. Write README.md
 
 **Tone:** Encouraging and accessible
 
@@ -268,10 +263,9 @@ Then install the plugin:
 /plugin install {plugin-name}
 \```
 
-**Use the plugin:**
-\```bash
-/{command-name}
-\```
+**Use the skill:**
+
+Claude Code automatically discovers skills from marketplace.json.
 
 </details>
 
@@ -286,7 +280,7 @@ Then enable in Cursor:
 1. Open **Settings → Rules → Import Settings**
 2. Toggle **"Claude skills and plugins"**
 
-Cursor will automatically discover and use the plugin.
+Cursor will automatically discover and use the skills.
 
 See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 
@@ -301,67 +295,35 @@ For Cody, Continue, Codex, Jules, VS Code, and more:
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s {plugin-name} --agents.md
 \```
 
-Your AI agent will automatically discover the plugin via `AGENTS.md`.
-
-Learn more: [agents.md specification](https://agents.md/)
+Your AI agent will automatically discover the skills via marketplace.json.
 
 </details>
 ```
 
-### 4. Create plugin.json
+### 3. Add to marketplace.json
 
-**Required fields per Claude Code specification:**
-```json
-{
-  "name": "plugin-name",
-  "version": "0.1.0",
-  "description": "Brief description",
-  "commands": [
-    {
-      "name": "command-name",
-      "description": "What this command does",
-      "path": "commands/command-name.md"
-    }
-  ],
-  "author": {
-    "name": "You.com",
-    "email": "support@you.com",
-    "url": "https://you.com"
-  },
-  "license": "MIT",
-  "repository": "https://github.com/youdotcom-oss/dx-toolkit"
-}
-```
-
-**Key points:**
-- Use object format for author (not string)
-- Version starts at 0.1.0 for initial release
-- Commands array references markdown files in commands/
-- No dependencies, no devDependencies
-
-### 5. Add to marketplace.json
-
-**Location:** Root `marketplace.json`
+**Location:** `.claude-plugin/marketplace.json`
 
 **Format:**
 ```json
 {
-  "name": "plugin-name",
-  "version": "0.1.0",
-  "description": "Brief description matching plugin.json",
-  "category": "workflow",
-  "path": "./plugins/plugin-name",
-  "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/tag/plugin-name@v0.1.0",
-  "downloadUrl": "https://github.com/youdotcom-oss/dx-toolkit/releases/download/plugin-name@v0.1.0/plugin-name-v0.1.0.tar.gz",
-  "keywords": ["keyword1", "keyword2", "keyword3"]
+  "plugins": [
+    {
+      "name": "{skill-name}",
+      "source": "./{skill-name}",
+      "strict": false
+    }
+  ]
 }
 ```
 
-**Categories:**
-- `workflow` - Integration and setup workflows
-- `enterprise-integration` - Enterprise platform integrations
+**Key Points:**
+- Add entry to `plugins` array in marketplace.json
+- `name` must match skill name in YAML frontmatter
+- `source` is relative path from `pluginRoot` (defined in metadata)
+- `strict: false` allows skill to work across different AI agent platforms
 
-### 6. Add to MARKETPLACE.md
+### 4. Add to MARKETPLACE.md
 
 **Location:** `docs/MARKETPLACE.md`
 
@@ -370,11 +332,11 @@ Learn more: [agents.md specification](https://agents.md/)
 **Format:**
 ```markdown
 <details open>
-<summary><strong>plugin-name</strong></summary>
+<summary><strong>skill-name</strong></summary>
 
 **One-line description**
 
-Longer description paragraph explaining what the plugin does.
+Longer description paragraph explaining what the skill does.
 
 **What you get:**
 - 🎯 Feature 1
@@ -384,104 +346,66 @@ Longer description paragraph explaining what the plugin does.
 **Quick Install:**
 \```bash
 # Claude Code
-/plugin install plugin-name
-# Or: curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s plugin-name --claude
+/plugin marketplace add youdotcom-oss/dx-toolkit
+/plugin install skill-name
+
+# Or via install script:
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s skill-name --claude
 
 # Cursor
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s plugin-name --cursor
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s skill-name --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s plugin-name --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s skill-name --agents.md
 \```
 
 **Documentation:**
-- [Plugin README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/plugin-name)
+- [Skill README](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/skill-name)
 - [Relevant External Docs](https://example.com)
-- [GitHub Releases](https://github.com/youdotcom-oss/dx-toolkit/releases?q=plugin-name)
 
 </details>
 ```
 
-### 7. Create Publish Workflow
-
-**Location:** `.github/workflows/publish-{plugin-name}.yml`
-
-**Template:**
-```yaml
-name: "Plugin: publish {plugin-name}"
-
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to publish (e.g., 1.0.0)"
-        required: true
-        type: string
-      next:
-        description: "Next prerelease number (optional, e.g., 1 for v1.0.0-next.1)"
-        required: false
-        type: string
-
-jobs:
-  publish:
-    name: Publish Plugin
-    uses: ./.github/workflows/_publish-plugin.yml
-    with:
-      plugin_name: {plugin-name}
-      version: ${{ inputs.version }}
-      next: ${{ inputs.next }}
-    secrets:
-      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-```
-
-### 8. Test Locally
+### 5. Test Locally
 
 ```bash
 # View plugin structure
-ls -R plugins/{plugin-name}
+ls -R plugins/{skill-name}
 
-# Test commands are accessible
-cat plugins/{plugin-name}/commands/{command-name}.md
+# View skill file
+cat plugins/{skill-name}/skills/{skill-name}.md
 
-# Verify plugin.json is valid
-cat plugins/{plugin-name}/.claude-plugin/plugin.json | jq .
+# Validate skill format (if validation command available)
+/validate-skill plugins/{skill-name}
 
 # Test with Claude Code (if available)
-/plugin install {plugin-name}
-/{command-name}
+/plugin marketplace add youdotcom-oss/dx-toolkit
+/plugin install {skill-name}
 ```
 
-### 9. First Release
+### 6. Update and Test
 
-**Use prerelease for testing:**
-```bash
-# Trigger workflow with prerelease version
-Actions → Publish {plugin-name} Release → Run workflow
-Version: 0.1.0
-Next: 1
-```
+**No separate release workflow needed** - Skills are distributed via git:
 
-This creates `plugin-name@v0.1.0-next.1` for testing.
+1. **Make changes** to skill file in `plugins/{skill-name}/skills/{skill-name}.md`
+2. **Update metadata version** in YAML frontmatter if needed
+3. **Test locally** with validation command
+4. **Commit to main branch** - Skills available immediately via `git pull`
+5. **Users update** by pulling latest from repository
 
-**First stable release:**
-```bash
-Version: 0.1.0
-Next: (leave empty)
-```
-
-This creates `plugin-name@v0.1.0` as the first stable release.
+**Distribution strategy:**
+- Skills distributed via git clone/pull
+- Listed in `.claude-plugin/marketplace.json`
+- No GitHub releases required (no binaries or archives)
+- Changes available immediately after merge to main
 
 ### Plugin Naming Conventions
 
-**Plugin directory:** Must match plugin name in `.claude-plugin/plugin.json`
+**Plugin directory:** Must match skill name in YAML frontmatter
 
 **Examples:**
-- Plugin name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
-- Plugin name: `claude-agent-sdk-integration` → Directory: `plugins/claude-agent-sdk-integration` ✅
-
-**Version format:**
-- Git tags: `v{version}` (e.g., `v1.0.0`)
-- plugin.json and marketplace.json: `{version}` (no "v" prefix)
+- Skill name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
+- Skill name: `ai-sdk-integration` → Directory: `plugins/ai-sdk-integration` ✅
 
 ### MCP Server Naming Convention
 
@@ -521,34 +445,22 @@ HostedMCPTool(
 
 **Rationale:** Tools are named `you_search`, `you_express`, etc. Using `ydc` (You.com abbreviation) as the server identifier provides clear distinction while maintaining consistency.
 
-### Plugin Distribution
-
-Plugins are distributed via GitHub Releases, not npm:
-
-**Release URL format:**
-- Tag: `{plugin-name}@v{version}`
-- Archive: `{plugin-name}-v{version}.tar.gz`
-- Download: `https://github.com/youdotcom-oss/dx-toolkit/releases/download/{plugin-name}@v{version}/{plugin-name}-v{version}.tar.gz`
-
-**Marketplace versioning:**
-- Format: Date-based CalVer (`YYYY.MM.DD`)
-- Auto-bumped on every plugin release
-- Indicates last marketplace update date
-
 ### Plugin Troubleshooting
 
-**Plugin not showing in Claude Code:**
-- Verify `.claude-plugin/plugin.json` exists and is valid JSON
-- Check plugin name matches directory name
-- Ensure plugin is in marketplace.json
-- Restart Claude Code after installation
+**Skill not showing in Claude Code:**
+- Verify skill file exists at `plugins/{skill-name}/skills/{skill-name}.md`
+- Check skill has valid YAML frontmatter with required fields (name, description, license, compatibility, metadata)
+- Ensure skill is listed in `.claude-plugin/marketplace.json`
+- Run `git pull` to get latest marketplace changes
+- Restart Claude Code after marketplace update
 
-**Command not found:**
-- Verify command is listed in `plugin.json` commands array
-- Check command file path matches what's in plugin.json
-- Ensure command file has proper frontmatter
+**Skill not triggering:**
+- Check `description` field in YAML frontmatter clearly explains when to trigger
+- Verify skill name in frontmatter matches directory name
+- Ensure `compatibility` field includes the AI agent being used (claude, cursor, cody, etc.)
 
-**Installation fails:**
-- Check plugin archive is accessible at GitHub release URL
-- Verify marketplace.json has correct downloadUrl
-- Ensure version in marketplace.json matches the release tag
+**Installation via marketplace fails:**
+- Verify `.claude-plugin/marketplace.json` exists and is valid JSON
+- Check `pluginRoot` is set correctly in marketplace metadata (should be `"./plugins"`)
+- Ensure skill entry in plugins array has correct `name` and `source` fields
+- Try installing via git clone if marketplace method fails

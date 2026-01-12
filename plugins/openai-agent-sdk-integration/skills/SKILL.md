@@ -7,7 +7,7 @@ metadata:
   author: youdotcom-oss
   version: "0.2.0"
   category: workflow
-  keywords: openai,agent-sdk,mcp,you.com,integration,hosted,streamable-http
+  keywords: openai,agent-sdk,mcp,you.com,integration,hosted,streamable-http, web-search, search, crawling, scraping
 ---
 
 # Integrate OpenAI Agents SDK with You.com MCP

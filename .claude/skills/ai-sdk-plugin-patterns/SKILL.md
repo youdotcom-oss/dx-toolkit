@@ -54,36 +54,6 @@ bun test                       # Run all tests
 bun run check                  # Run all checks
 ```
 
-## Exploring the Package
-
-> **For TypeScript code exploration**: See [`.claude/skills/typescript-lsp`](../typescript-lsp/) for LSP-based analysis tools.
-
-Use the typescript-lsp skill to understand the AI SDK plugin codebase:
-
-```bash
-# Get type information for a tool export
-bun .claude/skills/typescript-lsp/scripts/lsp-hover.ts packages/ai-sdk-plugin/src/main.ts 48 13
-
-# List all exports (youSearch, youExpress, youContents)
-bun .claude/skills/typescript-lsp/scripts/lsp-analyze.ts packages/ai-sdk-plugin/src/main.ts --exports
-
-# Find references to a specific tool
-bun .claude/skills/typescript-lsp/scripts/lsp-references.ts packages/ai-sdk-plugin/src/main.ts 48 13
-
-# Search for schema imports from @youdotcom-oss/mcp
-bun .claude/skills/typescript-lsp/scripts/lsp-find.ts SearchQuerySchema
-
-# Explore tool configuration structure
-bun .claude/skills/typescript-lsp/scripts/lsp-symbols.ts packages/ai-sdk-plugin/src/main.ts
-```
-
-**When to use LSP tools:**
-- Understanding AI SDK tool wrapper patterns
-- Verifying schema imports from @youdotcom-oss/mcp
-- Exploring response formatting utilities
-- Checking tool configuration types
-- Finding API key handling patterns
-
 ## AI SDK-Specific Patterns
 
 ### AI SDK Tool Pattern
@@ -402,7 +372,6 @@ See [root AGENTS.md](../../AGENTS.md#monorepo-architecture) for workflow documen
 
 ## Related Skills
 
-- [`.claude/skills/typescript-lsp`](../typescript-lsp/) - TypeScript code exploration with LSP
 - [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
 - [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
 - [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards

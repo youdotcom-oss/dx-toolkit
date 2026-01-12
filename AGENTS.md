@@ -44,7 +44,8 @@ These indicate that detailed information is available in the referenced rule fil
 
 ```
 dx-toolkit/
-├── marketplace.json       # Plugin marketplace manifest
+├── .claude-plugin/
+│   └── marketplace.json   # Plugin marketplace manifest
 ├── packages/
 │   └── mcp/               # MCP Server package (@youdotcom-oss/mcp)
 │       ├── src/           # Source code
@@ -136,23 +137,23 @@ plugins/{skill-name}/
 - Single source of truth for skill content
 - Max 1024 chars for description in frontmatter
 
-### Package AGENTS.md vs Skills
+### Package Patterns vs Plugin Skills
 
-**Package AGENTS.md** (e.g., `packages/mcp/AGENTS.md`):
-- **Audience**: Developers contributing to the package
-- **Purpose**: Development environment setup, codebase architecture
+**Package-specific patterns** (in `.claude/skills/`):
+- **Audience**: Developers contributing to packages
+- **Purpose**: Package-specific development patterns (e.g., MCP schemas, AI SDK plugin patterns)
 - **Tone**: Directive and technical ("Always use...", "NEVER bypass...")
-- **Content**: Package-specific patterns, testing setup, build configuration
-- **Distribution**: Included in npm package, primarily for internal use
-- **Reference**: Links to root AGENTS.md for universal patterns
+- **Content**: Framework-specific patterns, domain rules unique to package integration
+- **Distribution**: Part of repository, referenced from root AGENTS.md
+- **Examples**: `.claude/skills/mcp-patterns/`, `.claude/skills/teams-anthropic-patterns/`
 
-**Skills** (e.g., `plugins/ai-sdk-integration/SKILL.md`):
+**Plugin skills** (in `plugins/*/skills/`):
 - **Audience**: End users integrating packages into their applications
-- **Purpose**: Interactive integration workflows
+- **Purpose**: Interactive integration workflows for specific platforms/frameworks
 - **Format**: Agent-skills-spec (YAML frontmatter + Markdown)
 - **Content**: Step-by-step workflow, templates, validation, troubleshooting
-- **Distribution**: Accessed via git clone/pull from `plugins/` directory
-- **Triggers**: Description field defines when skill activates
+- **Distribution**: Accessed via git clone/pull, listed in marketplace.json
+- **Examples**: `plugins/ai-sdk-integration/skills/`, `plugins/teams-anthropic-integration/skills/`
 
 ### Skill Workspace Integration
 
@@ -733,13 +734,20 @@ bun test                         # Test specific package
 
 ## Package-Specific Documentation
 
-For package-specific development details, see each package's AGENTS.md:
+For package-specific development patterns, see the corresponding skills:
 
-- **MCP Server**: [`packages/mcp/AGENTS.md`](./packages/mcp/AGENTS.md)
-  - MCP tool development patterns
-  - API integration details
-  - Testing guidelines
-  - Architecture diagrams
+- **MCP Server**: [`.claude/skills/mcp-patterns/`](./.claude/skills/mcp-patterns/)
+  - Zod schema design patterns
+  - Error handling conventions
+  - Logging patterns
+  - Response format standards
+  - Testing strategies
+
+- **Teams.ai Integration**: [`.claude/skills/teams-anthropic-patterns/`](./.claude/skills/teams-anthropic-patterns/)
+  - Memory API usage patterns
+  - Function calling conventions
+  - Streaming response handling
+  - Message transformation patterns
 
 ### Documentation Standards
 

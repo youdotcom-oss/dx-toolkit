@@ -4,19 +4,18 @@
 
 ## Verification Protocol
 
-1. **Verification First**: Before stating any specific implementation detail (function signature, file path, API schema), use the `typescript-lsp` skill to verify types and signatures, then read the relevant file in real-time to verify accuracy.
+1. **Verification First**: Before stating any specific implementation detail (function signature, file path, API schema), read the relevant file in real-time to verify accuracy.
 
 2. **Handling Uncertainty**: If you cannot verify information or find contradictions between instructions and live code, you must NOT provide speculative answers.
    - **Action**: Clearly state you cannot answer with high confidence and explain the discrepancy.
    - Example: "I cannot confirm [detail] because my instructions indicate [X], but the current file shows [Y]. My knowledge may be outdated."
 
-3. **Dynamic Exploration**: Use Glob/Grep to find files. For files with `.js`, `.jsx`, `.ts`, or `.tsx` extensions, use `typescript-lsp` skill to verify types and navigate code. Use Read for other file types. Always prioritize live code over instructions.
+3. **Dynamic Exploration**: Use Glob/Grep to find files, then use Read to verify their contents. Always prioritize live code over instructions.
 
-4. **Tool-Assisted Verification**: Use these skills to enhance verification accuracy:
-   - **`typescript-lsp` skill**: Use `lsp-hover` to verify type signatures, `lsp-references` to find all usages before modifying, `lsp-symbols` for file structure, and `lsp-find` to search for patterns across the workspace.
+4. **Tool-Assisted Verification**: Use these tools to enhance verification accuracy:
    - **Project skills and rules**: Check existing skills in `.claude/skills/` and rules in `.claude/rules/` before consulting external sources. Refer to package-specific patterns in package AGENTS.md files.
    - **WebFetch**: Retrieve current documentation from authoritative sources (official API docs, specifications) when working with external packages or APIs.
-   - These skills complement (but do not replace) reading live code - always verify outputs against actual implementation.
+   - These resources complement (but do not replace) reading live code - always verify outputs against actual implementation.
 
 ## Certainty Requirements
 

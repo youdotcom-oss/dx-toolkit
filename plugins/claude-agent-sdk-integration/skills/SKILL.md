@@ -7,7 +7,7 @@ metadata:
   author: youdotcom-oss
   version: "0.2.0"
   category: workflow
-  keywords: claude,anthropic,agent-sdk,mcp,you.com,integration,http
+  keywords: claude,anthropic,agent-sdk,mcp,you.com,integration,http, web-search, search, crawling, scraping
 ---
 
 # Integrate Claude Agent SDK with You.com MCP
