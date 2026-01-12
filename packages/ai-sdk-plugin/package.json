@@ -35,13 +35,10 @@
     ".": {
       "types": "./dist/main.d.ts",
       "default": "./dist/main.js"
-    },
-    "./templates/generate-text": "./templates/generate-text.ts",
-    "./templates/streaming-text": "./templates/streaming-text.ts"
+    }
   },
   "files": [
-    "dist",
-    "templates"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"

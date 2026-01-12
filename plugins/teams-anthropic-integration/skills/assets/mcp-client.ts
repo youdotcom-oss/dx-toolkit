@@ -17,15 +17,11 @@
 // Imports
 // ============================================================================
 
-import { App } from '@microsoft/teams.apps'; // ← EXISTING APP: SKIP THIS LINE
 import { ChatPrompt } from '@microsoft/teams.ai'; // ← EXISTING APP: START HERE
+import { App } from '@microsoft/teams.apps'; // ← EXISTING APP: SKIP THIS LINE
 import { ConsoleLogger } from '@microsoft/teams.common';
 import { McpClientPlugin } from '@microsoft/teams.mcpclient';
-import {
-  AnthropicChatModel,
-  AnthropicModel,
-  getYouMcpConfig,
-} from '@youdotcom-oss/teams-anthropic';
+import { AnthropicChatModel, AnthropicModel, getYouMcpConfig } from '@youdotcom-oss/teams-anthropic';
 
 // ============================================================================
 // Environment Validation & Configuration
@@ -45,7 +41,7 @@ const logger = new ConsoleLogger('mcp-client', { level: 'info' });
 
 // Agent instructions
 const instructions = `You are a helpful assistant with access to web search and AI capabilities through You.com.
-Always use the available tools to provide accurate, up-to-date information.`
+Always use the available tools to provide accurate, up-to-date information.`;
 
 // ============================================================================
 // ChatPrompt Setup with MCP Client Integration
@@ -63,12 +59,12 @@ const prompt = new ChatPrompt(
       },
     }),
   },
-  [new McpClientPlugin({ logger })]
+  [new McpClientPlugin({ logger })],
 ).usePlugin(
   'mcpClient',
   getYouMcpConfig({
     // apiKey: 'your-api-key-here', // Optional: falls back to YDC_API_KEY env var
-  })
+  }),
 );
 
 // ============================================================================

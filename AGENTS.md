@@ -56,16 +56,8 @@ dx-toolkit/
 │       └── package.json   # Package config
 ├── plugins/               # Claude Code plugins (NOT published to npm)
 │   └── teams-anthropic-integration/
-│       ├── .claude-plugin/
-│       ├── commands/
-│       ├── src/
-│       ├── tests/
-│       ├── templates/
-│       ├── reference/
-│       ├── AGENTS.md      # Plugin instructions
+│       ├── skills/
 │       ├── README.md      # Plugin docs
-│       └── package.json   # private: true
-├── tests/                 # Root-level marketplace validation
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 │       ├── _publish-package.yml        # Reusable workflow for publishing packages

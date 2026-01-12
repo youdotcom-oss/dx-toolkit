@@ -50,19 +50,16 @@ Interactive workflow to add You.com tools to your Vercel AI SDK application usin
    * Using `generateText()` or `streamText()` in this file?
    * Which AI provider model? (to determine if stopWhen needed)
 
-6. **Locate Templates**
+6. **Reference Templates**
 
-   Get package root and template paths:
-   ```bash
-   node -pe "require('path').join(require('path').dirname(require.resolve('@youdotcom-oss/ai-sdk-plugin/package.json')), 'templates/generate-text.ts')"
-
-   node -pe "require('path').join(require('path').dirname(require.resolve('@youdotcom-oss/ai-sdk-plugin/package.json')), 'templates/streaming-text.ts')"
-   ```
+   Templates are available in the skill assets directory:
+   * `assets/generate-text.ts` - Template for generateText() usage
+   * `assets/streaming-text.ts` - Template for streamText() usage
 
 7. **Update/Create Files**
 
    For each file:
-   * Read template (generateText or streamText based on their answer)
+   * Reference template (generateText or streamText based on their answer)
    * Add import for selected tools
    * If EXISTING file: Find their generateText/streamText call and add tools object
    * If NEW file: Create file with template structure

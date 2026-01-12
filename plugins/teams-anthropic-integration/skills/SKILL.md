@@ -26,7 +26,7 @@ Set up Microsoft Teams application with You.com MCP server integration using the
    * Existing app (follow inline markers)
 
 3. **Copy Template**
-   * Copy from: `node_modules/@youdotcom-oss/teams-anthropic/templates/mcp-client.ts`
+   * Template location: `assets/mcp-client.ts` (in this skill directory)
    * New app: Use entire file
    * Existing: Follow EXISTING APP markers in template
 
@@ -287,7 +287,7 @@ const prompt = new ChatPrompt(
 
 ### Template Integration
 
-**For NEW Teams apps**: Use entire template from `@youdotcom-oss/teams-anthropic/templates/mcp-client.ts`
+**For NEW Teams apps**: Use entire template from `assets/mcp-client.ts` (in this skill directory)
 
 **For EXISTING Teams apps**: Follow inline markers in template:
 - `// ← EXISTING APP: SKIP THIS LINE` - Skip for existing apps
