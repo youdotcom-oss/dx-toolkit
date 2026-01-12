@@ -53,7 +53,6 @@ dx-toolkit/
 │       ├── docs/          # API documentation
 │       ├── tests/         # Tests
 │       ├── README.md      # User documentation
-│       ├── AGENTS.md      # Package-specific dev guide
 │       └── package.json   # Package config
 ├── plugins/               # Claude Code plugins (NOT published to npm)
 │   └── teams-anthropic-integration/
