@@ -7,7 +7,9 @@
     "email": "support@you.com"
   },
   "metadata": {
-    "description": "Claude Code Skills Marketplace for You.com developer tools - AI SDK integrations, agent SDK workflows, and enterprise integrations"
+    "description": "Claude Code Skills Marketplace for You.com developer tools - AI SDK integrations, agent SDK workflows, and enterprise integrations",
+    "version": "0.2.0",
+    "pluginRoot": "./plugins"
   },
   "plugins": [
     {
@@ -16,7 +18,8 @@
       "description": "Integrate Vercel AI SDK applications with You.com using @youdotcom-oss/ai-sdk-plugin package",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration",
-      "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"]
+      "keywords": ["vercel", "ai-sdk", "you.com", "integration", "anthropic", "openai"],
+      "strict": false
     },
     {
       "name": "claude-agent-sdk-integration",
@@ -24,7 +27,8 @@
       "description": "Integrate Claude Agent SDK with You.com HTTP MCP server for Python and TypeScript",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/claude-agent-sdk-integration",
-      "keywords": ["claude", "anthropic", "agent-sdk", "mcp", "you.com", "integration"]
+      "keywords": ["claude", "anthropic", "agent-sdk", "mcp", "you.com", "integration"],
+      "strict": false
     },
     {
       "name": "openai-agent-sdk-integration",
@@ -32,7 +36,8 @@
       "description": "Integrate OpenAI Agents SDK with You.com MCP server - Hosted and Streamable HTTP support",
       "category": "workflow",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/openai-agent-sdk-integration",
-      "keywords": ["openai", "agent-sdk", "mcp", "you.com", "integration", "hosted", "streamable-http"]
+      "keywords": ["openai", "agent-sdk", "mcp", "you.com", "integration", "hosted", "streamable-http"],
+      "strict": false
     },
     {
       "name": "teams-anthropic-integration",
@@ -40,7 +45,8 @@
       "description": "Integrate Microsoft Teams apps with You.com MCP server using @youdotcom-oss/teams-anthropic package",
       "category": "enterprise-integration",
       "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration",
-      "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"]
+      "keywords": ["microsoft-teams", "mcp", "you.com", "integration", "anthropic", "claude"],
+      "strict": false
     }
   ]
 }

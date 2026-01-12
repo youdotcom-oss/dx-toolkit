@@ -5,7 +5,10 @@ import * as z from 'zod';
  * Accepts an array of URLs and optional format
  */
 export const ContentsQuerySchema = z.object({
-  urls: z.array(z.string().url()).min(1).describe('URLs to extract content from'),
+  urls: z
+    .array(z.string().url())
+    .min(1)
+    .describe('Array of webpage URLs to extract content from (e.g., ["https://example.com"])'),
   format: z
     .enum(['markdown', 'html'])
     .optional()
