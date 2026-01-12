@@ -33,13 +33,10 @@
     ".": {
       "types": "./dist/main.d.ts",
       "default": "./dist/main.js"
-    },
-    "./templates/mcp-client": "./templates/mcp-client.ts",
-    "./package": "./package.json"
+    }
   },
   "files": [
-    "dist",
-    "templates"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"

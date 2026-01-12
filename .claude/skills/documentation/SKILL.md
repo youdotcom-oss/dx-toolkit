@@ -1,6 +1,13 @@
 ---
 name: documentation
 description: Documentation standards for README.md and AGENTS.md files - tone, structure, thin AGENTS.md philosophy
+license: MIT
+compatibility: None required
+metadata:
+  author: youdotcom-oss
+  version: "1.0.0"
+  category: development
+  keywords: [documentation, readme, agents-md, thin-agents, tsdoc]
 ---
 
 # Documentation Standards
@@ -116,11 +123,11 @@ Package AGENTS.md files should be **minimal wrappers** that primarily reference 
 ### What to Reference (Universal Patterns)
 
 ❌ **Reference skills instead of duplicating**:
-- Arrow functions, Bun APIs → `.claude/skills/code-patterns`
-- Test patterns, retry config → `.claude/skills/code-patterns`
-- Error handling (`err: unknown`) → `.claude/skills/code-patterns`
-- Type guards, private fields → `.claude/skills/code-patterns`
-- Git workflow, commits → `.claude/skills/git-workflow`
+- Arrow functions, Bun APIs → `.claude/rules/code-patterns.md`
+- Test patterns, retry config → `.claude/rules/code-patterns.md`
+- Error handling (`err: unknown`) → `.claude/rules/code-patterns.md`
+- Type guards, private fields → `.claude/rules/code-patterns.md`
+- Git workflow, commits → `.claude/rules/git-workflow.md`
 - Documentation standards → `.claude/skills/documentation`
 
 ### Good vs Bad Examples
@@ -153,7 +160,7 @@ Use test() not it()...
 ```markdown
 ## Code Style
 
-> **For universal patterns**: See `.claude/skills/code-patterns`
+> **For universal patterns**: See `.claude/rules/code-patterns.md`
 
 ## Package-Specific Patterns
 
@@ -170,7 +177,7 @@ const messages = await memory.values();
 
 ## Related Skills
 - `.claude/skills/teams-ai-patterns` - Teams.ai integration
-- `.claude/skills/code-patterns` - Universal patterns
+- `.claude/rules/code-patterns.md` - Universal patterns
 ```
 
 ## Document Types
@@ -216,19 +223,19 @@ const messages = await memory.values();
 # Package Development Guide
 
 > For end users: See [README.md]
-> For universal patterns: `.claude/skills/code-patterns`
+> For universal patterns: `.claude/rules/code-patterns.md`
 
 ## Quick Start
 [2-3 commands only]
 
 ## Code Style
-> See `.claude/skills/code-patterns`
+> See `.claude/rules/code-patterns.md`
 
 ## Package-Specific Patterns
 [Only patterns unique to this package's domain]
 
 ## Testing
-> For universal patterns: `.claude/skills/code-patterns`
+> For universal patterns: `.claude/rules/code-patterns.md`
 
 ### Package-Specific Testing
 [Only if truly unique to this package]
@@ -241,15 +248,17 @@ const messages = await memory.values();
 
 ### Plugin README.md - Multi-Platform Installation Guide
 
-**Audience**: End users (developers installing and using the plugin)
+**Audience**: End users (developers installing and using skills)
 
 **Tone**: Encouraging and accessible (same as package README)
+
+**Note**: Plugins in this repository use the [agent-skills-spec](https://code.claude.com/docs/en/plugins#plugin-structure-overview) format. Skills are defined in `skills/{skill-name}.md` files using YAML frontmatter + Markdown body.
 
 **Key Differences from Package README**:
 1. **Multi-platform installation** - Claude Code, Cursor, and universal agents
 2. **Progressive disclosure per platform** - Use `<details>` tags for each platform
 3. **Multiple installation options** - Install script (recommended) + manual marketplace
-4. **Critical command order** - Marketplace add BEFORE plugin install
+4. **Critical command order** - Marketplace add BEFORE skill install
 5. **Multiple package managers** - npm, bun, yarn, pnpm in troubleshooting
 6. **Provider-agnostic issues** - Avoid framework-specific problem titles
 
@@ -282,10 +291,9 @@ Then install the plugin:
 /plugin install {plugin-name}
 ```
 
-**Use the plugin:**
-```bash
-/{command-name}
-```
+**Use the skill:**
+
+Claude Code automatically discovers skills from marketplace.json.
 
 </details>
 
@@ -300,7 +308,7 @@ Then enable in Cursor:
 1. Open **Settings → Rules → Import Settings**
 2. Toggle **"Claude skills and plugins"**
 
-Cursor will automatically discover and use the plugin.
+Cursor will automatically discover and use the skills.
 
 See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 
@@ -315,9 +323,7 @@ For Cody, Continue, Codex, Jules, VS Code, and more:
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s {plugin-name} --agents.md
 ```
 
-Your AI agent will automatically discover the plugin via `AGENTS.md`.
-
-Learn more: [agents.md specification](https://agents.md/)
+Your AI agent will automatically discover the skills via marketplace.json.
 
 </details>
 ```
@@ -327,7 +333,7 @@ Learn more: [agents.md specification](https://agents.md/)
 <details>
 <summary><strong>Cannot find module @youdotcom-oss/{package-name}</strong></summary>
 
-The plugin should have installed it automatically. If not, run:
+The skill should have installed it automatically. If not, run:
 
 ```bash
 # NPM
@@ -353,71 +359,24 @@ pnpm add @youdotcom-oss/{package-name}
 | "API key not recognized" | "401 error with Claude" |
 | "Function not executed" | "Tool use fails in GPT-4" |
 
-### Plugin AGENTS.md - Command Discovery Wrapper
+### Plugin Skills Structure
 
-**Audience**: Universal AI agents (Claude, Cursor, Windsurf, Cody, Continue, etc.)
+**Current Structure**: Plugins use the [agent-skills-spec](https://code.claude.com/docs/en/plugins#plugin-structure-overview) format:
 
-**Purpose**: Lightweight file that helps AI agents discover and reference plugin commands
-
-**Key Differences from Package AGENTS.md**:
-1. **Different purpose** - Not for contributors, for AI agent discovery
-2. **Thin wrapper pattern** - Points to command files, never duplicates content
-3. **Relative paths** - Uses install-location-relative paths, not repository paths
-4. **Public distribution** - Hosted at `https://api.you.com/plugins/{plugin-name}/AGENTS.md`
-5. **Cross-IDE compatibility** - Works with agents that don't support Claude Code plugins
-6. **Single source of truth** - Detailed instructions stay in `commands/` directory
-
-**Structure**:
-```markdown
-# {Plugin Title}
-
-> For AI coding agents: {One-sentence description}
-
-## When to Use
-
-Trigger this integration when developer mentions:
-- "{Keyword phrase 1}"
-- "{Keyword phrase 2}"
-- "{Keyword phrase 3}"
-
-## Integration Instructions
-
-**Fetch and follow the complete integration workflow:**
-
-`commands/{command-name}.md`
-
-This file contains:
-- Complete step-by-step workflow
-- Template integration patterns
-- Configuration guide
-- Validation checklist
-- Troubleshooting guide
-
-## For Claude Code Users
-
-Use the slash command: `/{command-name}`
-
-## Additional Resources
-
-* Package README: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/{package-name}
-* Plugin README: https://api.you.com/plugins/{plugin-name}/README.md
+```
+plugins/{plugin-name}/
+├── skills/
+│   └── {skill-name}.md       # Agent-skills-spec format (YAML frontmatter + Markdown)
+├── README.md                  # User documentation
+├── src/                       # Integration code (if any)
+└── tests/                     # Tests (if any)
 ```
 
-**Critical Rules**:
-- ✅ **Use relative paths** - `commands/{command-name}.md` (from installed location)
-- ❌ **Never use repository paths** - Not `plugins/{plugin-name}/commands/{command-name}.md`
-- ✅ **Reference command files** - Never duplicate command content
-- ❌ **Never include full workflow** - Keep as thin wrapper
-- ✅ **List trigger keywords** - Help AI agents know when to use
-- ❌ **No contribution guidelines** - This is not for developers
+**Distribution**: Skills are distributed via marketplace.json which references `./plugins/{plugin-name}/skills/{skill-name}.md`. Users install via:
+- `git clone` + marketplace add (for all skills)
+- Install script (automates marketplace configuration)
 
-**Target Length**: 30-50 lines (extremely thin wrapper)
-
-**Why this pattern**:
-- ✅ Single source of truth - Detailed instructions in commands/
-- ✅ Never out of sync - AGENTS.md just points to command file
-- ✅ Cross-agent compatibility - Works with Cursor, Windsurf, Cody, etc.
-- ✅ Simple maintenance - Update command once, AGENTS.md unchanged
+**No separate AGENTS.md files**: Plugin structure no longer includes `.claude-plugin/plugin.json`, `commands/`, or `AGENTS.md` files. The skill file in `skills/` directory serves as the complete specification
 
 ## API Documentation Strategy
 
@@ -463,7 +422,7 @@ export const youSearch = (config: YouToolsConfig = {}) => { ... }
 Developer documentation for {package description}.
 
 > **For end users**: See [README.md](./README.md) for setup and usage.
-> **For universal patterns**: See `.claude/skills/code-patterns`
+> **For universal patterns**: See `.claude/rules/code-patterns.md`
 
 ---
 
@@ -477,7 +436,7 @@ bun test
 
 ## Code Style
 
-> **For universal patterns**: See `.claude/skills/code-patterns`
+> **For universal patterns**: See `.claude/rules/code-patterns.md`
 
 ## Package-Specific Patterns
 
@@ -502,7 +461,7 @@ bun test
 
 ## Testing
 
-> **For universal patterns**: See `.claude/skills/code-patterns`
+> **For universal patterns**: See `.claude/rules/code-patterns.md`
 
 ### Package-Specific Testing Patterns
 
@@ -524,9 +483,9 @@ bun test
 ## Related Skills
 
 - `.claude/skills/{package-specific-skill}` - [Package-specific patterns]
-- `.claude/skills/code-patterns` - Universal code patterns
+- `.claude/rules/code-patterns.md` - Universal code patterns
 - `.claude/skills/documentation` - Documentation standards
-- `.claude/skills/git-workflow` - Git conventions
+- `.claude/rules/git-workflow.md` - Git conventions
 
 ## Contributing
 
@@ -553,7 +512,7 @@ fix({package-name}): resolve issue
 
 ### Package AGENTS.md Checklist (Thin Approach):
 - [ ] Starts with clear audience disclaimer
-- [ ] References `.claude/skills/code-patterns` upfront
+- [ ] References `.claude/rules/code-patterns.md` upfront
 - [ ] Quick setup is 2-3 commands only
 - [ ] Contains ONLY package-specific patterns
 - [ ] No universal patterns duplicated (arrow functions, test patterns, etc.)
@@ -569,19 +528,17 @@ fix({package-name}): resolve issue
 - [ ] Troubleshooting sections include ALL package managers (npm, bun, yarn, pnpm)
 - [ ] Issue titles are provider-agnostic (no "Anthropic", "OpenAI", etc.)
 - [ ] Uses encouraging language and second-person voice (same as package README)
-- [ ] Links to package README and plugin command documentation
+- [ ] Links to package README and skill documentation in `skills/` directory
 
-### Plugin AGENTS.md Checklist:
-- [ ] Extremely thin wrapper (30-50 lines)
-- [ ] Has "When to Use" section with trigger keywords
-- [ ] References command file with relative path (`commands/{command-name}.md`)
-- [ ] NEVER uses repository-relative paths (`plugins/{plugin-name}/...`)
-- [ ] Does NOT duplicate command content (single source of truth)
-- [ ] Lists what command file contains (workflow, templates, validation, troubleshooting)
-- [ ] Includes slash command for Claude Code users
-- [ ] Links to package README and plugin README as additional resources
-- [ ] NO contribution guidelines (not for developers)
-- [ ] NO package-specific patterns (those go in package AGENTS.md)
+### Plugin Skills Checklist (agent-skills-spec format):
+- [ ] Skill file located in `plugins/{plugin-name}/skills/{skill-name}.md`
+- [ ] Has YAML frontmatter with name, description, license, compatibility, metadata
+- [ ] Description is concise (max 1024 chars) and explains when to trigger
+- [ ] Markdown body contains complete workflow, templates, validation, troubleshooting
+- [ ] Referenced in marketplace.json with path `./plugins/{plugin-name}/skills/{skill-name}.md`
+- [ ] No `.claude-plugin/` directory (not using Claude Code plugin format)
+- [ ] No `commands/` directory (workflow is in skill file itself)
+- [ ] No `AGENTS.md` file at plugin root (skill file serves this purpose)
 
 ### TSDoc API Documentation:
 - [ ] All exports have TSDoc comments
@@ -614,7 +571,7 @@ fix({package-name}): resolve issue
 ```markdown
 # AGENTS.md (150 lines)
 
-> For universal patterns: `.claude/skills/code-patterns`
+> For universal patterns: `.claude/rules/code-patterns.md`
 
 ## Package-Specific Patterns
 
@@ -626,7 +583,7 @@ fix({package-name}): resolve issue
 
 ## Related Skills
 - `.claude/skills/teams-ai-patterns`
-- `.claude/skills/code-patterns`
+- `.claude/rules/code-patterns.md`
 ```
 
 **Benefits**: Easy to maintain, clear separation, package-specific content easy to find
@@ -654,21 +611,21 @@ fix({package-name}): resolve issue
 
 ## Document Type Comparison
 
-Quick reference comparing all four document types:
+Quick reference comparing three document types:
 
-| Aspect | Package README.md | Package AGENTS.md | Plugin README.md | Plugin AGENTS.md |
-|--------|-------------------|-------------------|------------------|------------------|
-| **Audience** | End users (integrators) | Developers (contributors) | End users (installers) | AI agents (discovery) |
-| **Purpose** | How to use package | How to contribute | How to install plugin | How to discover commands |
-| **Tone** | Encouraging, accessible | Directive, technical | Encouraging, accessible | Informative, minimal |
-| **Length** | Any | 100-200 lines | Any | 30-50 lines |
-| **Installation** | Single-platform npm | N/A (dev setup) | Multi-platform (Claude, Cursor, agents.md) | N/A |
-| **Code Examples** | Usage examples | Side-by-side patterns | Usage examples | N/A |
-| **Troubleshooting** | User issues | Dev environment issues | Multi-package-manager support | N/A |
-| **Key Content** | Features, quick start, examples | Package-specific patterns, architecture | Platform-specific install, provider-agnostic issues | Trigger keywords, command file reference |
-| **What to Avoid** | Technical jargon | Universal patterns (use skills) | Provider-specific titles | Duplicating command content |
-| **Progressive Disclosure** | Collapsible sections | No | Collapsible per-platform | No |
-| **Distribution** | Published to npm | Published to npm | GitHub Releases | Publicly hosted at api.you.com |
+| Aspect | Package README.md | Package AGENTS.md | Plugin README.md |
+|--------|-------------------|-------------------|------------------|
+| **Audience** | End users (integrators) | Developers (contributors) | End users (installers) |
+| **Purpose** | How to use package | How to contribute | How to install skills |
+| **Tone** | Encouraging, accessible | Directive, technical | Encouraging, accessible |
+| **Length** | Any | 100-200 lines | Any |
+| **Installation** | Single-platform npm | N/A (dev setup) | Multi-platform (Claude, Cursor, agents.md) |
+| **Code Examples** | Usage examples | Side-by-side patterns | Usage examples |
+| **Troubleshooting** | User issues | Dev environment issues | Multi-package-manager support |
+| **Key Content** | Features, quick start, examples | Package-specific patterns, architecture | Platform-specific install, provider-agnostic issues |
+| **What to Avoid** | Technical jargon | Universal patterns (use skills) | Provider-specific titles |
+| **Progressive Disclosure** | Collapsible sections | No | Collapsible per-platform |
+| **Distribution** | Published to npm | Published to npm | Via marketplace.json and git clone |
 
 ## Common Document Type Mistakes
 
@@ -681,7 +638,7 @@ Quick reference comparing all four document types:
 npm install @youdotcom-oss/ai-sdk-plugin
 ```
 
-**Problem**: Plugins need multi-platform installation (Claude Code, Cursor, agents.md)
+**Problem**: Skills need multi-platform installation (Claude Code, Cursor, agents.md)
 
 ### ✅ Right: Plugin README with Platform Variants
 ```markdown
@@ -702,35 +659,27 @@ First add the marketplace:
 
 ---
 
-### ❌ Wrong: Plugin AGENTS.md with Full Workflow
+### ❌ Wrong: Using Old Claude Code Plugin Format
 ```markdown
-# Plugin AGENTS.md (WRONG)
+# plugins/my-skill/ (WRONG)
 
-## Integration Steps
-
-1. First, ask the user which package manager...
-2. Then, check if they have an existing setup...
-3. Create the integration file...
-[200 lines of detailed workflow]
+├── .claude-plugin/
+│   └── plugin.json
+├── AGENTS.md
+└── commands/
+    └── my-command.md
 ```
 
-**Problem**: Duplicates command file content, will drift out of sync
+**Problem**: This is the old Claude Code plugin format. Now use agent-skills-spec format.
 
-### ✅ Right: Plugin AGENTS.md as Thin Wrapper
+### ✅ Right: Agent-Skills-Spec Format
 ```markdown
-# Plugin AGENTS.md (RIGHT)
+# plugins/my-skill/ (RIGHT)
 
-## When to Use
-
-Trigger when developer mentions:
-- "AI SDK integration"
-- "Vercel AI SDK tools"
-
-## Integration Instructions
-
-**Fetch and follow the complete integration workflow:**
-
-`commands/integrate-ai-sdk.md`
+├── skills/
+│   └── my-skill.md          # YAML frontmatter + Markdown
+├── README.md
+└── src/                      # Optional integration code
 ```
 
 ---
@@ -759,7 +708,7 @@ Use test() not it()...
 ```markdown
 # Package AGENTS.md (RIGHT)
 
-> For universal patterns: `.claude/skills/code-patterns`
+> For universal patterns: `.claude/rules/code-patterns.md`
 
 ## Package-Specific Patterns
 
@@ -770,6 +719,6 @@ Use `push()` not `addMessage()`...
 
 ## Related Skills
 
-- `.claude/skills/code-patterns` - Universal code patterns
-- `.claude/skills/git-workflow` - Git conventions
-- `.claude/skills/package-creation` - Package setup workflow
+- `.claude/rules/code-patterns.md` - Universal code patterns
+- `.claude/rules/git-workflow.md` - Git conventions
+- `.claude/rules/workflows.md` - Package setup workflow

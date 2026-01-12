@@ -4,5 +4,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["src/**/*", "templates/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["templates/**/*"]
 }

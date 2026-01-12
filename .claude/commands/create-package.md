@@ -919,9 +919,9 @@ packages/{package-name}/
 
 ---
 
-**For complete post-creation workflow**, see `.claude/skills/package-creation`
+**For complete post-creation workflow**, see `.claude/rules/workflows.md`
 
-This skill covers:
+This rule covers:
 - Implementing package logic with TSDoc comments
 - Registering package documentation in root CLAUDE.md
 - Adding performance monitoring (optional for API wrapper packages)
@@ -929,7 +929,7 @@ This skill covers:
 - First stable release process
 
 **For code patterns and documentation standards**, see:
-- `.claude/skills/code-patterns` - Universal patterns (arrow functions, Bun APIs, test patterns, error handling)
+- `.claude/rules/code-patterns.md` - Universal patterns (arrow functions, Bun APIs, test patterns, error handling)
 - `.claude/skills/documentation` - Documentation standards (thin AGENTS.md philosophy, TSDoc API docs)
 
 **Package-specific details**:

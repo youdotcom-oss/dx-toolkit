@@ -1,81 +1,89 @@
-# Microsoft Teams MCP Integration Plugin
+# Microsoft Teams MCP Integration
 
-Integrate Microsoft Teams applications with You.com MCP server using the [`@youdotcom-oss/teams-anthropic`](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic) package.
+**Integrate Microsoft Teams applications with You.com MCP server using the `@youdotcom-oss/teams-anthropic` package.**
 
-## Overview
+Get your Teams app up and running with You.com's MCP server in just a few steps. This plugin guides you through installation, template integration, and environment configuration - whether you're creating a new Teams app or adding to an existing one.
 
-This Claude Code plugin helps you quickly set up Microsoft Teams apps with You.com MCP server integration. It guides you through package installation, template copying, and environment configuration - whether you're creating a new Teams app or integrating into an existing one.
+---
 
-## Features
+## What You Get
 
-- 🚀 Orchestrates package installation (`@youdotcom-oss/teams-anthropic`)
-- 🔀 Guides new app vs existing app setup decisions
-- 📝 Template-based integration with clear inline markers
-- ⚙️ Environment configuration guidance
-- 🌐 Works across all AI coding platforms
+- 🚀 **Guided package installation** - Orchestrates `@youdotcom-oss/teams-anthropic` setup
+- 🔀 **Smart integration flow** - New app vs existing app decisions
+- 📝 **Template-based setup** - Clear inline markers for easy copying
+- ⚙️ **Environment configuration** - API key setup guidance
+- 🤖 **MCP client integration** - You.com web search, AI agent, and content extraction
+- 🌐 **Cross-platform support** - Works with Claude Code, Cursor, and all AI coding assistants
+
+---
 
 ## Installation
 
-### Claude Code Users
+Get up and running in one command:
+
+<details open>
+<summary><strong>Claude Code</strong></summary>
+
+**Option 1: Via install script (recommended)**
+
+The script automatically configures the marketplace and installs the plugin:
 
 ```bash
-# Add marketplace
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --claude
+```
+
+**Option 2: Via marketplace**
+
+First add the marketplace:
+```bash
 /plugin marketplace add youdotcom-oss/dx-toolkit
+```
 
-# Install plugin
+Then install the plugin:
+```bash
 /plugin install teams-anthropic-integration
+```
 
-# Use slash command
+**Use the plugin:**
+```bash
 /generate-teams-app
 ```
 
-### Cursor Users
+</details>
 
-Download AGENTS.md to your project's Cursor rules directory:
+<details>
+<summary><strong>Cursor</strong></summary>
 
 ```bash
-curl -o teams-anthropic-integration.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
-mv teams-anthropic-integration.md .cursor/rules/
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
 ```
 
-Then enable in Cursor Settings → Rules → Import Settings → "Claude skills and plugins"
+Then enable in Cursor:
+1. Open **Settings → Rules → Import Settings**
+2. Toggle **"Claude skills and plugins"**
+
+Cursor will automatically discover and use the plugin.
 
 See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-skills-and-plugins)
 
-### Windsurf Users
+</details>
 
-Download AGENTS.md to your project's Windsurf rules directory:
+<details>
+<summary><strong>Other AI Agents</strong></summary>
 
-```bash
-curl -o teams-anthropic-integration.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
-mv teams-anthropic-integration.md .windsurf/rules/
-```
-
-### Other AI Agents (Cody, Continue, etc.)
-
-Download AGENTS.md to your project root:
+For Cody, Continue, Codex, Jules, VS Code, and more:
 
 ```bash
-curl -o AGENTS.md https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 ```
 
-AI agents will automatically discover and use it.
+Your AI agent will automatically discover the plugin via `AGENTS.md`.
 
-### Manual Usage
+Learn more: [agents.md specification](https://agents.md/)
 
-Access documentation directly:
+</details>
 
-```bash
-# View instructions
-curl https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
-
-# View README
-curl https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/README.md
-
-# Install package and access template
-npm install @youdotcom-oss/teams-anthropic
-# Template location: node_modules/@youdotcom-oss/teams-anthropic/templates/mcp-client.ts
-```
+---
 
 ## Quick Start
 
@@ -132,31 +140,92 @@ The template has four clear sections with inline markers:
    * NEW APP: Copy this section
    * EXISTING APP: Skip this section (you have your own app)
 
-## Common Issues
+## Troubleshooting
 
-### Cannot find module @youdotcom-oss/teams-anthropic
+<details>
+<summary><strong>Cannot find module @youdotcom-oss/teams-anthropic</strong></summary>
 
-Run `npm install @youdotcom-oss/teams-anthropic`
+The plugin should have installed it automatically. If not, run:
 
-### YDC_API_KEY environment variable is required
+```bash
+# NPM
+npm install @youdotcom-oss/teams-anthropic
 
-Add to .env file: `YDC_API_KEY=your-key-here`
+# Bun
+bun add @youdotcom-oss/teams-anthropic
 
-Get your key at https://you.com/platform/api-keys
+# Yarn
+yarn add @youdotcom-oss/teams-anthropic
 
-### ANTHROPIC_API_KEY environment variable is required
+# pnpm
+pnpm add @youdotcom-oss/teams-anthropic
+```
 
-Add to .env file: `ANTHROPIC_API_KEY=your-key-here`
+Also ensure you have the required dependencies:
+```bash
+npm install @microsoft/teams.ai @microsoft/teams.mcpclient
+```
 
-Get your key at https://console.anthropic.com/
+</details>
 
-### MCP connection fails
+<details>
+<summary><strong>API key not recognized</strong></summary>
 
-Verify your API key is valid at https://you.com/platform/api-keys
+Ensure your environment variables are set correctly:
 
-### Import error for App from @microsoft/teams.apps
+```bash
+export YDC_API_KEY="your-you-api-key-here"
+export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+```
 
-For existing apps, skip the App import (line 20 in template)
+Get your keys:
+- You.com: https://you.com/platform/api-keys
+- Anthropic: https://console.anthropic.com/settings/keys
+
+</details>
+
+<details>
+<summary><strong>MCP connection fails</strong></summary>
+
+Check:
+1. YDC_API_KEY is set and valid
+2. `getYouMcpConfig()` is properly configured in ChatPrompt
+3. Authorization header uses Bearer token format
+4. Network connectivity to https://api.you.com/mcp
+
+Verify your key at https://you.com/platform/api-keys
+
+</details>
+
+<details>
+<summary><strong>Import error for App module</strong></summary>
+
+For **existing apps**, skip the App import (line 20 in template):
+
+```typescript
+// ❌ Skip this line for existing apps
+import { App } from '@microsoft/teams.apps';
+
+// ✅ Use these imports instead
+import { AnthropicChatModel, AnthropicModel } from '@youdotcom-oss/teams-anthropic';
+import { ChatPrompt, Logger } from '@microsoft/teams.ai';
+import { McpClientPlugin, getYouMcpConfig } from '@microsoft/teams.mcpclient';
+```
+
+</details>
+
+<details>
+<summary><strong>Missing dependencies</strong></summary>
+
+Install all required packages:
+
+```bash
+npm install @youdotcom-oss/teams-anthropic @microsoft/teams.ai @microsoft/teams.mcpclient
+```
+
+For existing Teams apps, you may already have `@microsoft/teams.ai` installed.
+
+</details>
 
 ## Documentation
 

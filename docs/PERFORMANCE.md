@@ -421,5 +421,5 @@ Skip processing lag tests for packages that:
 For general development guidelines, see:
 - [Contributing Guide](../CONTRIBUTING.md)
 - [Development Guide](../AGENTS.md)
-- [MCP Server API](../packages/mcp/docs/API.md)
-- [AI SDK Plugin API](../packages/ai-sdk-plugin/docs/API.md)
+- [MCP Server README](../packages/mcp/README.md)
+- [AI SDK Plugin README](../packages/ai-sdk-plugin/README.md)
