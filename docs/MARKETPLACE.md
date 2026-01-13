@@ -81,17 +81,14 @@ See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-sk
 
 **For Cody, Continue, Codex, Jules, and 20+ other AI agents:**
 
-The install script automatically adds the plugin reference to your project's `AGENTS.md`:
+The install script copies the plugin to `.agents/skills/` for automatic discovery:
 
 ```bash
-# Install and configure
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
-
-# Optional: Custom directory (default: .dx-toolkit)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md --dir .plugins
+# Install plugin
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents
 ```
 
-Your AI agent will automatically discover and use the plugin via `AGENTS.md`.
+Your AI agent will automatically discover skills by scanning the `.agents/skills/` directory.
 
 Learn more: [agents.md specification](https://agents.md/)
 
@@ -127,7 +124,7 @@ Get your Teams app up and running with You.com's AI-powered search in 4 quick st
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents
 ```
 
 **Package:** [`@youdotcom-oss/teams-anthropic`](https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic)
@@ -166,7 +163,7 @@ Add You.com's search, AI agent, and content extraction capabilities to your Verc
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s ai-sdk-integration --agents
 ```
 
 **Package:** [`@youdotcom-oss/ai-sdk-plugin`](https://www.npmjs.com/package/@youdotcom-oss/ai-sdk-plugin)
@@ -204,7 +201,7 @@ Set up Claude Agent SDK with You.com's HTTP MCP server for web search, AI agents
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s claude-agent-sdk-integration --agents
 ```
 
 **Documentation:**
@@ -240,7 +237,7 @@ Set up OpenAI Agents SDK with You.com MCP server using Hosted MCP (OpenAI-manage
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --cursor
 
 # Other AI Agents (Cody, Continue, etc.)
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --agents
 ```
 
 **Documentation:**
@@ -282,10 +279,9 @@ Cloud deployment and infrastructure automation (GCP, Azure, Databricks)
 - Cursor determines when skills are relevant based on context (agent-decided rules)
 - No manual file copying required
 
-**For other AI agents (--agents.md):**
-- Install to `.dx-toolkit/plugins/` (customizable via `--dir`)
-- Script automatically adds reference to your project's `AGENTS.md`
-- AI agents discover skills via marketplace.json and directory scan
+**For other AI agents (--agents):**
+- Install to `.agents/skills/` directory
+- AI agents discover skills by scanning the `.agents/skills/` directory
 - Works with Claude, Codex, Jules, Cody, Continue, VS Code, and 20+ agents
 - Universal compatibility via [agents.md specification](https://agents.md/)
 

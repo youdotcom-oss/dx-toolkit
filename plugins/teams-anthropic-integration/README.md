@@ -74,10 +74,10 @@ See [Cursor Rules Documentation](https://cursor.com/docs/context/rules#claude-sk
 For Cody, Continue, Codex, Jules, VS Code, and more:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
+curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents
 ```
 
-Your AI agent will automatically discover the skills via marketplace.json.
+Your AI agent will automatically discover skills by scanning the `.agents/skills/` directory.
 
 Learn more: [agents.md specification](https://agents.md/)
 
