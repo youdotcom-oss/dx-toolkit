@@ -23,7 +23,7 @@ Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, w
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
 Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
-## Skills
+## Marketplace
 
 Cross-platform skills for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI SDK workflows, and agent SDK integrations.
 
@@ -125,7 +125,8 @@ bun --cwd packages/mcp test
 
 ```
 dx-toolkit/
-├── marketplace.json       # Plugin marketplace manifest
+├── .claude-plugin/
+│   └── marketplace.json   # Plugin marketplace manifest
 ├── packages/
 │   ├── mcp/               # MCP Server package
 │   ├── ai-sdk-plugin/     # Vercel AI SDK plugin
@@ -134,15 +135,12 @@ dx-toolkit/
 │       ├── dist/          # Compiled output
 │       ├── templates/     # Code templates
 │       ├── README.md      # User documentation
-│       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
-├── plugins/               # Claude Code plugins
+├── plugins/               # Skills (agent-skills-spec format)
 │   └── teams-anthropic-integration/
-│       ├── .claude-plugin/
-│       ├── commands/
-│       ├── src/
-│       ├── templates/
-│       ├── AGENTS.md      # Plugin instructions
+│       ├── skills/
+│       │   └── teams-anthropic-integration.md  # YAML + Markdown skill
+│       ├── src/           # Integration code (optional)
 │       └── README.md      # Plugin docs
 ├── .github/
 │   └── workflows/         # CI/CD workflows

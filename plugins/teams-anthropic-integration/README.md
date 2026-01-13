@@ -77,7 +77,7 @@ For Cody, Continue, Codex, Jules, VS Code, and more:
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s teams-anthropic-integration --agents.md
 ```
 
-Your AI agent will automatically discover the plugin via `AGENTS.md`.
+Your AI agent will automatically discover the skills via marketplace.json.
 
 Learn more: [agents.md specification](https://agents.md/)
 
@@ -229,7 +229,7 @@ For existing Teams apps, you may already have `@microsoft/teams.ai` installed.
 
 ## Documentation
 
-- **Plugin AGENTS.md**: https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md
+- **Plugin Skill**: https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration/skills
 - **Package README**: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic
 - **Package API Docs**: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/teams-anthropic/docs/API.md
 - **You.com MCP Server**: https://documentation.you.com/developer-resources/mcp-server

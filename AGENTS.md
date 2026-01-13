@@ -54,10 +54,12 @@ dx-toolkit/
 │       ├── tests/         # Tests
 │       ├── README.md      # User documentation
 │       └── package.json   # Package config
-├── plugins/               # Claude Code plugins (NOT published to npm)
+├── plugins/               # Skills (agent-skills-spec format, NOT published to npm)
 │   └── teams-anthropic-integration/
 │       ├── skills/
-│       ├── README.md      # Plugin docs
+│       │   └── teams-anthropic-integration.md  # YAML + Markdown skill
+│       ├── src/           # Integration code (optional)
+│       └── README.md      # Plugin docs
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 │       ├── _publish-package.yml        # Reusable workflow for publishing packages

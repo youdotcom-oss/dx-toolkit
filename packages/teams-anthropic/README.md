@@ -25,7 +25,7 @@ Anthropic SDK integration for Microsoft Teams.ai - Use Claude models (Opus, Sonn
 /generate-teams-app
 ```
 
-**Other AI agents**: Download [AGENTS.md](https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/plugins/teams-anthropic-integration/AGENTS.md) for universal AI agent support (Cursor, Windsurf, Cody, Continue, etc.)
+**Other AI agents**: See the [teams-anthropic-integration skill](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) for universal AI agent support (Cursor, Windsurf, Cody, Continue, etc.)
 
 See [Plugin Documentation](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) for complete integration guide.
 

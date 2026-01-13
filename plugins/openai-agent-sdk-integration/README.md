@@ -78,7 +78,7 @@ For Cody, Continue, Codex, Jules, VS Code, and more:
 curl -fsSL https://raw.githubusercontent.com/youdotcom-oss/dx-toolkit/main/scripts/install-plugin.sh | bash -s openai-agent-sdk-integration --agents.md
 ```
 
-Your AI agent will automatically discover the plugin via `AGENTS.md`.
+Your AI agent will automatically discover the skills via marketplace.json.
 
 Learn more: [agents.md specification](https://agents.md/)
 
