@@ -1,5 +1,5 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.youdotcom-oss/mcp",
   "title": "You.com Web Access & AI",
   "description": "Web search, AI agent, and content extraction via You.com APIs",
