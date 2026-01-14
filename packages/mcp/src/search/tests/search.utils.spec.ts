@@ -169,19 +169,21 @@ describe('formatSearchResults', () => {
     expect(result.content[0]).toHaveProperty('text');
     expect(result.content[0]?.text).toContain('WEB RESULTS:');
     expect(result.content[0]?.text).toContain('Test Title');
-    // URLs should NOT be in text content
-    expect(result.content[0]?.text).not.toContain('https://example.com');
+    // URL and page_age should be in text content
+    expect(result.content[0]?.text).toContain('URL: https://example.com');
+    expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00');
     expect(result.structuredContent).toHaveProperty('resultCounts');
     expect(result.structuredContent.resultCounts).toHaveProperty('web', 1);
     expect(result.structuredContent.resultCounts).toHaveProperty('news', 0);
     expect(result.structuredContent.resultCounts).toHaveProperty('total', 1);
-    // URLs should be in structuredContent.results
+    // All fields should be in structuredContent.results
     expect(result.structuredContent).toHaveProperty('results');
     expect(result.structuredContent.results?.web).toBeDefined();
     expect(result.structuredContent.results?.web?.length).toBe(1);
-    expect(result.structuredContent.results?.web?.[0]).toEqual({
+    expect(result.structuredContent.results?.web?.[0]).toMatchObject({
       url: 'https://example.com',
       title: 'Test Title',
+      page_age: '2023-01-01T00:00:00',
     });
     expect(result.fullResponse).toBe(mockResponse);
   });
@@ -211,19 +213,20 @@ describe('formatSearchResults', () => {
     expect(result.content[0]?.text).toContain('NEWS RESULTS:');
     expect(result.content[0]?.text).toContain('News Title');
     expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00');
-    // URLs should NOT be in text content
-    expect(result.content[0]?.text).not.toContain('https://news.com/article');
+    // URL should be in text content
+    expect(result.content[0]?.text).toContain('URL: https://news.com/article');
     expect(result.structuredContent).toHaveProperty('resultCounts');
     expect(result.structuredContent.resultCounts).toHaveProperty('web', 0);
     expect(result.structuredContent.resultCounts).toHaveProperty('news', 1);
     expect(result.structuredContent.resultCounts).toHaveProperty('total', 1);
-    // URLs should be in structuredContent.results
+    // All fields should be in structuredContent.results
     expect(result.structuredContent).toHaveProperty('results');
     expect(result.structuredContent.results?.news).toBeDefined();
     expect(result.structuredContent.results?.news?.length).toBe(1);
-    expect(result.structuredContent.results?.news?.[0]).toEqual({
+    expect(result.structuredContent.results?.news?.[0]).toMatchObject({
       url: 'https://news.com/article',
       title: 'News Title',
+      page_age: '2023-01-01T00:00:00',
     });
   });
 
@@ -261,25 +264,27 @@ describe('formatSearchResults', () => {
     expect(result.content[0]?.text).toContain('WEB RESULTS:');
     expect(result.content[0]?.text).toContain('NEWS RESULTS:');
     expect(result.content[0]?.text).toContain(`=${'='.repeat(49)}`);
-    // URLs should NOT be in text content
-    expect(result.content[0]?.text).not.toContain('https://web.com');
-    expect(result.content[0]?.text).not.toContain('https://news.com/article');
+    // URLs should be in text content
+    expect(result.content[0]?.text).toContain('URL: https://web.com');
+    expect(result.content[0]?.text).toContain('URL: https://news.com/article');
     expect(result.structuredContent.resultCounts).toHaveProperty('web', 1);
     expect(result.structuredContent.resultCounts).toHaveProperty('news', 1);
     expect(result.structuredContent.resultCounts).toHaveProperty('total', 2);
-    // URLs should be in structuredContent.results
+    // All fields should be in structuredContent.results
     expect(result.structuredContent).toHaveProperty('results');
     expect(result.structuredContent.results?.web).toBeDefined();
     expect(result.structuredContent.results?.news).toBeDefined();
     expect(result.structuredContent.results?.web?.length).toBe(1);
     expect(result.structuredContent.results?.news?.length).toBe(1);
-    expect(result.structuredContent.results?.web?.[0]).toEqual({
+    expect(result.structuredContent.results?.web?.[0]).toMatchObject({
       url: 'https://web.com',
       title: 'Web Title',
+      page_age: '2023-01-01T00:00:00',
     });
-    expect(result.structuredContent.results?.news?.[0]).toEqual({
+    expect(result.structuredContent.results?.news?.[0]).toMatchObject({
       url: 'https://news.com/article',
       title: 'News Title',
+      page_age: '2023-01-01T00:00:00',
     });
   });
 });

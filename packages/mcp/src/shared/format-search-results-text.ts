@@ -8,18 +8,26 @@ type GenericSearchResult = {
   description?: string;
   snippet?: string;
   snippets?: string[];
+  page_age?: string;
 };
 
 /**
  * Format array of search results into display text
  * Used by both search and express agent formatting
  * @param results - Array of search results to format
- * @param includeUrls - Whether to include URLs in the text (default: true)
  */
 export const formatSearchResultsText = (results: GenericSearchResult[]): string => {
   return results
     .map((result) => {
       const parts: string[] = [`Title: ${result.title}`];
+
+      // Add URL
+      parts.push(`URL: ${result.url}`);
+
+      // Add page age if present
+      if (result.page_age) {
+        parts.push(`Published: ${result.page_age}`);
+      }
 
       // Add description if present (from Search API)
       if (result.description) {
