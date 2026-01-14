@@ -82,7 +82,7 @@ export const fetchSearchResults = async ({
 export const formatSearchResults = (response: SearchResponse) => {
   let formattedResults = '';
 
-  // Format web results using shared utility (without URLs in text)
+  // Format web results using shared utility
   if (response.results.web?.length) {
     const webResults = formatSearchResultsText(response.results.web);
     formattedResults += `WEB RESULTS:\n\n${webResults}`;

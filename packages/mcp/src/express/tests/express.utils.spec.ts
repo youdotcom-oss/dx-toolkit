@@ -148,7 +148,7 @@ describe('formatExpressAgentResponse', () => {
     expect(result.content[0]?.text).toContain('Express Agent Answer');
     expect(result.content[0]?.text).toContain('Quantum computing is advancing rapidly');
 
-    // Verify search results come SECOND (without URLs in text)
+    // Verify search results come SECOND
     expect(result.content[1]?.type).toBe('text');
     expect(result.content[1]?.text).toContain('Search Results');
     expect(result.content[1]?.text).toContain('Quantum Computing Breakthrough');
