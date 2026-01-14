@@ -153,9 +153,9 @@ describe('formatExpressAgentResponse', () => {
     expect(result.content[1]?.text).toContain('Search Results');
     expect(result.content[1]?.text).toContain('Quantum Computing Breakthrough');
     expect(result.content[1]?.text).toContain('Latest in Quantum Research');
-    // URLs should NOT be in text content
-    expect(result.content[1]?.text).not.toContain('https://example.com/quantum1');
-    expect(result.content[1]?.text).not.toContain('https://example.com/quantum2');
+    // URLs should be in text content
+    expect(result.content[1]?.text).toContain('https://example.com/quantum1');
+    expect(result.content[1]?.text).toContain('https://example.com/quantum2');
 
     // Verify structuredContent is minimal with counts
     expect(result.structuredContent).toHaveProperty('answer');

@@ -85,8 +85,8 @@ describe('registerSearchTool', () => {
       const text = content[0]?.text;
       expect(text).toContain('WEB RESULTS:');
       expect(text).toContain('Title:');
-      // URL should NOT be in text content anymore
-      expect(text).toContain('Published:');
+      // URL should be in text content
+      expect(text).toContain('URL:');
       expect(text).toContain('Description:');
       expect(text).toContain('Snippets:');
 
