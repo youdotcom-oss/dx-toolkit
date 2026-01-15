@@ -108,6 +108,9 @@ fi
 
 info "Installing $PLUGIN_NAME for $INSTALL_MODE..."
 
+# Save current directory
+ORIGINAL_DIR="$(pwd)"
+
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)
 info "Downloading plugin..."
@@ -133,6 +136,9 @@ if [ ! -d "$PLUGIN_DIR/skills" ]; then
 Plugin must have a skills/ directory with agent-skills-spec format."
 fi
 
+# Return to original directory for installation
+cd "$ORIGINAL_DIR"
+
 # Determine installation path based on mode
 case "$INSTALL_MODE" in
   claude)
@@ -140,7 +146,7 @@ case "$INSTALL_MODE" in
 
     # Install to .claude/plugins/
     INSTALL_DIR="./.claude/plugins/$PLUGIN_NAME"
-    mkdir -p "./.claude/plugins"
+    mkdir -p "$INSTALL_DIR"
 
     # Copy plugin contents
     cp -r "$PLUGIN_DIR"/* "$INSTALL_DIR/"
@@ -224,7 +230,7 @@ EOF
 
     # Install to .claude/plugins/ (Cursor imports from Claude's system)
     INSTALL_DIR="./.claude/plugins/$PLUGIN_NAME"
-    mkdir -p "./.claude/plugins"
+    mkdir -p "$INSTALL_DIR"
 
     # Copy plugin contents
     cp -r "$PLUGIN_DIR"/* "$INSTALL_DIR/"
@@ -253,7 +259,7 @@ EOF
 
     # Install to .agents/skills/ for universal agent discovery
     INSTALL_DIR="./.agents/skills/$PLUGIN_NAME"
-    mkdir -p "./.agents/skills"
+    mkdir -p "$INSTALL_DIR"
 
     # Copy plugin contents
     cp -r "$PLUGIN_DIR"/* "$INSTALL_DIR/"
