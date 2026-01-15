@@ -47,14 +47,6 @@ Claude Agent SDK patterns and orchestration utilities for building production-re
 - Template-based setup workflow
 - Status: Planned Q1 2026
 
-**eval-harness** (Workflow)
-- **Type**: Plugin + Skills
-- Evaluation harness for MCP tools
-- Benchmark and validate MCP tool performance
-- Automated testing framework
-- Includes Claude Code skills for evaluation patterns
-- Status: Planned Q1 2026
-
 **local-rag-sqlite** (Workflow)
 - **Type**: Plugin + Skills
 - Local RAG with SQLite backend
@@ -101,7 +93,6 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 **Q1 2026**: Focus on enterprise integrations and workflow automation
 - Google Chat MCP integration
-- Evaluation harness
 - Local RAG with SQLite
 - Cloud deployment automation
 - RL pipeline starter

@@ -155,7 +155,6 @@ dx-toolkit/
 
 **Plugins in Development** (Target: Q1 2026)
 - **google-chat-mcp-integration** - Google Chat apps with You.com MCP server
-- **eval-harness** - Evaluation harness for MCP tools (includes skills)
 - **local-rag-sqlite** - Local RAG with SQLite backend (includes skills)
 - **cloud-deployment** - Cloud-agnostic deployment automation (includes skills)
 - **rl-pipeline** - Reinforcement learning pipeline starter (includes skills)
