@@ -82,18 +82,18 @@ export const fetchSearchResults = async ({
 export const formatSearchResults = (response: SearchResponse) => {
   let formattedResults = '';
 
-  // Format web results using shared utility (without URLs in text)
+  // Format web results using shared utility
   if (response.results.web?.length) {
     const webResults = formatSearchResultsText(response.results.web);
     formattedResults += `WEB RESULTS:\n\n${webResults}`;
   }
 
-  // Format news results (without URLs in text)
+  // Format news results
   if (response.results.news?.length) {
     const newsResults = response.results.news
       .map(
         (article: NewsResult) =>
-          `Title: ${article.title}\nDescription: ${article.description}\nPublished: ${article.page_age}`,
+          `Title: ${article.title}\nURL: ${article.url}\nDescription: ${article.description}\nPublished: ${article.page_age}`,
       )
       .join('\n\n---\n\n');
 
@@ -103,23 +103,28 @@ export const formatSearchResults = (response: SearchResponse) => {
     formattedResults += `NEWS RESULTS:\n\n${newsResults}`;
   }
 
-  // Extract URLs and titles for structuredContent
+  // Extract fields for structuredContent
   const structuredResults: {
-    web?: Array<{ url: string; title: string }>;
-    news?: Array<{ url: string; title: string }>;
+    web?: Array<{ url: string; title: string; page_age?: string }>;
+    news?: Array<{ url: string; title: string; page_age: string }>;
   } = {};
 
   if (response.results.web?.length) {
-    structuredResults.web = response.results.web.map((result) => ({
-      url: result.url,
-      title: result.title,
-    }));
+    structuredResults.web = response.results.web.map((result) => {
+      const item: { url: string; title: string; page_age?: string } = {
+        url: result.url,
+        title: result.title,
+      };
+      if (result.page_age) item.page_age = result.page_age;
+      return item;
+    });
   }
 
   if (response.results.news?.length) {
     structuredResults.news = response.results.news.map((article) => ({
       url: article.url,
       title: article.title,
+      page_age: article.page_age,
     }));
   }
 

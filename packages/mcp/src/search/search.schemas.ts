@@ -124,6 +124,7 @@ export const SearchStructuredContentSchema = z.object({
           z.object({
             url: z.string().describe('URL'),
             title: z.string().describe('Title'),
+            page_age: z.string().optional().describe('Publication timestamp'),
           }),
         )
         .optional()
@@ -133,6 +134,7 @@ export const SearchStructuredContentSchema = z.object({
           z.object({
             url: z.string().describe('URL'),
             title: z.string().describe('Title'),
+            page_age: z.string().describe('Publication timestamp'),
           }),
         )
         .optional()
