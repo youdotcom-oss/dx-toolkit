@@ -56,6 +56,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
    from agents import Agent, Runner
    from agents.mcp import HostedMCPTool
 
+   # Validate: ydc_api_key = os.getenv("YDC_API_KEY")
    agent = Agent(
        name="Assistant",
        instructions="Use You.com tools to answer questions.",
@@ -66,7 +67,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
                    "server_label": "ydc",
                    "server_url": "https://api.you.com/mcp",
                    "headers": {
-                       "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"
+                       "Authorization": f"Bearer {ydc_api_key}"
                    },
                    "require_approval": "never",
                }
@@ -79,6 +80,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
    ```typescript
    import { Agent, hostedMcpTool } from '@openai/agents';
 
+   // Validate: const ydcApiKey = process.env.YDC_API_KEY;
    const agent = new Agent({
      name: 'Assistant',
      instructions: 'Use You.com tools to answer questions.',
@@ -87,7 +89,7 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
         serverLabel: 'ydc',
          serverUrl: 'https://api.you.com/mcp',
          headers: {
-           Authorization: `Bearer ${process.env.YDC_API_KEY}`,
+           Authorization: `Bearer ${ydcApiKey}`,
          },
        }),
      ],
@@ -99,11 +101,12 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
    from agents import Agent, Runner
    from agents.mcp import MCPServerStreamableHttp
 
+   # Validate: ydc_api_key = os.getenv("YDC_API_KEY")
    async with MCPServerStreamableHttp(
        name="You.com MCP Server",
        params={
            "url": "https://api.you.com/mcp",
-           "headers": {"Authorization": f"Bearer {os.environ['YDC_API_KEY']}"},
+           "headers": {"Authorization": f"Bearer {ydc_api_key}"},
            "timeout": 10,
        },
        cache_tools_list=True,
@@ -120,12 +123,13 @@ Interactive workflow to set up OpenAI Agents SDK with You.com's MCP server.
    ```typescript
    import { Agent, MCPServerStreamableHttp } from '@openai/agents';
 
+   // Validate: const ydcApiKey = process.env.YDC_API_KEY;
    const mcpServer = new MCPServerStreamableHttp({
      url: 'https://api.you.com/mcp',
      name: 'You.com MCP Server',
      requestInit: {
        headers: {
-         Authorization: `Bearer ${process.env.YDC_API_KEY}`,
+         Authorization: `Bearer ${ydcApiKey}`,
        },
      },
    });
@@ -186,7 +190,7 @@ async def main():
                     "server_label": "ydc",
                     "server_url": "https://api.you.com/mcp",
                     "headers": {
-                        "Authorization": f"Bearer {os.environ['YDC_API_KEY']}"
+                        "Authorization": f"Bearer {ydc_api_key}"
                     },
                     "require_approval": "never",
                 }
@@ -246,7 +250,7 @@ async def main():
         name="You.com MCP Server",
         params={
             "url": "https://api.you.com/mcp",
-            "headers": {"Authorization": f"Bearer {os.environ['YDC_API_KEY']}"},
+            "headers": {"Authorization": f"Bearer {ydc_api_key}"},
             "timeout": 10,
         },
         cache_tools_list=True,
@@ -314,7 +318,7 @@ async function main() {
         serverLabel: 'ydc',
         serverUrl: 'https://api.you.com/mcp',
         headers: {
-          Authorization: `Bearer ${process.env.YDC_API_KEY}`,
+          Authorization: `Bearer ${ydcApiKey}`,
         },
       }),
     ],
@@ -370,7 +374,7 @@ async function main() {
     name: 'You.com MCP Server',
     requestInit: {
       headers: {
-        Authorization: `Bearer ${process.env.YDC_API_KEY}`,
+        Authorization: `Bearer ${ydcApiKey}`,
       },
     },
   });
@@ -521,19 +525,19 @@ try {
 
 After configuration, the AI agent can use these tools:
 
-### `you_search`
+### `mcp__ydc__you_search`
 Web and news search with filters:
 - `query`: Search query string
 - `freshness`: Filter by recency (day, week, month, year)
 - `country`: Country code for localized results
 - `count`: Number of results to return
 
-### `you_express`
+### `mcp__ydc__you_express`
 Fast AI agent with optional web search:
 - `input`: Query or instruction for the AI agent
 - `tools`: Optional list of tools to use (e.g., ["search"])
 
-### `you_contents`
+### `mcp__ydc__you_contents`
 Web page content extraction:
 - `urls`: Array of URLs to extract content from
 - `formats`: Output formats - array of `"markdown"`, `"html"`, or `"metadata"`
