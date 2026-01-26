@@ -261,6 +261,86 @@ jobs:
             git push origin "$BRANCH_NAME"
           fi
 
+      - name: Update dependent packages
+        id: update_dependents
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.version }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          PACKAGE_NAME: ${{ steps.derive_package.outputs.package_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          # Find and update packages that depend on this package
+          echo "Updating workspace packages that depend on ${NPM_PACKAGE_NAME}..."
+
+          UPDATED_PACKAGES=""
+
+          # Check packages/ directory
+          for pkg_json in packages/*/package.json; do
+            # Skip the package we just published
+            if [[ "$pkg_json" == "packages/${PACKAGE_NAME}/package.json" ]]; then
+              continue
+            fi
+
+            # Check if this package depends on the published package
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+              '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
+              "$pkg_json" >/dev/null 2>&1; then
+
+              PKG_DIR=$(dirname "$pkg_json")
+              PKG_NAME=$(jq -r '.name' "$pkg_json")
+              CURRENT_VER=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
+              DEP_TYPE=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                'if .dependencies[$pkg] then "dependencies" else "devDependencies" end' "$pkg_json")
+
+              echo "Updating ${PKG_NAME} from ${CURRENT_VER} to ${VERSION} in ${DEP_TYPE}..."
+
+              # Update the dependency version using jq
+              if [[ "$DEP_TYPE" == "dependencies" ]]; then
+                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
+                  '.dependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
+              else
+                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
+                  '.devDependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
+              fi
+
+              mv "${pkg_json}.tmp" "$pkg_json"
+
+              if [[ -n "$UPDATED_PACKAGES" ]]; then
+                UPDATED_PACKAGES="${UPDATED_PACKAGES}"$'\n'
+              fi
+              UPDATED_PACKAGES="${UPDATED_PACKAGES}- **${PKG_NAME}**: Updated from \`${CURRENT_VER}\` to \`${VERSION}\` in ${DEP_TYPE}"
+            fi
+          done
+
+          if [[ -n "$UPDATED_PACKAGES" ]]; then
+            echo "has_dependents=true" >> $GITHUB_OUTPUT
+            echo "dependents<<EOF" >> $GITHUB_OUTPUT
+            echo "$UPDATED_PACKAGES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+            # Update lock file
+            echo "Updating bun.lock after dependency changes..."
+            rm -rf bun.lock node_modules
+            bun install
+            echo "✅ Lock file updated"
+
+            # Commit the dependency updates
+            git add packages/*/package.json bun.lock
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: update ${NPM_PACKAGE_NAME} to ${VERSION} in dependent packages [skip ci]"
+              git push origin "$BRANCH_NAME"
+              echo "✅ Committed dependency updates"
+            fi
+
+            echo "Updated dependent packages:"
+            echo "$UPDATED_PACKAGES"
+          else
+            echo "has_dependents=false" >> $GITHUB_OUTPUT
+            echo "No dependent packages found"
+          fi
+
       - name: Check for dependent packages and plugins
         id: check_dependents
         env:
@@ -360,7 +440,7 @@ jobs:
       - name: Setup Node.js (for NPM OIDC)
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: "lts/*"
           registry-url: https://registry.npmjs.org
           check-latest: true
 
