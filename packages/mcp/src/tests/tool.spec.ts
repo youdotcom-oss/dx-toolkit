@@ -500,11 +500,12 @@ describe('registerContentsTool', () => {
       const text = content[0]?.text;
       expect(text).toContain('Successfully extracted content');
       expect(text).toContain('https://documentation.you.com/developer-resources/mcp-server');
-      expect(text).toContain('Format: markdown');
+      expect(text).toContain('Formats: markdown');
 
       const structuredContent = result.structuredContent as ContentsStructuredContent;
       expect(structuredContent).toHaveProperty('count', 1);
-      expect(structuredContent).toHaveProperty('format', 'markdown');
+      expect(structuredContent).toHaveProperty('formats');
+      expect(structuredContent.formats).toEqual(['markdown']);
       expect(structuredContent).toHaveProperty('items');
       expect(structuredContent.items).toHaveLength(1);
 
@@ -512,10 +513,9 @@ describe('registerContentsTool', () => {
       expect(item).toBeDefined();
 
       expect(item).toHaveProperty('url', 'https://documentation.you.com/developer-resources/mcp-server');
-      expect(item).toHaveProperty('content');
-      expect(item).toHaveProperty('contentLength');
-      expect(typeof item?.content).toBe('string');
-      expect(item?.content.length).toBeGreaterThan(0);
+      expect(item).toHaveProperty('markdown');
+      expect(typeof item?.markdown).toBe('string');
+      expect(item?.markdown?.length).toBeGreaterThan(0);
     },
     { retry: 2 },
   );
@@ -557,11 +557,11 @@ describe('registerContentsTool', () => {
       });
 
       const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent.format).toBe('html');
+      expect(structuredContent.formats).toEqual(['html']);
 
       const content = result.content as { type: string; text: string }[];
       const text = content[0]?.text;
-      expect(text).toContain('Format: html');
+      expect(text).toContain('Formats: html');
     },
     { retry: 2 },
   );
@@ -577,7 +577,7 @@ describe('registerContentsTool', () => {
       });
 
       const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent.format).toBe('markdown');
+      expect(structuredContent.formats).toEqual(['markdown']);
     },
     { retry: 2 },
   );

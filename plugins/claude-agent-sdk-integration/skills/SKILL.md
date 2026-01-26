@@ -361,7 +361,8 @@ Fast AI agent with optional web search:
 ### `mcp__ydc__you_contents`
 Web page content extraction:
 - `urls`: Array of URLs to extract content from
-- `format`: Output format (markdown, text, html)
+- `formats`: Output formats - array of `"markdown"`, `"html"`, or `"metadata"`
+- `crawl_timeout`: Optional timeout in seconds (1-60)
 
 ## Environment Variables
 

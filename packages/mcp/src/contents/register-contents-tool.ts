@@ -32,12 +32,16 @@ export const registerContentsTool = ({
       try {
         // Validate and parse input
         const contentsQuery = ContentsQuerySchema.parse(toolInput);
-        const { urls, format = 'markdown' } = contentsQuery;
+        const { urls, formats, format, crawl_timeout } = contentsQuery;
+
+        // Handle backward compatibility: prefer formats array, fallback to format string, default to ['markdown']
+        const requestFormats = formats || (format ? [format] : ['markdown']);
 
         // Log the request
+        const timeoutInfo = crawl_timeout ? ` with timeout: ${crawl_timeout}s` : '';
         await logger({
           level: 'info',
-          data: `Contents API call initiated for ${urls.length} URL(s) with format: ${format}`,
+          data: `Contents API call initiated for ${urls.length} URL(s) with formats: ${requestFormats.join(', ')}${timeoutInfo}`,
         });
 
         // Fetch contents from API
@@ -48,7 +52,7 @@ export const registerContentsTool = ({
         });
 
         // Format response with full content
-        const { content, structuredContent } = formatContentsResponse(response, format);
+        const { content, structuredContent } = formatContentsResponse(response, requestFormats);
 
         // Log success
         await logger({
