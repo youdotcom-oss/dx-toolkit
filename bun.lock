@@ -32,7 +32,7 @@
     },
     "packages/mcp": {
       "name": "@youdotcom-oss/mcp",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "bin": "bin/stdio.js",
       "dependencies": {
         "@hono/mcp": "^0.2.3",
@@ -984,6 +984,8 @@
     "@radix-ui/react-select/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
 
     "@radix-ui/react-tooltip/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
+
+    "@youdotcom-oss/ai-sdk-plugin/@youdotcom-oss/mcp": ["@youdotcom-oss/mcp@1.5.0", "", { "dependencies": { "@hono/mcp": "^0.2.3", "@modelcontextprotocol/sdk": "^1.25.2", "hono": "^4.11.4", "zod": "^4.3.5" }, "bin": { "mcp": "bin/stdio.js" } }, "sha512-+QH6JiE6xNCQWn+BirgZIvXo6iIilqS2lwQtXvUfykko0WgpgFRRbsIIKyhm2NgaQbaWXaV8adwB7SxVSmOqLw=="],
 
     "caller-callsite/callsites": ["callsites@2.0.0", "", {}, "sha512-ksWePWBloaWPxJYQ8TL0JHvtci6G5QTKwQ95RcWAa/lzoAKuAOflGdAK92hpHXjkwb8zLxoLNUoNYZgVsaJzvQ=="],
 
