@@ -18,7 +18,7 @@
     },
     "packages/ai-sdk-plugin": {
       "name": "@youdotcom-oss/ai-sdk-plugin",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "dependencies": {
         "@youdotcom-oss/mcp": "1.5.1",
       },
