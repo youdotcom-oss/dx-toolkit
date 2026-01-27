@@ -194,9 +194,9 @@ Fast AI-powered agent that provides synthesized answers with optional real-time 
 **When to use**: When you want a direct answer to a question, with optional web search for up-to-date context and citations.
 
 ### you-contents
-Extract full page content from URLs in markdown or HTML format. Useful for documentation analysis, content processing, and batch URL extraction.
+Extract full page content from URLs in markdown, HTML, or structured metadata formats. Useful for documentation analysis, content processing, SEO data extraction, and batch URL processing.
 
-**When to use**: When you need to extract and analyze content from web pages, either for reading or processing in your workflow.
+**When to use**: When you need to extract web page content (markdown/HTML) or structured metadata (OpenGraph, JSON-LD) for analysis or processing in your workflow.
 
 ---
 
@@ -226,6 +226,8 @@ Here are common scenarios showing when and how to use each tool with natural lan
 - "Extract the content from this blog post: https://example.com/article"
 - "Get the documentation from these three URLs in markdown format"
 - "Pull the HTML content from this page preserving the layout"
+- "Extract metadata from this article to get the author and publish date"
+- "Get OpenGraph preview data for social sharing from these URLs"
 - "Batch extract content from these 5 documentation pages"
 
 ### Combined workflows

@@ -6,25 +6,34 @@ alwaysApply: false
 
 # You.com DX Toolkit Development Guide
 
-Open-source toolkit enabling developers to integrate You.com's AI capabilities into their workflows. Built as a Bun workspace containing packages for MCP servers, AI SDK plugins, evaluation harnesses, and Claude Code skills.
+Open-source toolkit enabling developers to integrate You.com's AI capabilities into their workflows. Built as a Bun workspace containing packages for MCP servers, AI SDK plugins, and Teams.ai integrations.
 
 > **For a user-focused quick start**, see the [root README.md](./README.md). This guide (AGENTS.md) is for internal maintainers and contributors who need comprehensive development details.
 
 ## Rules and Skills Organization
 
-This monorepo uses both rules (`.claude/rules/`) and skills (`.claude/skills/`) for efficient knowledge organization:
+This monorepo uses both rules (`.plaited/rules/`) and skills (`.claude/skills/`) for efficient knowledge organization:
 
-**Rules** (in `.claude/rules/`) - Universal development patterns:
-- **code-patterns.md** - Universal code patterns (arrow functions, Bun APIs, test patterns, error handling, type guards)
-- **git-workflow.md** - Git conventions (branching, commits, versioning, gh CLI usage)
-- **testing.md** - Performance monitoring system (measurements, thresholds, regression handling)
-- **workflows.md** - Package and plugin creation workflows (implementation, testing, publishing)
+**Rules** (`.plaited/rules/`) - Universal patterns:
+| File | Coverage |
+|------|----------|
+| core.md | Type conventions, arrow functions, object params, private fields |
+| bun.md | Bun APIs (file system, shell, path resolution) |
+| testing.md | Test patterns, assertions, coverage, Docker tests |
+| modules.md | Module organization, import patterns, file structure |
+| workflow.md | Git workflow, branching, commits, GitHub CLI |
+| accuracy.md | Verification standards, uncertainty handling, LSP usage |
+| documentation.md | TSDoc standards, template, public API docs |
+| performance-testing.md | Monitoring, measurements, thresholds, regression handling |
+| workflows.md | Package creation, testing, publishing |
 
-**Skills** (in `.claude/skills/`) - Package-specific patterns:
-- **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
-- **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
-- **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
-- **teams-ai-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
+**Skills** (`.claude/skills/`) - Package-specific patterns:
+| Skill | Coverage |
+|-------|----------|
+| documentation | README/AGENTS.md standards, TSDoc strategy, thin philosophy |
+| mcp-patterns | Zod schemas, error handling, logging, response format |
+| ai-sdk-patterns | Input schemas, API key handling, response format |
+| teams-ai-patterns | Memory API, Anthropic SDK, MCP client setup |
 
 **Benefits**:
 - **Reduced overhead**: Rules use plain markdown without frontmatter metadata
@@ -34,9 +43,9 @@ This monorepo uses both rules (`.claude/rules/`) and skills (`.claude/skills/`) 
 - **Maintainability**: Consistent pattern across the monorepo
 
 Throughout this guide, you'll see references like:
-> **For universal code patterns**, see `.claude/rules/code-patterns.md`
+> **For universal code patterns**, see `.plaited/rules/core.md`
 
-These indicate that detailed information is available in the referenced rule file.
+These indicate that detailed information is available in the referenced rule file. Note that `.claude/rules/` is a symlink to `.plaited/rules/` for compatibility with Claude Code.
 
 ---
 
@@ -44,8 +53,17 @@ These indicate that detailed information is available in the referenced rule fil
 
 ```
 dx-toolkit/
-├── .claude-plugin/
-│   └── marketplace.json   # Plugin marketplace manifest
+├── .plaited/
+│   ├── rules/             # Universal patterns (code, git, testing, workflows)
+│   └── skills/            # Development skills (code-documentation, optimize-agents-md, etc.)
+├── .claude/
+│   ├── rules -> ../.plaited/rules   # Symlink to universal patterns
+│   └── skills/            # Package-specific patterns + development skills (symlinked)
+│       ├── documentation/
+│       ├── mcp-patterns/
+│       ├── ai-sdk-patterns/
+│       ├── teams-anthropic-patterns/
+│       └── code-documentation@plaited_development-skills -> ../../.plaited/skills/...
 ├── packages/
 │   └── mcp/               # MCP Server package (@youdotcom-oss/mcp)
 │       ├── src/           # Source code
@@ -54,21 +72,16 @@ dx-toolkit/
 │       ├── tests/         # Tests
 │       ├── README.md      # User documentation
 │       └── package.json   # Package config
-├── plugins/               # Claude Code plugins (NOT published to npm)
-│   └── teams-anthropic-integration/
-│       ├── skills/
-│       ├── README.md      # Plugin docs
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 │       ├── _publish-package.yml        # Reusable workflow for publishing packages
 │       ├── ci.yml                      # Run lint test to validate libraries
 │       ├── code-review.yml             # Agentic code for internal contributors
 │       ├── external-code-review.yml    # Agentic code for external contributors
-│       ├── publish-mcp.yml             # Publish mcp server and trigger remote deployment
-│       └── validate-marketplace.yml    # Weekly plugin marketplace validation
-├── scripts/               # CI scripts
+│       └── publish-mcp.yml             # Publish mcp server and trigger remote deployment
+├── scripts/               # CI scripts and performance monitoring
 ├── docs/
-│   └── MARKETPLACE.md     # Plugin marketplace documentation
+│   └── PERFORMANCE.md     # Performance monitoring documentation
 ├── package.json           # Workspace root config
 ├── bun.lock              # Workspace lock file (root only)
 └── AGENTS.md             # This file (monorepo dev guide)
@@ -90,142 +103,48 @@ All packages must follow this naming rule:
 **Current packages**:
 - `@youdotcom-oss/mcp` in `packages/mcp/`
 
-## Claude Code Skills Marketplace
+## Agent Skills
 
-This repository serves as a **Claude Code Skills Marketplace**, providing cross-platform skills for enterprise integrations, AI SDK workflows, and agent SDK integrations.
+### Cross-Platform Integration Skills
 
-### Marketplace vs Packages
+**Cross-platform integration skills have moved to [youdotcom-oss/agent-skills](https://github.com/youdotcom-oss/agent-skills).**
 
-**Key Distinction**:
-- **`packages/`** - npm packages (published to npm registry)
-- **`plugins/`** - Skills for marketplace distribution (accessed via git, NOT published to npm)
-- **`.claude/skills/`** - Project-specific development skills (code patterns, documentation, git workflow)
+The agent-skills repository provides guided workflows for integrating You.com packages with popular AI frameworks:
 
-### Skill Architecture
+- **ai-sdk-integration** - Vercel AI SDK integration with You.com tools
+- **claude-agent-sdk-integration** - Claude Agent SDK with You.com MCP server
+- **openai-agent-sdk-integration** - OpenAI Agents SDK with You.com MCP server
+- **teams-anthropic-integration** - Microsoft Teams.ai with Anthropic Claude models
 
-```
-plugins/{skill-name}/
-├── skills/
-│   └── {skill-name}.md                 # Agent-skills-spec format (replaces AGENTS.md + commands/)
-├── README.md                           # Human-readable docs
-└── LICENSE                             # MIT license
+**Installation:**
+```bash
+npx skills add youdotcom-oss/agent-skills
 ```
 
-**Skill File Format** (agent-skills-spec):
-- Located in `skills/{skill-name}.md` subdirectory
-- YAML frontmatter (name, description, license, compatibility, metadata)
-- Markdown body with workflow, assets, validation checklist, troubleshooting
-- Single source of truth for skill content
-- Max 1024 chars for description in frontmatter
+**Repository**: https://github.com/youdotcom-oss/agent-skills
 
-### Package Patterns vs Plugin Skills
+### Project-Specific Development Skills
 
-**Package-specific patterns** (in `.claude/skills/`):
-- **Audience**: Developers contributing to packages
-- **Purpose**: Package-specific development patterns (e.g., MCP schemas, AI SDK plugin patterns)
-- **Tone**: Directive and technical ("Always use...", "NEVER bypass...")
-- **Content**: Framework-specific patterns, domain rules unique to package integration
-- **Distribution**: Part of repository, referenced from root AGENTS.md
-- **Examples**: `.claude/skills/mcp-patterns/`, `.claude/skills/teams-anthropic-patterns/`
-
-**Plugin skills** (in `plugins/*/skills/`):
-- **Audience**: End users integrating packages into their applications
-- **Purpose**: Interactive integration workflows for specific platforms/frameworks
-- **Format**: Agent-skills-spec (YAML frontmatter + Markdown)
-- **Content**: Step-by-step workflow, assets, validation, troubleshooting
-- **Distribution**: Accessed via git clone/pull, listed in marketplace.json
-- **Examples**: `plugins/ai-sdk-integration/skills/`, `plugins/teams-anthropic-integration/skills/`
-
-### Skill Workspace Integration
-
-Skills are part of the Bun workspace for local validation:
-
-```json
-// Root package.json
-{
-  "workspaces": ["packages/*", "plugins/*"]
-}
-```
-
-**Benefits**:
-- ✅ Skills distributed via git (no build artifacts)
-- ✅ Assets shipped as-is (Markdown files, no code validation needed)
-- ✅ Workspace integration enables format checks on Markdown files
-
-### Skill Naming Convention
-
-Skill directories must follow this naming rule:
-
-**Rule**: Skill directory name MUST match the skill name in SKILL.md frontmatter
-
-**Examples**:
-- Skill name: `teams-anthropic-integration` → Directory: `plugins/teams-anthropic-integration` ✅
-- Skill name: `ai-sdk-integration` → Directory: `plugins/ai-sdk-integration` ✅
-
-**Validation**: Marketplace tests validate skill names match directory names.
+Package-specific development patterns and workflows are in `.claude/skills/`:
 
 **Current skills**:
-- `teams-anthropic-integration` in `plugins/teams-anthropic-integration/`
-- `ai-sdk-integration` in `plugins/ai-sdk-integration/`
-- `claude-agent-sdk-integration` in `plugins/claude-agent-sdk-integration/`
-- `openai-agent-sdk-integration` in `plugins/openai-agent-sdk-integration/`
+- **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
+- **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
+- **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
+- **teams-anthropic-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
 
-### Skill Commands
+**Purpose**:
+- **Audience**: Developers contributing to dx-toolkit packages
+- **Content**: Package-specific development patterns, framework-specific rules
+- **Distribution**: Part of this repository, referenced throughout AGENTS.md
+- **Usage**: AI coding assistants automatically load these when contributing to dx-toolkit
 
-```bash
-# From root - test specific skill
-bun --cwd plugins/teams-anthropic-integration test
-
-# From root - check specific skill
-bun --cwd plugins/teams-anthropic-integration run check
-
-# From root - test all skills
-bun run --filter 'plugins/*' test
-
-# From skill directory
-cd plugins/teams-anthropic-integration
-bun test
-bun run check
-```
-
-### Distribution Strategy
-
-**Primary Distribution**: Skills are distributed via git
-
-**Access Pattern**:
-- Users clone/pull the repository: `git clone https://github.com/youdotcom-oss/dx-toolkit.git`
-- Skills are in `plugins/` directory
-- AI agents read SKILL.md files directly from filesystem
-- No installation script needed
-
-**Marketplace Configuration**:
-```json
-{
-  "skills": [
-    {
-      "name": "ai-sdk-integration",
-      "version": "0.2.0",
-      "path": "./plugins/ai-sdk-integration/skills/ai-sdk-integration.md",
-      "publicUrl": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/ai-sdk-integration"
-    }
-  ]
-}
-```
-
-**Marketplace Versioning**:
-- Format: Semantic versioning (e.g., `0.2.0`)
-- Incremented: When skills or marketplace structure changes
-- Indicates: Marketplace schema version
-
-**Development Flow**:
-1. Develop in `dx-toolkit/plugins/{skill-name}/`
-2. Create/update SKILL.md with agent-skills-spec format
-3. Test locally with Bun workspace
-4. CI validates and tests on PR
-5. Merge to main
-6. Users pull latest changes to get updated skills
-
-See [docs/MARKETPLACE.md](./docs/MARKETPLACE.md) for complete marketplace documentation.
+**Benefits**:
+- ✅ Reduced overhead - Rules use plain markdown without frontmatter metadata
+- ✅ Clear organization - Rules for universal patterns, skills for package-specific patterns
+- ✅ Token efficiency - Simpler structure, easier discovery
+- ✅ Single source of truth - Update patterns once, referenced everywhere
+- ✅ Maintainability - Consistent pattern across the monorepo
 
 ## Tech Stack
 
@@ -443,23 +362,9 @@ Packages depending on other workspace packages should use the **bundled pattern*
 - Root `.gitignore` allows root `bun.lock`
 - Workspace manages all dependencies via root lock file
 
-### Universal Code Patterns
+## Code Patterns
 
-> **For universal code patterns** (arrow functions, Bun APIs, test patterns, error handling, etc.), see `.claude/rules/code-patterns.md`
-
-This rule covers:
-- Arrow functions and function declarations
-- Numeric separators for readability
-- Bun APIs over Node.js APIs
-- Test patterns with `test()` vs `it()`
-- Typed error handling with `err: unknown`
-- Test retry configuration for API tests
-- Test assertion anti-patterns to avoid
-- Private class fields with `#` prefix
-- Type guards over type casting
-- When to use Zod for schema validation
-
-The skill provides detailed examples, rationale, and best practices for each pattern
+> **For universal code patterns**, see `.plaited/rules/` (especially `core.md`, `bun.md`, `testing.md`, `modules.md`)
 
 ## Git Workflow
 
@@ -654,26 +559,7 @@ Read and follow the instructions in `.claude/commands/create-package.md`
 
 ### Post-Creation Workflow
 
-> **For complete post-creation workflow** (implementation, testing, publishing), see `.claude/rules/workflows.md`
-
-This rule covers:
-- Implementing package logic with TSDoc comments
-- Registering package documentation in root CLAUDE.md
-- Adding performance monitoring (optional, API wrappers only)
-- Testing locally before publishing
-- Testing publish workflow with prerelease versions
-- First stable release process
-
-**Quick Reference**:
-
-After creating a package with the create-package command:
-
-1. **Implement Package Logic** - Edit `src/main.ts`, add tests, add TSDoc to exports
-2. **Register Package Documentation** - Add AGENTS.md reference to root `CLAUDE.md`
-3. **Add Performance Monitoring** (optional) - Only for API wrapper packages
-4. **Test Locally** - Run `bun test` and `bun run check`
-5. **Test Publish Workflow** - Use prerelease version (e.g., `0.1.0-next.1`)
-6. **First Stable Release** - Publish version `0.1.0` to npm
+> **For complete post-creation workflow**, see `.plaited/rules/workflows.md`
 
 ### Working on Packages
 
@@ -713,147 +599,14 @@ bun test                         # Test specific package
 
 ## Package-Specific Documentation
 
-For package-specific development patterns, see the corresponding skills:
-
-- **MCP Server**: [`.claude/skills/mcp-patterns/`](./.claude/skills/mcp-patterns/)
-  - Zod schema design patterns
-  - Error handling conventions
-  - Logging patterns
-  - Response format standards
-  - Testing strategies
-
-- **Teams.ai Integration**: [`.claude/skills/teams-anthropic-patterns/`](./.claude/skills/teams-anthropic-patterns/)
-  - Memory API usage patterns
-  - Function calling conventions
-  - Streaming response handling
-  - Message transformation patterns
-
-### Documentation Standards
-
-> **For complete documentation standards** (README.md tone, thin AGENTS.md philosophy, TSDoc strategy), see `.claude/skills/documentation`
-
-This skill covers:
-- README.md user-facing tone (encouraging, accessible, second-person voice)
-- **Thin AGENTS.md philosophy** (100-200 lines, heavy skill references, package-specific only)
-- TSDoc API documentation strategy (no separate API.md files)
-- Validation checklists for both documentation types
-- Good vs bad examples showing thin vs bloated AGENTS.md
-
-**Key principle**: Package AGENTS.md files should be minimal wrappers (100-200 lines) that reference skills for universal patterns and focus only on package-specific patterns.
-
-**Quick Reference**:
-
-#### README.md - User-Facing Documentation
-
-**Audience**: End users (developers integrating the package)
-
-**Tone Characteristics**:
-- Encouraging and accessible - "Get up and running in 4 quick steps"
-- Task-focused and solution-oriented - "No installation, always up-to-date"
-- Second-person voice - Use "you", "your" consistently
-- Active imperatives - "Choose your setup", "Test your installation"
-
-**Content Requirements**:
-- Maximum 4 steps in "Getting started" section
-- Natural language examples in quotes
-- Progressive disclosure with collapsible sections
-- Problem-solution format for troubleshooting
-- Emphasize immediate value and ease of use
-
-**Language Patterns**:
-| ✅ Do | ❌ Don't |
-|-------|----------|
-| "Get up and running in 3 quick steps" | "Installation procedure requires..." |
-| "No installation required" | "This package is hosted remotely" |
-| "Your agent will automatically..." | "The system executes..." |
-| "Just describe what you want" | "Invoke the tool with parameters" |
-
-#### AGENTS.md - Developer Documentation
-
-**Audience**: Developers, contributors, AI coding agents
-
-**Tone Characteristics**:
-- Directive and technical - "Always use arrow functions for declarations"
-- Absolute constraints - "NEVER bypass git hooks"
-- Imperative explanatory - Side-by-side code examples
-- Enforcement language - "All exports must be actively used"
-
-**Content Requirements**:
-- Clear audience disclaimer at top
-- Sequential workflow structure (setup → code → develop → deploy)
-- Side-by-side code comparisons (✅/❌)
-- File path references with line numbers
-- Symptom/solution format for troubleshooting
-- Architecture diagrams where relevant
-
-**Language Patterns**:
-| ✅ Do | ❌ Don't |
-|-------|----------|
-| "Always use arrow functions" | "We recommend arrow functions" |
-| "NEVER bypass git hooks" | "Consider keeping hooks enabled" |
-| "All exports must be used" | "Try to avoid unused exports" |
-| "Check pattern: `^[a-z]+$`" | "Names should be lowercase" |
-
-#### Quick Reference Comparison
-
-| Aspect | README.md | AGENTS.md |
-|--------|-----------|-----------|
-| **Audience** | End users (integrators) | Developers (contributors) |
-| **Tone** | Encouraging, accessible | Directive, technical |
-| **Voice** | Active, second-person | Imperative, explanatory |
-| **Examples** | Natural language queries | Code patterns with ✅/❌ |
-| **Structure** | Progressive disclosure | Sequential workflows |
-| **Language** | "Works everywhere", "just", "simply" | "Always", "never", "must" |
-
-#### Validation Checklist
-
-Before publishing package documentation:
-
-**README.md:**
-- [ ] Has 4-step "Getting started" section
-- [ ] Uses encouraging language ("quick", "easy", "just")
-- [ ] Provides natural language examples
-- [ ] Uses collapsible sections for detailed config
-- [ ] Includes simple test queries
-- [ ] Emphasizes immediate value
-- [ ] Uses second-person voice throughout
-- [ ] Avoids technical jargon in main flow
-
-**AGENTS.md:**
-- [ ] Starts with clear audience disclaimer
-- [ ] Uses directive language (always/never)
-- [ ] Includes file path references
-- [ ] Provides side-by-side code examples (✅/❌)
-- [ ] Contains architecture diagrams where relevant
-- [ ] Uses symptom/solution format for troubleshooting
-- [ ] Specifies exact patterns with regex/commands
-- [ ] Cross-references to line numbers where appropriate
+See `.claude/skills/` for package-specific development patterns:
+- **mcp-patterns** - MCP server (Zod schemas, error handling, logging, response format, testing)
+- **teams-ai-patterns** - Teams.ai integration (Memory API, function calling, streaming, message transformation)
+- **documentation** - README/AGENTS.md standards (tone, structure, TSDoc strategy, validation)
 
 ## Performance Testing & Monitoring
 
-> **For complete performance testing details** (centralized monitoring, running measurements, adding to new packages), see `.claude/rules/testing.md`
-
-This rule covers:
-- Centralized weekly monitoring architecture
-- Running measurements locally and in CI
-- Package thresholds and regression handling
-- Adding performance monitoring to new packages
-- When to add monitoring (only for API wrapper packages)
-
-**Quick Reference**:
-
-**Architecture**:
-- `scripts/performance/measure.ts` - Runs all measurements
-- `scripts/performance/detect-and-file.ts` - Detects regressions, creates GitHub issues
-- `.github/workflows/weekly-performance.yml` - Runs every Monday at 1pm UTC
-
-**Current Thresholds**:
-| Package | Lag | Overhead | Memory |
-|---------|-----|----------|--------|
-| `@youdotcom-oss/mcp` | < 100ms | < 50% | < 400KB |
-| `@youdotcom-oss/ai-sdk-plugin` | < 80ms | < 35% | < 350KB |
-
-See [docs/PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed methodology and results
+> **For performance testing details**, see `.plaited/rules/performance-testing.md` and [docs/PERFORMANCE.md](./docs/PERFORMANCE.md)
 
 ## Troubleshooting
 

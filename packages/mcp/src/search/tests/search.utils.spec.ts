@@ -68,7 +68,6 @@ describe('fetchSearchResults', () => {
       expect(Array.isArray(webResult?.snippets)).toBe(true);
 
       // Test that news results have required properties
-      // biome-ignore lint/style/noNonNullAssertion: Test
       // const newsResult = result.results.news![0];
       // expect(newsResult).toHaveProperty('url');
       // expect(newsResult).toHaveProperty('title');

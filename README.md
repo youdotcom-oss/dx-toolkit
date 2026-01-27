@@ -1,12 +1,11 @@
 # You.com DX Toolkit
 
-**Open-source toolkit for AI-powered development - npm packages, plugins, and skills that work with Claude Code, Cursor, and 20+ AI coding assistants.**
+**Open-source monorepo for AI-powered development - npm packages and development skills for building with You.com's AI capabilities.**
 
 Build with You.com's AI capabilities across your entire workflow:
 
-- **📦 NPM Packages** - Ready-to-use integrations for popular frameworks
-- **🔌 Universal Plugins** - Cross-platform plugins for AI coding assistants
-- **🎯 Claude Code Skills** - Context-aware development patterns
+- **📦 NPM Packages** - Ready-to-use integrations for popular frameworks (MCP, AI SDK, Teams.ai)
+- **🎯 Development Skills** - Project-specific patterns and workflows (code patterns, git workflow, testing)
 
 ---
 
@@ -23,21 +22,36 @@ Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, w
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
 Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
 
-## Skills
+## Agent Skills
 
-Cross-platform skills for Claude Code, Cursor, Windsurf, and other AI coding assistants. Guided workflows for enterprise integrations, AI SDK workflows, and agent SDK integrations.
+**Cross-platform integration skills have moved to [youdotcom-oss/agent-skills](https://github.com/youdotcom-oss/agent-skills).**
 
-### [ai-sdk-integration](./plugins/ai-sdk-integration/)
-Add You.com's search, AI agent, and content extraction tools to Vercel AI SDK applications - interactive setup workflow with smart integration. **[Documentation →](./plugins/ai-sdk-integration/README.md)**
+The agent-skills repository provides guided workflows for integrating You.com packages with popular AI frameworks:
 
-### [teams-anthropic-integration](./plugins/teams-anthropic-integration/)
-Generate Microsoft Teams apps with You.com Anthropic integration using `@youdotcom-oss/teams-anthropic` - handles setup workflow for new and existing apps. **[Documentation →](./plugins/teams-anthropic-integration/README.md)**
+- **ai-sdk-integration** - Vercel AI SDK integration with You.com tools
+- **claude-agent-sdk-integration** - Claude Agent SDK with You.com MCP server
+- **openai-agent-sdk-integration** - OpenAI Agents SDK with You.com MCP server
+- **teams-anthropic-integration** - Microsoft Teams.ai with Anthropic Claude models
 
-### [claude-agent-sdk-integration](./plugins/claude-agent-sdk-integration/)
-Integrate Claude Agent SDK with You.com MCP server - guided setup for Python and TypeScript with HTTP MCP configuration. **[Documentation →](./plugins/claude-agent-sdk-integration/README.md)**
+**Installation:**
+```bash
+npx skills add youdotcom-oss/agent-skills
+```
 
-### [openai-agent-sdk-integration](./plugins/openai-agent-sdk-integration/)
-Integrate OpenAI Agents SDK with You.com MCP server - supports Hosted MCP and Streamable HTTP for Python and TypeScript. **[Documentation →](./plugins/openai-agent-sdk-integration/README.md)**
+**[View all skills →](https://github.com/youdotcom-oss/agent-skills)**
+
+---
+
+## Development Skills
+
+Project-specific development patterns and workflows are in `.claude/skills/`:
+
+- **[documentation](/.claude/skills/documentation/)** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
+- **[mcp-patterns](/.claude/skills/mcp-patterns/)** - MCP server patterns (Zod schemas, error handling, logging, response format)
+- **[ai-sdk-patterns](/.claude/skills/ai-sdk-patterns/)** - Vercel AI SDK patterns (input schemas, API key handling, response format)
+- **[teams-anthropic-patterns](/.claude/skills/teams-anthropic-patterns/)** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
+
+These skills are used by AI coding assistants when contributing to dx-toolkit packages. **[View development guide →](./AGENTS.md)**
 
 ## Quick Start
 
@@ -125,7 +139,13 @@ bun --cwd packages/mcp test
 
 ```
 dx-toolkit/
-├── marketplace.json       # Plugin marketplace manifest
+├── .claude/
+│   ├── rules/             # Universal patterns (code, git, testing)
+│   └── skills/            # Package-specific patterns
+│       ├── documentation/
+│       ├── mcp-patterns/
+│       ├── ai-sdk-patterns/
+│       └── teams-anthropic-patterns/
 ├── packages/
 │   ├── mcp/               # MCP Server package
 │   ├── ai-sdk-plugin/     # Vercel AI SDK plugin
@@ -134,20 +154,11 @@ dx-toolkit/
 │       ├── dist/          # Compiled output
 │       ├── templates/     # Code templates
 │       ├── README.md      # User documentation
-│       ├── AGENTS.md      # Package dev guide
 │       └── package.json   # Package config
-├── plugins/               # Claude Code plugins
-│   └── teams-anthropic-integration/
-│       ├── .claude-plugin/
-│       ├── commands/
-│       ├── src/
-│       ├── templates/
-│       ├── AGENTS.md      # Plugin instructions
-│       └── README.md      # Plugin docs
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 ├── docs/
-│   └── MARKETPLACE.md     # Marketplace documentation
+│   └── PERFORMANCE.md     # Performance monitoring
 ├── AGENTS.md              # Monorepo dev guide
 ├── package.json           # Workspace root config
 └── README.md              # This file
@@ -155,12 +166,9 @@ dx-toolkit/
 
 ## Roadmap
 
-**Plugins in Development** (Target: Q1 2026)
-- **google-chat-mcp-integration** - Google Chat apps with You.com MCP server
-- **eval-harness** - Evaluation harness for MCP tools (includes skills)
-- **local-rag-sqlite** - Local RAG with SQLite backend (includes skills)
-- **cloud-deployment** - Cloud-agnostic deployment automation (includes skills)
-- **rl-pipeline** - Reinforcement learning pipeline starter (includes skills)
+**Packages in Development** (Target: Q1 2026)
+- **@youdotcom-oss/eval** - Evaluation harness for You.com API responses
+- **@youdotcom-oss/cli** - CLI tool for You.com API interactions
 
 **[View complete roadmap →](./docs/ROADMAP.md)**
 

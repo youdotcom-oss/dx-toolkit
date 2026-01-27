@@ -32,7 +32,7 @@ Requirements:
 - **CRITICAL**: Must match the npm package name after @youdotcom-oss/
   - Example: @youdotcom-oss/ai-sdk → Package name: "ai-sdk"
   - This ensures directory path matches: packages/ai-sdk/
-- Examples: 'ai-sdk', 'eval-harness', 'mcp'
+- Examples: 'ai-sdk', 'local-rag', 'mcp'
 ```
 
 **Validation for Question 1**:
@@ -923,7 +923,7 @@ packages/{package-name}/
 
 This rule covers:
 - Implementing package logic with TSDoc comments
-- Registering package documentation in root CLAUDE.md
+- Registering package documentation in root AGENTS.md
 - Adding performance monitoring (optional for API wrapper packages)
 - Testing locally and with publish workflow
 - First stable release process
@@ -979,7 +979,7 @@ Package names must:
 - Use hyphens (not underscores) for word separation
 - Match pattern: ^[a-z]([a-z0-9-]*[a-z0-9])?$
 
-Valid examples: 'ai-sdk-plugin', 'mcp-server', 'eval-harness'
+Valid examples: 'ai-sdk-plugin', 'mcp-server', 'local-rag'
 Invalid examples: 'AI_SDK', 'aiSDK', 'ai_sdk'
 ```
 

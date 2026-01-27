@@ -282,7 +282,7 @@ Fast AI agent with web search integration.
 
 ### youContents()
 
-Web page content extraction in markdown or HTML format.
+Web page content extraction in markdown, HTML, or structured metadata formats.
 
 **File**: `src/main.ts:148-173`
 
@@ -290,7 +290,8 @@ Web page content extraction in markdown or HTML format.
 
 **Parameters**:
 - `urls` (array) - URLs to extract content from
-- `format` (string, optional) - Output format ('markdown' or 'html')
+- `formats` (array, optional) - Output formats: `['markdown']`, `['html']`, `['metadata']`, or combinations
+- `crawl_timeout` (number, optional) - Timeout in seconds (1-60)
 
 ## Testing
 

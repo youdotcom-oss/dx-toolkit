@@ -88,7 +88,7 @@ describe('formatContentsResponse', () => {
       },
     ];
 
-    const result = formatContentsResponse(mockResponse, 'markdown');
+    const result = formatContentsResponse(mockResponse, ['markdown']);
 
     expect(result).toHaveProperty('content');
     expect(result).toHaveProperty('structuredContent');
@@ -99,12 +99,13 @@ describe('formatContentsResponse', () => {
     const text = result.content[0]?.text;
     expect(text).toContain('Example Page');
     expect(text).toContain('https://example.com');
-    expect(text).toContain('Format: markdown');
+    expect(text).toContain('Formats: markdown');
     expect(text).toContain('# Hello');
     expect(text).toContain('This is a test page with some content.');
 
     expect(result.structuredContent).toHaveProperty('count', 1);
-    expect(result.structuredContent).toHaveProperty('format', 'markdown');
+    expect(result.structuredContent).toHaveProperty('formats');
+    expect(result.structuredContent.formats).toEqual(['markdown']);
     expect(result.structuredContent.items).toHaveLength(1);
 
     const item = result.structuredContent.items[0];
@@ -112,8 +113,7 @@ describe('formatContentsResponse', () => {
 
     expect(item).toHaveProperty('url', 'https://example.com');
     expect(item).toHaveProperty('title', 'Example Page');
-    expect(item).toHaveProperty('content', '# Hello\n\nThis is a test page with some content.');
-    expect(item?.contentLength).toBe('# Hello\n\nThis is a test page with some content.'.length);
+    expect(item).toHaveProperty('markdown', '# Hello\n\nThis is a test page with some content.');
   });
 
   test('formats multiple items correctly', () => {
@@ -130,7 +130,7 @@ describe('formatContentsResponse', () => {
       },
     ];
 
-    const result = formatContentsResponse(mockResponse, 'markdown');
+    const result = formatContentsResponse(mockResponse, ['markdown']);
 
     expect(result.structuredContent.count).toBe(2);
     expect(result.structuredContent.items).toHaveLength(2);
@@ -151,11 +151,11 @@ describe('formatContentsResponse', () => {
       },
     ];
 
-    const result = formatContentsResponse(mockResponse, 'html');
+    const result = formatContentsResponse(mockResponse, ['html']);
 
-    expect(result.structuredContent.format).toBe('html');
+    expect(result.structuredContent.formats).toEqual(['html']);
     const text = result.content[0]?.text;
-    expect(text).toContain('Format: html');
+    expect(text).toContain('Formats: html');
     expect(text).toContain('<html>');
   });
 
@@ -169,16 +169,15 @@ describe('formatContentsResponse', () => {
       },
     ];
 
-    const result = formatContentsResponse(mockResponse, 'markdown');
+    const result = formatContentsResponse(mockResponse, ['markdown']);
 
     const text = result.content[0]?.text;
     // Full content should be included (not truncated)
     expect(text).toContain(longContent);
 
-    // Structured content should have full content and correct length
+    // Structured content should have full markdown content
     const item = result.structuredContent.items[0];
-    expect(item?.content).toBe(longContent);
-    expect(item?.contentLength).toBe(1000);
+    expect(item?.markdown).toBe(longContent);
   });
 
   test('handles empty content gracefully', () => {
@@ -190,11 +189,11 @@ describe('formatContentsResponse', () => {
       },
     ];
 
-    const result = formatContentsResponse(mockResponse, 'markdown');
+    const result = formatContentsResponse(mockResponse, ['markdown']);
 
-    expect(result.structuredContent.items[0]?.contentLength).toBe(0);
+    expect(result.structuredContent.items[0]?.markdown).toBe('');
     const text = result.content[0]?.text;
     expect(text).toContain('Empty Page');
-    expect(text).toContain('Content Length: 0 characters');
+    // Empty content should still be handled gracefully
   });
 });
