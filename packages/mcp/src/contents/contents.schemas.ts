@@ -29,7 +29,7 @@ const ContentsItemSchema = z.object({
   markdown: z.string().optional().describe('Markdown content'),
   metadata: z
     .object({
-      jsonld: z.array(z.record(z.string(), z.any())).optional().describe('JSON-LD structured data (Schema.org)'),
+      jsonld: z.array(z.record(z.string(), z.unknown())).optional().describe('JSON-LD structured data (Schema.org)'),
       opengraph: z.record(z.string(), z.string()).optional().describe('OpenGraph meta tags'),
       twitter: z.record(z.string(), z.string()).optional().describe('Twitter Card metadata'),
     })
@@ -61,7 +61,7 @@ export const ContentsStructuredContentSchema = z.object({
         html: z.string().optional().describe('HTML content'),
         metadata: z
           .object({
-            jsonld: z.array(z.record(z.string(), z.any())).optional(),
+            jsonld: z.array(z.record(z.string(), z.unknown())).optional(),
             opengraph: z.record(z.string(), z.string()).optional(),
             twitter: z.record(z.string(), z.string()).optional(),
           })

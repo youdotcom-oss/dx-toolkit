@@ -149,7 +149,13 @@ export const formatContentsResponse = (
 
       if (item.metadata.jsonld && item.metadata.jsonld.length > 0) {
         textParts.push('\n**JSON-LD:**\n');
-        textParts.push(JSON.stringify(item.metadata.jsonld, null, 2));
+        const jsonldStr = JSON.stringify(item.metadata.jsonld, null, 2);
+        if (jsonldStr.length > 2000) {
+          textParts.push(jsonldStr.substring(0, 2000));
+          textParts.push('\n...(truncated for display, see structuredContent for full data)');
+        } else {
+          textParts.push(jsonldStr);
+        }
         textParts.push('\n');
       }
 
