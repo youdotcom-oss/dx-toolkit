@@ -20,7 +20,7 @@
       "name": "@youdotcom-oss/ai-sdk-plugin",
       "version": "1.0.0",
       "dependencies": {
-        "@youdotcom-oss/mcp": "1.4.1",
+        "@youdotcom-oss/mcp": "1.5.0",
       },
       "devDependencies": {
         "@ai-sdk/anthropic": "^3.0.14",
@@ -179,15 +179,9 @@
 
     "@microsoft/teams.ai": ["@microsoft/teams.ai@2.0.5", "", { "peerDependencies": { "@microsoft/teams.common": "2.0.5" } }, "sha512-WZBb/88ppULXIKpEWN0OCTv+eFv5oB4v+F0r3uNGHhQTTMswVKhs2X+hz9b2yo16azxIa8KGuK/TIfXK0IWNCg=="],
 
-    "@microsoft/teams.api": ["@microsoft/teams.api@2.0.5", "", { "dependencies": { "jwt-decode": "^4.0.0", "qs": "^6.13.0" }, "peerDependencies": { "@microsoft/teams.cards": "2.0.5", "@microsoft/teams.common": "2.0.5" } }, "sha512-GZ70z038pLjycTDTy/r/mQUdRiuwAUGbyLHPszq+hxpo2HutzuIVfmCUOeGrSDhDPZLaw03PaML3SdqE9R1zZw=="],
-
     "@microsoft/teams.apps": ["@microsoft/teams.apps@2.0.5", "", { "dependencies": { "@azure/msal-node": "^3.8.1", "axios": "^1.12.0", "cors": "^2.8.5", "express": "^4.21.0", "jsonwebtoken": "^9.0.2", "jwks-rsa": "^3.2.0", "reflect-metadata": "^0.2.2" }, "peerDependencies": { "@microsoft/teams.api": "2.0.5", "@microsoft/teams.common": "2.0.5", "@microsoft/teams.graph": "2.0.5" } }, "sha512-z5m8gV6tbrOrbR1mU0RqyRkT4A+ilStlwXrafAfvkALrTW3ge9VwEgvDg0qEhkM2Bnomx1Y9rmqLc87LD2PLOg=="],
 
-    "@microsoft/teams.cards": ["@microsoft/teams.cards@2.0.5", "", {}, "sha512-6BI3WKyjrDwJ1OyMo7t6mjfCIwZUeHN+B4p9Sewjk54+9FfTl3bp83OW3zT/rs1YXKhiKPEJ1WrXnNiiw7V9vA=="],
-
     "@microsoft/teams.common": ["@microsoft/teams.common@2.0.5", "", { "dependencies": { "axios": "^1.12.0" } }, "sha512-S2F27BGd2YT6CZnuN/NrtWF2CUO9FMB9Y5oe04YYJSFZNpGbv/KkvUWE5FPqi8P1ag+wj2gvQr3HLZK+ApuXtg=="],
-
-    "@microsoft/teams.graph": ["@microsoft/teams.graph@2.0.5", "", { "dependencies": { "@microsoft/teams.common": "2.0.5", "qs": "^6.13.0" } }, "sha512-qJhs9eaJPsIf45EaACHrMy5yF8OuwXZLCopbzQx09sXCB89NqoCGTSa2rwtsI0nPmi79MFiioeSQYZAkpBSHDQ=="],
 
     "@microsoft/teams.mcpclient": ["@microsoft/teams.mcpclient@2.0.5", "", { "peerDependencies": { "@microsoft/teams.ai": "2.0.5", "@microsoft/teams.common": "2.0.5", "@modelcontextprotocol/sdk": "^1.13.0" } }, "sha512-xwCoUy9J5L+o47ssyRoe7D0ujJy4/Iqq59PlmbJXqOROitQaG1UMsynoNFP257lnzfT78sjxOyAaliuPF9BJqQ=="],
 
@@ -639,8 +633,6 @@
 
     "jws": ["jws@4.0.1", "", { "dependencies": { "jwa": "^2.0.1", "safe-buffer": "^5.0.1" } }, "sha512-EKI/M/yqPncGUUh44xz0PxSidXFr/+r0pA70+gIYhjv+et7yxM+s29Y+VGDkovRofQem0fs7Uvf4+YmAdyRduA=="],
 
-    "jwt-decode": ["jwt-decode@4.0.0", "", {}, "sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA=="],
-
     "limiter": ["limiter@1.1.5", "", {}, "sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA=="],
 
     "lines-and-columns": ["lines-and-columns@1.2.4", "", {}, "sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg=="],
@@ -992,8 +984,6 @@
     "@radix-ui/react-select/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
 
     "@radix-ui/react-tooltip/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
-
-    "@youdotcom-oss/ai-sdk-plugin/@youdotcom-oss/mcp": ["@youdotcom-oss/mcp@1.4.1", "", { "dependencies": { "@hono/mcp": "^0.2.3", "@modelcontextprotocol/sdk": "^1.25.2", "hono": "^4.11.3", "zod": "^4.3.5" }, "bin": { "mcp": "bin/stdio.js" } }, "sha512-HA4anBhYiBMlsVI4Z4FMA2XF/MPOUrSK2eOtqvR5J6MtUeXwad0/6JPdpsosfvyPgsC3pA57EqoVdterkh9l5A=="],
 
     "caller-callsite/callsites": ["callsites@2.0.0", "", {}, "sha512-ksWePWBloaWPxJYQ8TL0JHvtci6G5QTKwQ95RcWAa/lzoAKuAOflGdAK92hpHXjkwb8zLxoLNUoNYZgVsaJzvQ=="],
 
