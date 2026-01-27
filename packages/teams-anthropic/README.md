@@ -14,20 +14,19 @@ Anthropic SDK integration for Microsoft Teams.ai - Use Claude models (Opus, Sonn
 - **Full IChatModel Interface** - Drop-in replacement for OpenAI models
 - **Configurable** - Set temperature, max tokens, and all Anthropic parameters
 
-## Claude Code Plugin
+## AI Agent Skills
 
-**For Teams Anthropic Integration**: Use the [teams-anthropic-integration](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) Claude Code plugin to quickly set up Teams apps with You.com MCP server integration.
+**For Teams Anthropic Integration**: Use the [teams-anthropic-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/teams-anthropic-integration) skill to quickly set up Teams apps with You.com MCP server integration.
 
 ```bash
-# Claude Code users
-/plugin marketplace add youdotcom-oss/dx-toolkit
-/plugin install teams-anthropic-integration
-/generate-teams-app
+# Install skills CLI and add the integration skill
+npx skills add youdotcom-oss/agent-skills
+npx skills install teams-anthropic-integration
 ```
 
-**Other AI agents**: See the [teams-anthropic-integration skill](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) for universal AI agent support (Cursor, Windsurf, Cody, Continue, etc.)
+**Supported AI agents**: Claude Code, Cursor, Windsurf, Cody, Continue, and more.
 
-See [Plugin Documentation](https://github.com/youdotcom-oss/dx-toolkit/tree/main/plugins/teams-anthropic-integration) for complete integration guide.
+See [Skill Documentation](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/teams-anthropic-integration) for complete integration guide.
 
 ## Getting Started
 

@@ -923,7 +923,7 @@ packages/{package-name}/
 
 This rule covers:
 - Implementing package logic with TSDoc comments
-- Registering package documentation in root CLAUDE.md
+- Registering package documentation in root AGENTS.md
 - Adding performance monitoring (optional for API wrapper packages)
 - Testing locally and with publish workflow
 - First stable release process
