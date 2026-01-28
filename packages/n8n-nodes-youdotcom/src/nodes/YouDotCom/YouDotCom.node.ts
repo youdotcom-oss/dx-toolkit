@@ -9,6 +9,12 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
+/** Package version for User-Agent header */
+const PACKAGE_VERSION = '0.1.0';
+
+/** User-Agent string for API requests */
+const USER_AGENT = `n8n-nodes-youdotcom/${PACKAGE_VERSION} (https://github.com/youdotcom-oss/dx-toolkit)`;
+
 /**
  * You.com node for n8n - Search, Contents, and Express (AI Agent) operations.
  *
@@ -40,6 +46,7 @@ export class YouDotCom implements INodeType {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'User-Agent': USER_AGENT,
       },
     },
     properties: [
@@ -597,6 +604,7 @@ async function executeExpress(this: IExecuteFunctions, itemIndex: number): Promi
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'User-Agent': USER_AGENT,
     },
     body,
     json: true,

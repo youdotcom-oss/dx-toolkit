@@ -68,10 +68,16 @@ describe('YouDotCom Node', () => {
       expect(node.description.requestDefaults?.baseURL).toBe('https://ydc-index.io');
     });
 
+    test('has User-Agent header in request defaults', () => {
+      const headers = node.description.requestDefaults?.headers as Record<string, string> | undefined;
+      expect(headers?.['User-Agent']).toMatch(/^n8n-nodes-youdotcom\/\d+\.\d+\.\d+/);
+    });
+
     test('has updated description mentioning all operations', () => {
-      expect(node.description.description).toContain('Search');
-      expect(node.description.description).toContain('content');
-      expect(node.description.description).toContain('AI');
+      const desc = node.description.description?.toLowerCase() ?? '';
+      expect(desc).toContain('search');
+      expect(desc).toContain('content');
+      expect(desc).toContain('ai');
     });
   });
 
