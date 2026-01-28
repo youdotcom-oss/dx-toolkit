@@ -1,0 +1,75 @@
+{
+  "name": "n8n-nodes-youdotcom",
+  "version": "0.1.0",
+  "description": "n8n community node for You.com Search API",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/n8n"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "n8n",
+    "n8n-community-node-package",
+    "you.com",
+    "search",
+    "web search",
+    "ai search"
+  ],
+  "type": "module",
+  "main": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist/**"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun run build:js && bun run build:types && bun run build:assets",
+    "build:assets": "cp src/nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp src/nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/",
+    "build:js": "bun build ./src/main.ts ./src/nodes/YouDotCom/YouDotCom.node.ts ./src/credentials/YouDotComApi.credentials.ts --outdir ./dist --target=node --splitting",
+    "build:types": "tsc --project tsconfig.build.json",
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "bun run format && bun run lint:fix && bun run format:package",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "format:package": "format-package --write",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "test": "bun test"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/YouDotComApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/YouDotCom/YouDotCom.node.js"
+    ]
+  },
+  "types": "./dist/main.d.ts",
+  "peerDependencies": {
+    "n8n-workflow": "^1.71.0"
+  },
+  "devDependencies": {
+    "n8n-workflow": "^1.71.0"
+  }
+}
