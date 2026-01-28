@@ -10,12 +10,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
-    "directory": "packages/n8n"
+    "directory": "packages/n8n-nodes-youdotcom"
   },
   "bugs": {
     "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
   },
-  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n#readme",
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n-nodes-youdotcom#readme",
   "author": "You.com (https://you.com)",
   "keywords": [
     "n8n",

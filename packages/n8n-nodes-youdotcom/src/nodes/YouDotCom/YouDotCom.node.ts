@@ -9,6 +9,12 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
+/**
+ * You.com Search node for n8n.
+ *
+ * NOTE: n8n framework requires class-based nodes that implement INodeType.
+ * This is an exception to the project's arrow function convention (see .plaited/rules/core.md).
+ */
 export class YouDotCom implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'You.com',
