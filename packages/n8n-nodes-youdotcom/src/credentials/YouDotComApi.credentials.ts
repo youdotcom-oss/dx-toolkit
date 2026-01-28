@@ -35,7 +35,7 @@ export class YouDotComApi implements ICredentialType {
 
   test: ICredentialTestRequest = {
     request: {
-      baseURL: 'https://api.ydc-index.io',
+      baseURL: 'https://ydc-index.io',
       url: '/v1/search',
       method: 'GET',
       qs: {

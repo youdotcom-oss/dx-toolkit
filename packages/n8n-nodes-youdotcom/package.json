@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-youdotcom",
   "version": "0.1.0",
-  "description": "n8n community node for You.com Search API",
+  "description": "n8n community node for You.com APIs - Search, Contents extraction, and Express AI agent",
   "license": "MIT",
   "engines": {
     "node": ">=18",
@@ -23,7 +23,14 @@
     "you.com",
     "search",
     "web search",
-    "ai search"
+    "ai search",
+    "contents",
+    "scrape",
+    "crawl",
+    "express",
+    "ai agent",
+    "rag",
+    "grounding"
   ],
   "type": "module",
   "main": "./dist/main.js",
@@ -54,7 +61,9 @@
     "format:package": "format-package --write",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
-    "test": "bun test"
+    "test": "bun test src/tests/node.spec.ts",
+    "test:all": "bun test",
+    "test:integration": "bun test src/tests/integration.spec.ts"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,

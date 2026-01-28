@@ -2,7 +2,7 @@
   "node": "n8n-nodes-youdotcom.youDotCom",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
-  "categories": ["Utility", "Data & Storage"],
+  "categories": ["AI", "Utility", "Data & Storage"],
   "resources": {
     "credentialDocumentation": [
       {
@@ -15,8 +15,25 @@
       }
     ]
   },
-  "alias": ["search", "web search", "you", "youdotcom", "news", "ai search"],
+  "alias": [
+    "search",
+    "web search",
+    "you",
+    "youdotcom",
+    "news",
+    "ai search",
+    "contents",
+    "extract",
+    "scrape",
+    "crawl",
+    "express",
+    "ai agent",
+    "ai answer",
+    "rag",
+    "grounding"
+  ],
   "subcategories": {
+    "AI": ["Agents", "Root Nodes"],
     "Utility": ["Data Transformation"]
   }
 }

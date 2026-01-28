@@ -10,7 +10,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 /**
- * You.com Search node for n8n.
+ * You.com node for n8n - Search, Contents, and Express (AI Agent) operations.
  *
  * NOTE: n8n framework requires class-based nodes that implement INodeType.
  * This is an exception to the project's arrow function convention (see .plaited/rules/core.md).
@@ -23,7 +23,7 @@ export class YouDotCom implements INodeType {
     group: ['transform'],
     version: 1,
     subtitle: '={{$parameter["operation"]}}',
-    description: 'Search the web using You.com Search API',
+    description: 'Search the web, extract content from URLs, or get AI-powered answers using You.com APIs',
     defaults: {
       name: 'You.com',
     },
@@ -36,13 +36,16 @@ export class YouDotCom implements INodeType {
       },
     ],
     requestDefaults: {
-      baseURL: 'https://api.ydc-index.io',
+      baseURL: 'https://ydc-index.io',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
     },
     properties: [
+      // ====================
+      // Operation Selection
+      // ====================
       {
         displayName: 'Operation',
         name: 'operation',
@@ -55,10 +58,25 @@ export class YouDotCom implements INodeType {
             description: 'Search the web and news using You.com',
             action: 'Search the web and news',
           },
+          {
+            name: 'Get Contents',
+            value: 'contents',
+            description: 'Extract content from one or more URLs',
+            action: 'Extract content from URLs',
+          },
+          {
+            name: 'Express (AI Agent)',
+            value: 'express',
+            description: 'Get AI-generated answers with web search and citations',
+            action: 'Get AI answers with citations',
+          },
         ],
         default: 'search',
       },
-      // Search operation parameters
+
+      // ====================
+      // Search Parameters
+      // ====================
       {
         displayName: 'Query',
         name: 'query',
@@ -75,8 +93,8 @@ export class YouDotCom implements INodeType {
           'The search query to retrieve relevant results from the web. Supports search operators for refined searches.',
       },
       {
-        displayName: 'Options',
-        name: 'options',
+        displayName: 'Search Options',
+        name: 'searchOptions',
         type: 'collection',
         placeholder: 'Add Option',
         default: {},
@@ -152,8 +170,8 @@ export class YouDotCom implements INodeType {
             options: [
               { name: 'Any Time', value: '' },
               { name: 'Past Day', value: 'day' },
-              { name: 'Past Month', value: 'month' },
               { name: 'Past Week', value: 'week' },
+              { name: 'Past Month', value: 'month' },
               { name: 'Past Year', value: 'year' },
             ],
           },
@@ -303,6 +321,112 @@ export class YouDotCom implements INodeType {
           },
         ],
       },
+
+      // ====================
+      // Contents Parameters
+      // ====================
+      {
+        displayName: 'URLs',
+        name: 'urls',
+        type: 'string',
+        required: true,
+        displayOptions: {
+          show: {
+            operation: ['contents'],
+          },
+        },
+        default: '',
+        placeholder: 'https://example.com, https://example.org',
+        description: 'Comma-separated list of URLs to extract content from',
+      },
+      {
+        displayName: 'Contents Options',
+        name: 'contentsOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+          show: {
+            operation: ['contents'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Formats',
+            name: 'formats',
+            type: 'multiOptions',
+            default: ['markdown'],
+            description: 'Output formats to return for each URL',
+            options: [
+              {
+                name: 'Markdown',
+                value: 'markdown',
+                description: 'Clean text content in Markdown format',
+              },
+              {
+                name: 'HTML',
+                value: 'html',
+                description: 'Full HTML content with layout preserved',
+              },
+              {
+                name: 'Metadata',
+                value: 'metadata',
+                description: 'Structured metadata (JSON-LD, OpenGraph, Twitter Cards)',
+              },
+            ],
+          },
+          {
+            displayName: 'Crawl Timeout',
+            name: 'crawl_timeout',
+            type: 'number',
+            typeOptions: {
+              minValue: 1,
+              maxValue: 60,
+            },
+            default: 30,
+            description: 'Timeout in seconds for page crawling (1-60)',
+          },
+        ],
+      },
+
+      // ====================
+      // Express Parameters
+      // ====================
+      {
+        displayName: 'Input',
+        name: 'input',
+        type: 'string',
+        required: true,
+        displayOptions: {
+          show: {
+            operation: ['express'],
+          },
+        },
+        default: '',
+        placeholder: 'e.g., What are the latest developments in AI?',
+        description: 'Question or prompt for the AI agent to answer',
+      },
+      {
+        displayName: 'Express Options',
+        name: 'expressOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+          show: {
+            operation: ['express'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Enable Web Search',
+            name: 'enableWebSearch',
+            type: 'boolean',
+            default: true,
+            description: 'Whether the AI agent should search the web for current information',
+          },
+        ],
+      },
     ],
   };
 
@@ -315,72 +439,21 @@ export class YouDotCom implements INodeType {
         const operation = this.getNodeParameter('operation', i) as string;
 
         if (operation === 'search') {
-          const query = this.getNodeParameter('query', i) as string;
-          const options = this.getNodeParameter('options', i) as {
-            count?: number;
-            country?: string;
-            excludeTerms?: string;
-            exactTerms?: string;
-            fileType?: string;
-            freshness?: string;
-            language?: string;
-            livecrawl?: string;
-            livecrawl_formats?: string;
-            offset?: number;
-            safesearch?: string;
-            site?: string;
-          };
-
-          // Build query parameters
-          const qs: Record<string, string | number> = {
-            query,
-          };
-
-          if (options.count) {
-            qs.count = options.count;
-          }
-          if (options.country) {
-            qs.country = options.country;
-          }
-          if (options.freshness) {
-            qs.freshness = options.freshness;
-          }
-          if (options.language) {
-            qs.language = options.language;
-          }
-          if (options.livecrawl) {
-            qs.livecrawl = options.livecrawl;
-          }
-          if (options.livecrawl_formats) {
-            qs.livecrawl_formats = options.livecrawl_formats;
-          }
-          if (options.offset !== undefined) {
-            qs.offset = options.offset;
-          }
-          if (options.safesearch) {
-            qs.safesearch = options.safesearch;
-          }
-          if (options.site) {
-            qs.site = options.site;
-          }
-          if (options.fileType) {
-            qs.fileType = options.fileType;
-          }
-          if (options.excludeTerms) {
-            qs.excludeTerms = options.excludeTerms;
-          }
-          if (options.exactTerms) {
-            qs.exactTerms = options.exactTerms;
-          }
-
-          const response = await this.helpers.httpRequestWithAuthentication.call(this, 'youDotComApi', {
-            method: 'GET' as IHttpRequestMethods,
-            url: 'https://api.ydc-index.io/v1/search',
-            qs,
-            json: true,
-          });
-
-          // Return the full response with web and news results
+          const response = await executeSearch.call(this, i);
+          const executionData = this.helpers.constructExecutionMetaData(
+            this.helpers.returnJsonArray(response as IDataObject),
+            { itemData: { item: i } },
+          );
+          returnData.push(...executionData);
+        } else if (operation === 'contents') {
+          const response = await executeContents.call(this, i);
+          const executionData = this.helpers.constructExecutionMetaData(
+            this.helpers.returnJsonArray(response as IDataObject[]),
+            { itemData: { item: i } },
+          );
+          returnData.push(...executionData);
+        } else if (operation === 'express') {
+          const response = await executeExpress.call(this, i);
           const executionData = this.helpers.constructExecutionMetaData(
             this.helpers.returnJsonArray(response as IDataObject),
             { itemData: { item: i } },
@@ -405,4 +478,148 @@ export class YouDotCom implements INodeType {
 
     return [returnData];
   }
+}
+
+/**
+ * Execute Search operation
+ */
+async function executeSearch(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
+  const query = this.getNodeParameter('query', itemIndex) as string;
+  const options = this.getNodeParameter('searchOptions', itemIndex) as {
+    count?: number;
+    country?: string;
+    excludeTerms?: string;
+    exactTerms?: string;
+    fileType?: string;
+    freshness?: string;
+    language?: string;
+    livecrawl?: string;
+    livecrawl_formats?: string;
+    offset?: number;
+    safesearch?: string;
+    site?: string;
+  };
+
+  const qs: Record<string, string | number> = { query };
+
+  if (options.count) qs.count = options.count;
+  if (options.country) qs.country = options.country;
+  if (options.freshness) qs.freshness = options.freshness;
+  if (options.language) qs.language = options.language;
+  if (options.livecrawl) qs.livecrawl = options.livecrawl;
+  if (options.livecrawl_formats) qs.livecrawl_formats = options.livecrawl_formats;
+  if (options.offset !== undefined) qs.offset = options.offset;
+  if (options.safesearch) qs.safesearch = options.safesearch;
+  if (options.site) qs.site = options.site;
+  if (options.fileType) qs.fileType = options.fileType;
+  if (options.excludeTerms) qs.excludeTerms = options.excludeTerms;
+  if (options.exactTerms) qs.exactTerms = options.exactTerms;
+
+  return this.helpers.httpRequestWithAuthentication.call(this, 'youDotComApi', {
+    method: 'GET' as IHttpRequestMethods,
+    url: 'https://ydc-index.io/v1/search',
+    qs,
+    json: true,
+  });
+}
+
+/**
+ * Execute Contents operation
+ */
+async function executeContents(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject[]> {
+  const urlsString = this.getNodeParameter('urls', itemIndex) as string;
+  const options = this.getNodeParameter('contentsOptions', itemIndex) as {
+    formats?: string[];
+    crawl_timeout?: number;
+  };
+
+  // Parse comma-separated URLs and trim whitespace
+  const urls = urlsString
+    .split(',')
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
+
+  if (urls.length === 0) {
+    throw new Error('At least one URL is required');
+  }
+
+  // Build request body
+  const body: Record<string, unknown> = { urls };
+
+  if (options.formats && options.formats.length > 0) {
+    body.formats = options.formats;
+  }
+  if (options.crawl_timeout) {
+    body.crawl_timeout = options.crawl_timeout;
+  }
+
+  return this.helpers.httpRequestWithAuthentication.call(this, 'youDotComApi', {
+    method: 'POST' as IHttpRequestMethods,
+    url: 'https://ydc-index.io/v1/contents',
+    body,
+    json: true,
+  });
+}
+
+/**
+ * Execute Express (AI Agent) operation
+ *
+ * Note: Express API uses a different endpoint (api.you.com) and Bearer auth,
+ * unlike Search/Contents which use ydc-index.io with X-API-Key header.
+ */
+async function executeExpress(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
+  const input = this.getNodeParameter('input', itemIndex) as string;
+  const options = this.getNodeParameter('expressOptions', itemIndex) as {
+    enableWebSearch?: boolean;
+  };
+
+  // Get credentials to extract API key for Bearer auth
+  const credentials = await this.getCredentials('youDotComApi');
+  const apiKey = credentials.apiKey as string;
+
+  // Build request body - Express API requires specific format
+  const body: Record<string, unknown> = {
+    agent: 'express',
+    input,
+    stream: false,
+  };
+
+  // Add web search tool if enabled (default: true)
+  if (options.enableWebSearch !== false) {
+    body.tools = [{ type: 'web_search' }];
+  }
+
+  // Express API uses Bearer auth and different endpoint
+  const response = (await this.helpers.httpRequest({
+    method: 'POST' as IHttpRequestMethods,
+    url: 'https://api.you.com/v1/agents/runs',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body,
+    json: true,
+  })) as {
+    output?: Array<{ type: string; text?: string; content?: Array<{ url: string; title: string; snippet: string }> }>;
+    agent?: string;
+  };
+
+  // Transform response to a more user-friendly format
+  const result: IDataObject = {
+    agent: response.agent,
+  };
+
+  // Extract answer and search results from output array
+  if (response.output) {
+    for (const item of response.output) {
+      if (item.type === 'message.answer' && item.text) {
+        result.answer = item.text;
+      } else if (item.type === 'web_search.results' && item.content) {
+        result.searchResults = item.content;
+      }
+    }
+  }
+
+  return result;
 }
