@@ -7,7 +7,7 @@ import type {
   INodeTypeDescription,
   JsonObject,
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 
 /** Package version for User-Agent header */
 const PACKAGE_VERSION = '0.1.0';
@@ -28,6 +28,7 @@ export class YouDotCom implements INodeType {
     icon: 'file:youdotcom.svg',
     group: ['transform'],
     version: 1,
+    usableAsTool: true,
     subtitle: '={{$parameter["operation"]}}',
     description: 'Search the web, extract content from URLs, or get AI-powered answers using You.com APIs',
     defaults: {
@@ -69,7 +70,7 @@ export class YouDotCom implements INodeType {
             name: 'Get Contents',
             value: 'contents',
             description: 'Extract content from one or more URLs',
-            action: 'Extract content from URLs',
+            action: 'Extract content from web pages',
           },
           {
             name: 'Express (AI Agent)',
@@ -169,6 +170,30 @@ export class YouDotCom implements INodeType {
             ],
           },
           {
+            displayName: 'Exact Terms',
+            name: 'exactTerms',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., machine learning|AI',
+            description: 'Require exact phrase matches (pipe-separated, e.g., "machine learning|deep learning")',
+          },
+          {
+            displayName: 'Exclude Terms',
+            name: 'excludeTerms',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., spam|ads',
+            description: 'Terms to exclude from results (pipe-separated, e.g., "spam|ads|promo")',
+          },
+          {
+            displayName: 'File Type',
+            name: 'fileType',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., pdf',
+            description: 'Filter results by file type (e.g., pdf, doc, xls)',
+          },
+          {
             displayName: 'Freshness',
             name: 'freshness',
             type: 'options',
@@ -177,8 +202,8 @@ export class YouDotCom implements INodeType {
             options: [
               { name: 'Any Time', value: '' },
               { name: 'Past Day', value: 'day' },
-              { name: 'Past Week', value: 'week' },
               { name: 'Past Month', value: 'month' },
+              { name: 'Past Week', value: 'week' },
               { name: 'Past Year', value: 'year' },
             ],
           },
@@ -301,30 +326,6 @@ export class YouDotCom implements INodeType {
             default: '',
             placeholder: 'e.g., github.com',
             description: 'Restrict results to a specific domain (e.g., github.com)',
-          },
-          {
-            displayName: 'File Type',
-            name: 'fileType',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., pdf',
-            description: 'Filter results by file type (e.g., pdf, doc, xls)',
-          },
-          {
-            displayName: 'Exclude Terms',
-            name: 'excludeTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., spam|ads',
-            description: 'Terms to exclude from results (pipe-separated, e.g., "spam|ads|promo")',
-          },
-          {
-            displayName: 'Exact Terms',
-            name: 'exactTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., machine learning|AI',
-            description: 'Require exact phrase matches (pipe-separated, e.g., "machine learning|deep learning")',
           },
         ],
       },
@@ -547,7 +548,7 @@ async function executeContents(this: IExecuteFunctions, itemIndex: number): Prom
     .filter((url) => url.length > 0);
 
   if (urls.length === 0) {
-    throw new Error('At least one URL is required');
+    throw new NodeOperationError(this.getNode(), 'At least one URL is required');
   }
 
   // Build request body

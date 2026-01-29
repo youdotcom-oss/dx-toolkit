@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-youdotcom",
+  "name": "@youdotcom-oss/n8n-nodes-youdotcom",
   "version": "0.1.0",
   "description": "n8n community node for You.com APIs - Search, Contents extraction, and Express AI agent",
   "license": "MIT",
@@ -16,7 +16,10 @@
     "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
   },
   "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n-nodes-youdotcom#readme",
-  "author": "You.com (https://you.com)",
+  "author": {
+    "name": "You.com",
+    "url": "https://you.com"
+  },
   "keywords": [
     "n8n",
     "n8n-community-node-package",
@@ -48,8 +51,8 @@
   },
   "scripts": {
     "build": "bun run build:js && bun run build:types && bun run build:assets",
-    "build:assets": "cp src/nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp src/nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/",
-    "build:js": "bun build ./src/main.ts ./src/nodes/YouDotCom/YouDotCom.node.ts ./src/credentials/YouDotComApi.credentials.ts --outdir ./dist --target=node --splitting",
+    "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/ && cp nodes/YouDotCom/youdotcom.svg dist/credentials/",
+    "build:js": "bun build ./src/main.ts --outfile ./dist/main.js --target=node && bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node",
     "build:types": "tsc --project tsconfig.build.json",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
@@ -73,6 +76,9 @@
     ]
   },
   "types": "./dist/main.d.ts",
+  "dependencies": {
+    "@n8n/node-cli": "^0.18.0"
+  },
   "peerDependencies": {
     "n8n-workflow": "^2.0.0"
   },

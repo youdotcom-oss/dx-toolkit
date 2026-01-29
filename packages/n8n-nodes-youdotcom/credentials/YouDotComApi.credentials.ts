@@ -9,6 +9,7 @@ import type { IAuthenticateGeneric, ICredentialTestRequest, ICredentialType, INo
 export class YouDotComApi implements ICredentialType {
   name = 'youDotComApi';
   displayName = 'You.com API';
+  icon = { light: 'file:youdotcom.svg', dark: 'file:youdotcom.svg' } as const;
   documentationUrl = 'https://docs.you.com/get-started/quickstart';
   properties: INodeProperties[] = [
     {

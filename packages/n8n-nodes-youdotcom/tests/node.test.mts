@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import type { INodePropertyOptions } from 'n8n-workflow';
-import { YouDotComApi } from '../credentials/YouDotComApi.credentials.ts';
-import { YouDotCom } from '../nodes/YouDotCom/YouDotCom.node.ts';
+import { YouDotCom, YouDotComApi } from '../src/main.ts';
 
 /**
  * Unit tests for n8n YouDotCom node
@@ -102,7 +101,9 @@ describe('YouDotCom Node', () => {
       const contentsOption = operationProperty?.options?.find((o) => o.value === 'contents');
       expect(contentsOption).toBeDefined();
       expect(contentsOption?.name).toBe('Get Contents');
-      expect((contentsOption as INodePropertyOptions & { action?: string })?.action).toBe('Extract content from URLs');
+      expect((contentsOption as INodePropertyOptions & { action?: string })?.action).toBe(
+        'Extract content from web pages',
+      );
     });
 
     test('has express operation', () => {
