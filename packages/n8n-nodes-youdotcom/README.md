@@ -94,14 +94,8 @@ bun install
 # Build the package
 bun run build
 
-# Run unit tests (no API key required)
+# Run tests
 bun run test
-
-# Run integration tests (requires YDC_API_KEY)
-YDC_API_KEY=your-key bun run test:integration
-
-# Run all tests
-YDC_API_KEY=your-key bun run test:all
 
 # Type checking
 bun run check:types
@@ -109,14 +103,6 @@ bun run check:types
 # Linting and formatting
 bun run check
 ```
-
-### Test Scripts
-
-| Command | Description |
-|---------|-------------|
-| `bun run test` | Unit tests only (no API key needed) |
-| `bun run test:integration` | Integration tests against real APIs |
-| `bun run test:all` | All tests (unit + integration) |
 
 ## Resources
 
