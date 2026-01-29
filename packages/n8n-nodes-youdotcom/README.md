@@ -120,10 +120,10 @@ bun run check
 
 ## Resources
 
-- [You.com API Documentation](https://documentation.you.com/)
-- [Search API Reference](https://documentation.you.com/api-reference/search/search)
-- [Contents API Reference](https://documentation.you.com/api-reference/contents)
-- [Express API Reference](https://documentation.you.com/api-reference/express)
+- [You.com API Documentation](https://docs.you.com/)
+- [Search API Reference](https://docs.you.com/api-reference/search)
+- [Contents API Reference](https://docs.you.com/api-reference/search/contents)
+- [Express Agent Reference](https://docs.you.com/agents/overview#express-agent)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## License

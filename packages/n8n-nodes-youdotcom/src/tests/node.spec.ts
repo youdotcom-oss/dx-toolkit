@@ -365,7 +365,7 @@ describe('YouDotComApi Credentials', () => {
     });
 
     test('has documentation URL', () => {
-      expect(credentials.documentationUrl).toBe('https://documentation.you.com/docs/quickstart');
+      expect(credentials.documentationUrl).toBe('https://docs.you.com/get-started/quickstart');
     });
   });
 

@@ -9,7 +9,7 @@ import type { IAuthenticateGeneric, ICredentialTestRequest, ICredentialType, INo
 export class YouDotComApi implements ICredentialType {
   name = 'youDotComApi';
   displayName = 'You.com API';
-  documentationUrl = 'https://documentation.you.com/docs/quickstart';
+  documentationUrl = 'https://docs.you.com/get-started/quickstart';
   properties: INodeProperties[] = [
     {
       displayName: 'API Key',

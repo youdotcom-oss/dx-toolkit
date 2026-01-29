@@ -6,12 +6,18 @@
   "resources": {
     "credentialDocumentation": [
       {
-        "url": "https://documentation.you.com/docs/quickstart"
+        "url": "https://docs.you.com/get-started/quickstart"
       }
     ],
     "primaryDocumentation": [
       {
-        "url": "https://documentation.you.com/api-reference/search/search"
+        "url": "https://docs.you.com/api-reference/search"
+      },
+      {
+        "url": "https://docs.you.com/api-reference/search/contents"
+      },
+      {
+        "url": "https://docs.you.com/agents/overview#express-agent"
       }
     ]
   },

@@ -76,9 +76,9 @@
   },
   "types": "./dist/main.d.ts",
   "peerDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "n8n-workflow": "^2.0.0"
   },
   "devDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "n8n-workflow": "^2.6.0"
   }
 }
