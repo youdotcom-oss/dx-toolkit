@@ -47,11 +47,14 @@
     "packages/n8n-nodes-youdotcom": {
       "name": "n8n-nodes-youdotcom",
       "version": "0.1.0",
+      "dependencies": {
+        "zod": "^4.3.6",
+      },
       "devDependencies": {
-        "n8n-workflow": "^1.71.0",
+        "n8n-workflow": "^2.6.0",
       },
       "peerDependencies": {
-        "n8n-workflow": "^1.71.0",
+        "n8n-workflow": "^2.6.0",
       },
     },
     "packages/teams-anthropic": {
@@ -795,7 +798,7 @@
 
     "n8n-nodes-youdotcom": ["n8n-nodes-youdotcom@workspace:packages/n8n-nodes-youdotcom"],
 
-    "n8n-workflow": ["n8n-workflow@1.120.7", "", { "dependencies": { "@n8n/errors": "0.5.0", "@n8n/tournament": "1.0.6", "ast-types": "0.16.1", "callsites": "3.1.0", "esprima-next": "5.8.4", "form-data": "4.0.0", "jmespath": "0.16.0", "js-base64": "3.7.2", "jsonrepair": "3.13.1", "jssha": "3.3.1", "lodash": "4.17.21", "luxon": "3.4.4", "md5": "2.3.0", "recast": "0.22.0", "title-case": "3.0.3", "transliteration": "2.3.5", "xml2js": "0.6.2", "zod": "3.25.67" } }, "sha512-kTJVxns085po2Tcv9f4bJdKnngxyVnGjA+cQPsNTcZoxM+09R4+lxOWnH5aeAJkRxKEVYZ278/rwF5B6c/mnvg=="],
+    "n8n-workflow": ["n8n-workflow@2.6.0", "", { "dependencies": { "@n8n/errors": "0.5.0", "@n8n/tournament": "1.0.6", "ast-types": "0.16.1", "callsites": "3.1.0", "esprima-next": "5.8.4", "form-data": "4.0.0", "jmespath": "0.16.0", "js-base64": "3.7.2", "jsonrepair": "3.13.1", "jssha": "3.3.1", "lodash": "4.17.21", "luxon": "3.4.4", "md5": "2.3.0", "recast": "0.22.0", "title-case": "3.0.3", "transliteration": "2.3.5", "xml2js": "0.6.2", "zod": "3.25.67" } }, "sha512-GIphLKWQhs3LKT3Z1dtQB/QhviGhYLQr0wXa/gm+U86/F3vgTSloXyYyjBKyYBzfCWCs8ay4w8VaqZXiMh/X9A=="],
 
     "nano-spawn": ["nano-spawn@2.0.0", "", {}, "sha512-tacvGzUY5o2D8CBh2rrwxyNojUsZNU2zjNTzKQrkgGJQTbGAfArVWXSKMBokBeeg6C7OLRGUEyoFlYbfeWQIqw=="],
 

@@ -61,9 +61,7 @@
     "format:package": "format-package --write",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
-    "test": "bun test src/tests/node.spec.ts",
-    "test:all": "bun test",
-    "test:integration": "bun test src/tests/integration.spec.ts"
+    "test": "bun test"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -75,10 +73,13 @@
     ]
   },
   "types": "./dist/main.d.ts",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
   "peerDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "n8n-workflow": "^2.6.0"
   },
   "devDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "n8n-workflow": "^2.6.0"
   }
 }
