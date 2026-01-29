@@ -7,14 +7,14 @@ An n8n community node for integrating [You.com APIs](https://you.com/api) into y
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
 ```bash
-npm install n8n-nodes-youdotcom
+npm install @youdotcom-oss/n8n-nodes-youdotcom
 ```
 
 Or install via the n8n UI:
 
 1. Go to **Settings > Community Nodes**
 2. Select **Install**
-3. Enter `n8n-nodes-youdotcom`
+3. Enter `@youdotcom-oss/n8n-nodes-youdotcom`
 4. Agree to the risks and select **Install**
 
 ## Operations
