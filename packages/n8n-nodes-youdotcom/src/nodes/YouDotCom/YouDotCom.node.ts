@@ -10,9 +10,11 @@ import { NodeApiError } from 'n8n-workflow';
 import { ZodError } from 'zod';
 import {
   ContentsOptionsSchema,
+  ContentsResponseSchema,
   ExpressOptionsSchema,
   ExpressResponseSchema,
   SearchOptionsSchema,
+  SearchResponseSchema,
 } from './YouDotCom.schemas.ts';
 
 /** Package version for User-Agent header */
@@ -473,7 +475,7 @@ export class YouDotCom implements INodeType {
       } catch (error) {
         // Handle Zod validation errors with detailed messages
         if (error instanceof ZodError) {
-          const errorMessage = `Validation error: ${error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
+          const errorMessage = `Validation error:\n${error.issues.map((e, i) => `  ${i + 1}. ${e.path.join('.') || 'root'}: ${e.message}`).join('\n')}`;
           const serializedIssues = error.issues.map((issue) => ({
             path: issue.path.join('.'),
             message: issue.message,
@@ -543,12 +545,17 @@ export class YouDotCom implements INodeType {
     if (options.excludeTerms) qs.excludeTerms = options.excludeTerms;
     if (options.exactTerms) qs.exactTerms = options.exactTerms;
 
-    return context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
+    const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
       method: 'GET',
       url: 'https://ydc-index.io/v1/search',
       qs,
       json: true,
     });
+
+    // Validate API response with Zod schema
+    const response = SearchResponseSchema.parse(rawResponse);
+
+    return response as IDataObject;
   }
 
   /**
@@ -585,12 +592,17 @@ export class YouDotCom implements INodeType {
       body.crawl_timeout = options.crawl_timeout;
     }
 
-    return context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
+    const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
       method: 'POST',
       url: 'https://ydc-index.io/v1/contents',
       body,
       json: true,
     });
+
+    // Validate API response with Zod schema
+    const response = ContentsResponseSchema.parse(rawResponse);
+
+    return response as IDataObject[];
   }
 
   /**
