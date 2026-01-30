@@ -549,6 +549,9 @@ export class YouDotCom implements INodeType {
     const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
       method: 'GET',
       url: 'https://ydc-index.io/v1/search',
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
       qs,
       json: true,
     });
@@ -596,6 +599,9 @@ export class YouDotCom implements INodeType {
     const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
       method: 'POST',
       url: 'https://ydc-index.io/v1/contents',
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
       body,
       json: true,
     });
