@@ -33,30 +33,47 @@ export type SearchOptions = z.infer<typeof SearchOptionsSchema>;
  * Search API response schema
  *
  * @remarks
- * Validates response structure from You.com Search API
+ * Validates response structure from You.com Search API.
+ * Uses passthrough() to preserve all API fields (snippets, page_age, etc.)
  */
-export const SearchResponseSchema = z.object({
-  web: z
-    .array(
-      z.object({
-        url: z.string().url().describe('URL of the search result'),
-        title: z.string().describe('Title of the search result'),
-        description: z.string().describe('Description snippet of the search result'),
-      }),
-    )
-    .optional()
-    .describe('Web search results'),
-  news: z
-    .array(
-      z.object({
-        url: z.string().url().describe('URL of the news article'),
-        title: z.string().describe('Title of the news article'),
-        description: z.string().describe('Description snippet of the news article'),
-      }),
-    )
-    .optional()
-    .describe('News search results'),
-});
+const WebResultSchema = z
+  .object({
+    url: z.string().describe('URL of the search result'),
+    title: z.string().describe('Title of the search result'),
+    description: z.string().describe('Description snippet of the search result'),
+    snippets: z.array(z.string()).optional().describe('Content snippets'),
+    page_age: z.string().optional().describe('Publication timestamp'),
+  })
+  .passthrough();
+
+const NewsResultSchema = z
+  .object({
+    url: z.string().describe('URL of the news article'),
+    title: z.string().describe('Title of the news article'),
+    description: z.string().describe('Description snippet of the news article'),
+    page_age: z.string().optional().describe('Publication timestamp'),
+  })
+  .passthrough();
+
+const MetadataSchema = z
+  .object({
+    search_uuid: z.string().optional().describe('Unique search request ID'),
+    query: z.string().optional().describe('Query that was searched'),
+    latency: z.number().optional().describe('Latency in seconds'),
+  })
+  .passthrough();
+
+export const SearchResponseSchema = z
+  .object({
+    results: z
+      .object({
+        web: z.array(WebResultSchema).optional().describe('Web search results'),
+        news: z.array(NewsResultSchema).optional().describe('News search results'),
+      })
+      .passthrough(),
+    metadata: MetadataSchema.optional(),
+  })
+  .passthrough();
 
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 
@@ -80,15 +97,18 @@ export type ContentsOptions = z.infer<typeof ContentsOptionsSchema>;
  * Contents API response schema
  *
  * @remarks
- * Validates response structure from You.com Contents API
+ * Validates response structure from You.com Contents API.
+ * Uses passthrough() to preserve all API fields.
  */
 export const ContentsResponseSchema = z.array(
-  z.object({
-    url: z.string().url().describe('URL of the extracted content'),
-    markdown: z.string().optional().describe('Content in Markdown format'),
-    html: z.string().optional().describe('Content in HTML format'),
-    metadata: z.record(z.string(), z.unknown()).optional().describe('Metadata extracted from the page'),
-  }),
+  z
+    .object({
+      url: z.string().url().describe('URL of the extracted content'),
+      markdown: z.string().optional().describe('Content in Markdown format'),
+      html: z.string().optional().describe('Content in HTML format'),
+      metadata: z.record(z.string(), z.unknown()).optional().describe('Metadata extracted from the page'),
+    })
+    .passthrough(),
 );
 
 export type ContentsResponse = z.infer<typeof ContentsResponseSchema>;
@@ -109,29 +129,36 @@ export type ExpressOptions = z.infer<typeof ExpressOptionsSchema>;
  * Express API response schema
  *
  * @remarks
- * Validates response structure from You.com Express API
+ * Validates response structure from You.com Express API.
+ * Uses passthrough() to preserve all API fields.
  */
-export const ExpressResponseSchema = z.object({
-  output: z
-    .array(
-      z.object({
-        type: z.string().min(1).describe('Type of output segment (e.g., text, citations)'),
-        text: z.string().optional().describe('Text content of the output segment'),
-        content: z
-          .array(
-            z.object({
-              url: z.string().url().describe('URL of the cited source'),
-              title: z.string().min(1).describe('Title of the cited source'),
-              snippet: z.string().describe('Snippet from the cited source'),
-            }),
-          )
-          .optional()
-          .describe('Citations and sources for the output segment'),
-      }),
-    )
-    .min(1)
-    .describe('Array of output segments from the AI agent'),
-  agent: z.string().optional().describe('Agent identifier used for the response'),
-});
+export const ExpressResponseSchema = z
+  .object({
+    output: z
+      .array(
+        z
+          .object({
+            type: z.string().min(1).describe('Type of output segment (e.g., text, citations)'),
+            text: z.string().optional().describe('Text content of the output segment'),
+            content: z
+              .array(
+                z
+                  .object({
+                    url: z.string().url().describe('URL of the cited source'),
+                    title: z.string().min(1).describe('Title of the cited source'),
+                    snippet: z.string().describe('Snippet from the cited source'),
+                  })
+                  .passthrough(),
+              )
+              .optional()
+              .describe('Citations and sources for the output segment'),
+          })
+          .passthrough(),
+      )
+      .min(1)
+      .describe('Array of output segments from the AI agent'),
+    agent: z.string().optional().describe('Agent identifier used for the response'),
+  })
+  .passthrough();
 
 export type ExpressResponse = z.infer<typeof ExpressResponseSchema>;
