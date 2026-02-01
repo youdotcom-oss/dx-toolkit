@@ -1,6 +1,6 @@
 {
-  "name": "n8n-nodes-youdotcom",
-  "version": "0.1.0",
+  "name": "@youdotcom-oss/n8n-nodes-youdotcom",
+  "version": "0.0.1",
   "description": "n8n community node for You.com APIs - Search, Contents extraction, and Express AI agent",
   "license": "MIT",
   "engines": {
@@ -16,7 +16,10 @@
     "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
   },
   "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n-nodes-youdotcom#readme",
-  "author": "You.com (https://you.com)",
+  "author": {
+    "name": "You.com",
+    "url": "https://you.com"
+  },
   "keywords": [
     "n8n",
     "n8n-community-node-package",
@@ -33,13 +36,6 @@
     "grounding"
   ],
   "type": "module",
-  "main": "./dist/main.js",
-  "exports": {
-    ".": {
-      "types": "./dist/main.d.ts",
-      "default": "./dist/main.js"
-    }
-  },
   "files": [
     "dist/**"
   ],
@@ -47,23 +43,16 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun run build:js && bun run build:types && bun run build:assets",
-    "build:assets": "cp src/nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp src/nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/",
-    "build:js": "bun build ./src/main.ts ./src/nodes/YouDotCom/YouDotCom.node.ts ./src/credentials/YouDotComApi.credentials.ts --outdir ./dist --target=node --splitting",
-    "build:types": "tsc --project tsconfig.build.json",
+    "build": "bun run build:js && bun run build:assets",
+    "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/ && cp nodes/YouDotCom/youdotcom.svg dist/credentials/",
+    "build:js": "bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node --external n8n-workflow && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node --external n8n-workflow",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
-    "check:write": "bun run format && bun run lint:fix && bun run format:package",
-    "format": "biome format --write",
-    "format:check": "biome format",
+    "check:write": "biome check --write && bun run format:package",
     "format:package": "format-package --write",
-    "lint": "biome lint",
-    "lint:fix": "biome lint --write",
-    "test": "bun test src/tests/node.spec.ts",
-    "test:all": "bun test",
-    "test:integration": "bun test src/tests/integration.spec.ts"
+    "test": "bun test"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -74,11 +63,12 @@
       "dist/nodes/YouDotCom/YouDotCom.node.js"
     ]
   },
-  "types": "./dist/main.d.ts",
   "peerDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "n8n-workflow": "^2.6.0"
   },
   "devDependencies": {
-    "n8n-workflow": "^1.71.0"
+    "@n8n/node-cli": "^0.18.0",
+    "n8n-workflow": "^2.6.0",
+    "zod": "^4.3.6"
   }
 }

@@ -7,14 +7,14 @@ An n8n community node for integrating [You.com APIs](https://you.com/api) into y
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
 ```bash
-npm install n8n-nodes-youdotcom
+npm install @youdotcom-oss/n8n-nodes-youdotcom
 ```
 
 Or install via the n8n UI:
 
 1. Go to **Settings > Community Nodes**
 2. Select **Install**
-3. Enter `n8n-nodes-youdotcom`
+3. Enter `@youdotcom-oss/n8n-nodes-youdotcom`
 4. Agree to the risks and select **Install**
 
 ## Operations
@@ -94,14 +94,8 @@ bun install
 # Build the package
 bun run build
 
-# Run unit tests (no API key required)
-bun run test
-
-# Run integration tests (requires YDC_API_KEY)
-YDC_API_KEY=your-key bun run test:integration
-
-# Run all tests
-YDC_API_KEY=your-key bun run test:all
+# Run tests
+bun test
 
 # Type checking
 bun run check:types
@@ -110,20 +104,12 @@ bun run check:types
 bun run check
 ```
 
-### Test Scripts
-
-| Command | Description |
-|---------|-------------|
-| `bun run test` | Unit tests only (no API key needed) |
-| `bun run test:integration` | Integration tests against real APIs |
-| `bun run test:all` | All tests (unit + integration) |
-
 ## Resources
 
-- [You.com API Documentation](https://documentation.you.com/)
-- [Search API Reference](https://documentation.you.com/api-reference/search/search)
-- [Contents API Reference](https://documentation.you.com/api-reference/contents)
-- [Express API Reference](https://documentation.you.com/api-reference/express)
+- [You.com API Documentation](https://docs.you.com/)
+- [Search API Reference](https://docs.you.com/api-reference/search)
+- [Contents API Reference](https://docs.you.com/api-reference/search/contents)
+- [Express Agent Reference](https://docs.you.com/agents/overview#express-agent)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## License

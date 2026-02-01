@@ -1,19 +1,27 @@
 import type {
   IDataObject,
   IExecuteFunctions,
-  IHttpRequestMethods,
   INodeExecutionData,
   INodeType,
   INodeTypeDescription,
   JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from 'n8n-workflow'
+import { NodeApiError, NodeOperationError } from 'n8n-workflow'
+import { ZodError } from 'zod'
+import {
+  ContentsOptionsSchema,
+  ContentsResponseSchema,
+  ExpressOptionsSchema,
+  ExpressResponseSchema,
+  SearchOptionsSchema,
+  SearchResponseSchema,
+} from './YouDotCom.schemas.ts'
 
 /** Package version for User-Agent header */
-const PACKAGE_VERSION = '0.1.0';
+const PACKAGE_VERSION = '0.1.0'
 
 /** User-Agent string for API requests */
-const USER_AGENT = `n8n-nodes-youdotcom/${PACKAGE_VERSION} (https://github.com/youdotcom-oss/dx-toolkit)`;
+const USER_AGENT = `n8n-nodes-youdotcom/${PACKAGE_VERSION} (https://github.com/youdotcom-oss/dx-toolkit)`
 
 /**
  * You.com node for n8n - Search, Contents, and Express (AI Agent) operations.
@@ -28,6 +36,7 @@ export class YouDotCom implements INodeType {
     icon: 'file:youdotcom.svg',
     group: ['transform'],
     version: 1,
+    usableAsTool: true,
     subtitle: '={{$parameter["operation"]}}',
     description: 'Search the web, extract content from URLs, or get AI-powered answers using You.com APIs',
     defaults: {
@@ -69,7 +78,7 @@ export class YouDotCom implements INodeType {
             name: 'Get Contents',
             value: 'contents',
             description: 'Extract content from one or more URLs',
-            action: 'Extract content from URLs',
+            action: 'Extract content from web pages',
           },
           {
             name: 'Express (AI Agent)',
@@ -169,6 +178,30 @@ export class YouDotCom implements INodeType {
             ],
           },
           {
+            displayName: 'Exact Terms',
+            name: 'exactTerms',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., machine learning|AI',
+            description: 'Require exact phrase matches (pipe-separated, e.g., "machine learning|deep learning")',
+          },
+          {
+            displayName: 'Exclude Terms',
+            name: 'excludeTerms',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., spam|ads',
+            description: 'Terms to exclude from results (pipe-separated, e.g., "spam|ads|promo")',
+          },
+          {
+            displayName: 'File Type',
+            name: 'fileType',
+            type: 'string',
+            default: '',
+            placeholder: 'e.g., pdf',
+            description: 'Filter results by file type (e.g., pdf, doc, xls)',
+          },
+          {
             displayName: 'Freshness',
             name: 'freshness',
             type: 'options',
@@ -177,8 +210,8 @@ export class YouDotCom implements INodeType {
             options: [
               { name: 'Any Time', value: '' },
               { name: 'Past Day', value: 'day' },
-              { name: 'Past Week', value: 'week' },
               { name: 'Past Month', value: 'month' },
+              { name: 'Past Week', value: 'week' },
               { name: 'Past Year', value: 'year' },
             ],
           },
@@ -302,30 +335,6 @@ export class YouDotCom implements INodeType {
             placeholder: 'e.g., github.com',
             description: 'Restrict results to a specific domain (e.g., github.com)',
           },
-          {
-            displayName: 'File Type',
-            name: 'fileType',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., pdf',
-            description: 'Filter results by file type (e.g., pdf, doc, xls)',
-          },
-          {
-            displayName: 'Exclude Terms',
-            name: 'excludeTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., spam|ads',
-            description: 'Terms to exclude from results (pipe-separated, e.g., "spam|ads|promo")',
-          },
-          {
-            displayName: 'Exact Terms',
-            name: 'exactTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., machine learning|AI',
-            description: 'Require exact phrase matches (pipe-separated, e.g., "machine learning|deep learning")',
-          },
         ],
       },
 
@@ -435,199 +444,241 @@ export class YouDotCom implements INodeType {
         ],
       },
     ],
-  };
+  }
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-    const items = this.getInputData();
-    const returnData: INodeExecutionData[] = [];
+    const items = this.getInputData()
+    const returnData: INodeExecutionData[] = []
 
     for (let i = 0; i < items.length; i++) {
       try {
-        const operation = this.getNodeParameter('operation', i) as string;
+        const operation = this.getNodeParameter('operation', i)
 
         if (operation === 'search') {
-          const response = await executeSearch.call(this, i);
-          const executionData = this.helpers.constructExecutionMetaData(
-            this.helpers.returnJsonArray(response as IDataObject),
-            { itemData: { item: i } },
-          );
-          returnData.push(...executionData);
+          const response = await YouDotCom.#executeSearch(this, i)
+          const executionData = this.helpers.constructExecutionMetaData(this.helpers.returnJsonArray(response), {
+            itemData: { item: i },
+          })
+          returnData.push(...executionData)
         } else if (operation === 'contents') {
-          const response = await executeContents.call(this, i);
-          const executionData = this.helpers.constructExecutionMetaData(
-            this.helpers.returnJsonArray(response as IDataObject[]),
-            { itemData: { item: i } },
-          );
-          returnData.push(...executionData);
+          const response = await YouDotCom.#executeContents(this, i)
+          const executionData = this.helpers.constructExecutionMetaData(this.helpers.returnJsonArray(response), {
+            itemData: { item: i },
+          })
+          returnData.push(...executionData)
         } else if (operation === 'express') {
-          const response = await executeExpress.call(this, i);
-          const executionData = this.helpers.constructExecutionMetaData(
-            this.helpers.returnJsonArray(response as IDataObject),
-            { itemData: { item: i } },
-          );
-          returnData.push(...executionData);
+          const response = await YouDotCom.#executeExpress(this, i)
+          const executionData = this.helpers.constructExecutionMetaData(this.helpers.returnJsonArray(response), {
+            itemData: { item: i },
+          })
+          returnData.push(...executionData)
         }
       } catch (error) {
+        // Handle Zod validation errors with detailed messages
+        if (error instanceof ZodError) {
+          const errorMessage = `Validation error:\n${error.issues.map((e, i) => `  ${i + 1}. ${e.path.join('.') || 'root'}: ${e.message}`).join('\n')}`
+          const serializedIssues = error.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code,
+          }))
+
+          if (this.continueOnFail()) {
+            returnData.push({
+              json: {
+                error: errorMessage,
+                validationErrors: serializedIssues,
+              },
+              pairedItem: { item: i },
+            })
+            continue
+          }
+          throw new NodeApiError(this.getNode(), { message: errorMessage, issues: serializedIssues } as JsonObject, {
+            itemIndex: i,
+          })
+        }
+
+        // Handle other errors
         if (this.continueOnFail()) {
           returnData.push({
             json: {
               error: (error as Error).message,
             },
             pairedItem: { item: i },
-          });
-          continue;
+          })
+          continue
         }
         throw new NodeApiError(this.getNode(), error as JsonObject, {
           itemIndex: i,
-        });
+        })
       }
     }
 
-    return [returnData];
-  }
-}
-
-/**
- * Execute Search operation
- */
-async function executeSearch(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
-  const query = this.getNodeParameter('query', itemIndex) as string;
-  const options = this.getNodeParameter('searchOptions', itemIndex) as {
-    count?: number;
-    country?: string;
-    excludeTerms?: string;
-    exactTerms?: string;
-    fileType?: string;
-    freshness?: string;
-    language?: string;
-    livecrawl?: string;
-    livecrawl_formats?: string;
-    offset?: number;
-    safesearch?: string;
-    site?: string;
-  };
-
-  const qs: Record<string, string | number> = { query };
-
-  if (options.count) qs.count = options.count;
-  if (options.country) qs.country = options.country;
-  if (options.freshness) qs.freshness = options.freshness;
-  if (options.language) qs.language = options.language;
-  if (options.livecrawl) qs.livecrawl = options.livecrawl;
-  if (options.livecrawl_formats) qs.livecrawl_formats = options.livecrawl_formats;
-  if (options.offset !== undefined) qs.offset = options.offset;
-  if (options.safesearch) qs.safesearch = options.safesearch;
-  if (options.site) qs.site = options.site;
-  if (options.fileType) qs.fileType = options.fileType;
-  if (options.excludeTerms) qs.excludeTerms = options.excludeTerms;
-  if (options.exactTerms) qs.exactTerms = options.exactTerms;
-
-  return this.helpers.httpRequestWithAuthentication.call(this, 'youDotComApi', {
-    method: 'GET' as IHttpRequestMethods,
-    url: 'https://ydc-index.io/v1/search',
-    qs,
-    json: true,
-  });
-}
-
-/**
- * Execute Contents operation
- */
-async function executeContents(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject[]> {
-  const urlsString = this.getNodeParameter('urls', itemIndex) as string;
-  const options = this.getNodeParameter('contentsOptions', itemIndex) as {
-    formats?: string[];
-    crawl_timeout?: number;
-  };
-
-  // Parse comma-separated URLs and trim whitespace
-  const urls = urlsString
-    .split(',')
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0);
-
-  if (urls.length === 0) {
-    throw new Error('At least one URL is required');
+    return [returnData]
   }
 
-  // Build request body
-  const body: Record<string, unknown> = { urls };
+  /**
+   * Execute Search operation
+   *
+   * @param context - n8n execution context with helper methods
+   * @param itemIndex - Index of the current item being processed
+   * @returns Search results from You.com API
+   */
+  static async #executeSearch(context: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
+    const query = context.getNodeParameter('query', itemIndex) as string
+    const rawOptions = context.getNodeParameter('searchOptions', itemIndex)
 
-  if (options.formats && options.formats.length > 0) {
-    body.formats = options.formats;
+    // Validate options with Zod schema
+    const options = SearchOptionsSchema.parse(rawOptions)
+
+    const qs: Record<string, string | number> = { query }
+
+    if (options.count) qs.count = options.count
+    if (options.country) qs.country = options.country
+    if (options.freshness) qs.freshness = options.freshness
+    if (options.language) qs.language = options.language
+    if (options.livecrawl) qs.livecrawl = options.livecrawl
+    if (options.livecrawl_formats) qs.livecrawl_formats = options.livecrawl_formats
+    if (options.offset !== undefined) qs.offset = options.offset
+    if (options.safesearch) qs.safesearch = options.safesearch
+    if (options.site) qs.site = options.site
+    if (options.fileType) qs.fileType = options.fileType
+    if (options.excludeTerms) qs.excludeTerms = options.excludeTerms
+    if (options.exactTerms) qs.exactTerms = options.exactTerms
+
+    const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
+      method: 'GET',
+      url: 'https://ydc-index.io/v1/search',
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
+      qs,
+      json: true,
+    })
+
+    // Validate API response with Zod schema
+    const response = SearchResponseSchema.parse(rawResponse)
+
+    return response as IDataObject
   }
-  if (options.crawl_timeout) {
-    body.crawl_timeout = options.crawl_timeout;
+
+  /**
+   * Execute Contents operation
+   *
+   * @param context - n8n execution context with helper methods
+   * @param itemIndex - Index of the current item being processed
+   * @returns Content extracted from URLs
+   */
+  static async #executeContents(context: IExecuteFunctions, itemIndex: number): Promise<IDataObject[]> {
+    const urlsString = context.getNodeParameter('urls', itemIndex) as string
+    const rawOptions = context.getNodeParameter('contentsOptions', itemIndex)
+
+    // Validate options with Zod schema
+    const options = ContentsOptionsSchema.parse(rawOptions)
+
+    // Parse comma-separated URLs and trim whitespace
+    const urls = urlsString
+      .split(',')
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0)
+
+    if (urls.length === 0) {
+      throw new NodeOperationError(context.getNode(), 'At least one URL is required', { itemIndex })
+    }
+
+    // Build request body
+    const body: Record<string, unknown> = { urls }
+
+    if (options.formats && options.formats.length > 0) {
+      body.formats = options.formats
+    }
+    if (options.crawl_timeout) {
+      body.crawl_timeout = options.crawl_timeout
+    }
+
+    const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
+      method: 'POST',
+      url: 'https://ydc-index.io/v1/contents',
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
+      body,
+      json: true,
+    })
+
+    // Validate API response with Zod schema
+    const response = ContentsResponseSchema.parse(rawResponse)
+
+    return response as IDataObject[]
   }
 
-  return this.helpers.httpRequestWithAuthentication.call(this, 'youDotComApi', {
-    method: 'POST' as IHttpRequestMethods,
-    url: 'https://ydc-index.io/v1/contents',
-    body,
-    json: true,
-  });
-}
+  /**
+   * Execute Express (AI Agent) operation
+   *
+   * @remarks
+   * Express API uses a different endpoint (api.you.com) and Bearer auth,
+   * unlike Search/Contents which use ydc-index.io with X-API-Key header.
+   *
+   * @param context - n8n execution context with helper methods
+   * @param itemIndex - Index of the current item being processed
+   * @returns AI-generated answer with optional search results
+   */
+  static async #executeExpress(context: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
+    const input = context.getNodeParameter('input', itemIndex) as string
+    const rawOptions = context.getNodeParameter('expressOptions', itemIndex)
 
-/**
- * Execute Express (AI Agent) operation
- *
- * Note: Express API uses a different endpoint (api.you.com) and Bearer auth,
- * unlike Search/Contents which use ydc-index.io with X-API-Key header.
- */
-async function executeExpress(this: IExecuteFunctions, itemIndex: number): Promise<IDataObject> {
-  const input = this.getNodeParameter('input', itemIndex) as string;
-  const options = this.getNodeParameter('expressOptions', itemIndex) as {
-    enableWebSearch?: boolean;
-  };
+    // Validate options with Zod schema
+    const options = ExpressOptionsSchema.parse(rawOptions)
 
-  // Get credentials to extract API key for Bearer auth
-  const credentials = await this.getCredentials('youDotComApi');
-  const apiKey = credentials.apiKey as string;
+    // Get credentials to extract API key for Bearer auth
+    const credentials = await context.getCredentials('youDotComApi')
+    const apiKey = credentials.apiKey as string
 
-  // Build request body - Express API requires specific format
-  const body: Record<string, unknown> = {
-    agent: 'express',
-    input,
-    stream: false,
-  };
+    // Build request body - Express API requires specific format
+    const body: Record<string, unknown> = {
+      agent: 'express',
+      input,
+      stream: false,
+    }
 
-  // Add web search tool if enabled (default: true)
-  if (options.enableWebSearch !== false) {
-    body.tools = [{ type: 'web_search' }];
-  }
+    // Add web search tool if enabled (default: true)
+    if (options.enableWebSearch !== false) {
+      body.tools = [{ type: 'web_search' }]
+    }
 
-  // Express API uses Bearer auth and different endpoint
-  const response = (await this.helpers.httpRequest({
-    method: 'POST' as IHttpRequestMethods,
-    url: 'https://api.you.com/v1/agents/runs',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'User-Agent': USER_AGENT,
-    },
-    body,
-    json: true,
-  })) as {
-    output?: Array<{ type: string; text?: string; content?: Array<{ url: string; title: string; snippet: string }> }>;
-    agent?: string;
-  };
+    // Express API uses Bearer auth and different endpoint
+    const rawResponse = await context.helpers.httpRequest({
+      method: 'POST',
+      url: 'https://api.you.com/v1/agents/runs',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'User-Agent': USER_AGENT,
+      },
+      body,
+      json: true,
+    })
 
-  // Transform response to a more user-friendly format
-  const result: IDataObject = {
-    agent: response.agent,
-  };
+    // Validate API response with Zod schema
+    const response = ExpressResponseSchema.parse(rawResponse)
 
-  // Extract answer and search results from output array
-  if (response.output) {
-    for (const item of response.output) {
-      if (item.type === 'message.answer' && item.text) {
-        result.answer = item.text;
-      } else if (item.type === 'web_search.results' && item.content) {
-        result.searchResults = item.content;
+    // Transform response to a more user-friendly format
+    const result: IDataObject = {
+      agent: response.agent,
+    }
+
+    // Extract answer and search results from output array
+    if (response.output) {
+      for (const item of response.output) {
+        if (item.type === 'message.answer' && item.text) {
+          result.answer = item.text
+        } else if (item.type === 'web_search.results' && item.content) {
+          result.searchResults = item.content
+        }
       }
     }
-  }
 
-  return result;
+    return result
+  }
 }
