@@ -57,7 +57,7 @@
     },
     "packages/n8n-nodes-youdotcom": {
       "name": "@youdotcom-oss/n8n-nodes-youdotcom",
-      "version": "0.0.1",
+      "version": "0.1.0",
       "devDependencies": {
         "@n8n/node-cli": "^0.18.0",
         "n8n-workflow": "^2.6.0",
