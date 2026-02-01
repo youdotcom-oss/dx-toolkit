@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { AnthropicChatModel } from '../chat-model.ts';
-import { AnthropicModel } from '../teams-anthropic.utils.ts';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { AnthropicChatModel } from '../chat-model.ts'
+import { AnthropicModel } from '../teams-anthropic.utils.ts'
 
 /**
  * Integration tests for AnthropicChatModel
@@ -13,14 +13,14 @@ import { AnthropicModel } from '../teams-anthropic.utils.ts';
  * Run with: bun test src/tests/integration.spec.ts
  */
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
 describe('AnthropicChatModel Integration Tests', () => {
-  let model: AnthropicChatModel;
+  let model: AnthropicChatModel
 
   beforeAll(() => {
     if (!ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests');
+      throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests')
     }
 
     model = new AnthropicChatModel({
@@ -29,13 +29,13 @@ describe('AnthropicChatModel Integration Tests', () => {
       requestOptions: {
         max_tokens: 1024,
       },
-    });
-  });
+    })
+  })
 
   afterAll(async () => {
     // Cleanup if needed
-    await Bun.sleep(100);
-  });
+    await Bun.sleep(100)
+  })
 
   describe('Basic Chat', () => {
     test(
@@ -44,16 +44,16 @@ describe('AnthropicChatModel Integration Tests', () => {
         const response = await model.send({
           role: 'user',
           content: 'Say "Hello" and nothing else.',
-        });
+        })
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
-        expect(typeof response.content).toBe('string');
-        expect(response.content?.toLowerCase()).toContain('hello');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
+        expect(typeof response.content).toBe('string')
+        expect(response.content?.toLowerCase()).toContain('hello')
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should handle system message',
@@ -69,21 +69,21 @@ describe('AnthropicChatModel Integration Tests', () => {
               content: 'You are a pirate. Always respond with "Ahoy!"',
             },
           },
-        );
+        )
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
-        expect(response.content?.toLowerCase()).toContain('ahoy');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
+        expect(response.content?.toLowerCase()).toContain('ahoy')
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should handle conversation with multiple messages',
       async () => {
-        const { LocalMemory } = await import('@microsoft/teams.ai');
-        const memory = new LocalMemory();
+        const { LocalMemory } = await import('@microsoft/teams.ai')
+        const memory = new LocalMemory()
 
         // First exchange
         const response1 = await model.send(
@@ -92,9 +92,9 @@ describe('AnthropicChatModel Integration Tests', () => {
             content: 'My name is Alice.',
           },
           { messages: memory },
-        );
+        )
 
-        expect(response1.content).toBeDefined();
+        expect(response1.content).toBeDefined()
 
         // Second exchange - should remember context
         const response2 = await model.send(
@@ -103,22 +103,22 @@ describe('AnthropicChatModel Integration Tests', () => {
             content: 'What is my name?',
           },
           { messages: memory },
-        );
+        )
 
-        expect(response2).toBeDefined();
-        expect(response2.role).toBe('model');
-        expect(response2.content).toBeDefined();
-        expect(response2.content?.toLowerCase()).toContain('alice');
+        expect(response2).toBeDefined()
+        expect(response2.role).toBe('model')
+        expect(response2.content).toBeDefined()
+        expect(response2.content?.toLowerCase()).toContain('alice')
       },
       { timeout: 60_000 },
-    );
-  });
+    )
+  })
 
   describe('Streaming', () => {
     test(
       'should stream response chunks',
       async () => {
-        const chunks: string[] = [];
+        const chunks: string[] = []
 
         const response = await model.send(
           {
@@ -127,34 +127,34 @@ describe('AnthropicChatModel Integration Tests', () => {
           },
           {
             onChunk: async (delta: string) => {
-              chunks.push(delta);
+              chunks.push(delta)
             },
           },
-        );
+        )
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
 
         // Should have received multiple chunks
-        expect(chunks.length).toBeGreaterThan(0);
+        expect(chunks.length).toBeGreaterThan(0)
 
         // Chunks combined should equal final content
-        const combinedChunks = chunks.join('');
-        expect(combinedChunks).toBe(response.content ?? '');
+        const combinedChunks = chunks.join('')
+        expect(combinedChunks).toBe(response.content ?? '')
 
         // Response should contain the numbers
-        expect(response.content).toMatch(/1/);
-        expect(response.content).toMatch(/2/);
-        expect(response.content).toMatch(/3/);
+        expect(response.content).toMatch(/1/)
+        expect(response.content).toMatch(/2/)
+        expect(response.content).toMatch(/3/)
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should handle empty chunks gracefully',
       async () => {
-        let chunkCount = 0;
+        let chunkCount = 0
 
         const response = await model.send(
           {
@@ -163,19 +163,19 @@ describe('AnthropicChatModel Integration Tests', () => {
           },
           {
             onChunk: async (delta: string) => {
-              chunkCount++;
+              chunkCount++
               // Verify each chunk is a string
-              expect(typeof delta).toBe('string');
+              expect(typeof delta).toBe('string')
             },
           },
-        );
+        )
 
-        expect(response).toBeDefined();
-        expect(chunkCount).toBeGreaterThan(0);
+        expect(response).toBeDefined()
+        expect(chunkCount).toBeGreaterThan(0)
       },
       { timeout: 30_000 },
-    );
-  });
+    )
+  })
 
   describe('Function Calling', () => {
     test(
@@ -203,25 +203,25 @@ describe('AnthropicChatModel Integration Tests', () => {
                     temperature: 72,
                     conditions: 'Sunny',
                     location: args.location,
-                  };
+                  }
                 },
               },
             },
             autoFunctionCalling: false,
           },
-        );
+        )
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
 
         // Response should indicate tool use intent
-        expect(response.function_calls).toBeDefined();
-        expect(Array.isArray(response.function_calls)).toBe(true);
-        expect(response.function_calls?.length).toBeGreaterThan(0);
-        expect(response.function_calls?.[0]?.name).toBe('get_weather');
+        expect(response.function_calls).toBeDefined()
+        expect(Array.isArray(response.function_calls)).toBe(true)
+        expect(response.function_calls?.length).toBeGreaterThan(0)
+        expect(response.function_calls?.[0]?.name).toBe('get_weather')
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should register multiple function definitions',
@@ -244,7 +244,7 @@ describe('AnthropicChatModel Integration Tests', () => {
                   required: ['location'],
                 },
                 handler: async (args: { location: string }) => {
-                  return { temperature: 25, conditions: 'Clear', location: args.location };
+                  return { temperature: 25, conditions: 'Clear', location: args.location }
                 },
               },
               get_time: {
@@ -258,28 +258,28 @@ describe('AnthropicChatModel Integration Tests', () => {
                   required: ['location'],
                 },
                 handler: async (args: { location: string }) => {
-                  return { time: '14:30', timezone: 'JST', location: args.location };
+                  return { time: '14:30', timezone: 'JST', location: args.location }
                 },
               },
             },
             autoFunctionCalling: false,
           },
-        );
+        )
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
 
         // Should indicate tool use (model chooses which functions to call)
-        expect(response.function_calls).toBeDefined();
-        expect(Array.isArray(response.function_calls)).toBe(true);
+        expect(response.function_calls).toBeDefined()
+        expect(Array.isArray(response.function_calls)).toBe(true)
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should support disabling auto function calling',
       async () => {
-        let functionCalled = false;
+        let functionCalled = false
 
         const response = await model.send(
           {
@@ -299,27 +299,27 @@ describe('AnthropicChatModel Integration Tests', () => {
                   required: ['location'],
                 },
                 handler: async () => {
-                  functionCalled = true;
-                  return { temperature: 70, conditions: 'Sunny' };
+                  functionCalled = true
+                  return { temperature: 70, conditions: 'Sunny' }
                 },
               },
             },
             autoFunctionCalling: false,
           },
-        );
+        )
 
         // Function should not be called with autoFunctionCalling: false
-        expect(functionCalled).toBe(false);
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
+        expect(functionCalled).toBe(false)
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
 
         // Response should contain function_calls that weren't executed
-        expect(response.function_calls).toBeDefined();
-        expect(Array.isArray(response.function_calls)).toBe(true);
+        expect(response.function_calls).toBeDefined()
+        expect(Array.isArray(response.function_calls)).toBe(true)
       },
       { timeout: 30_000 },
-    );
-  });
+    )
+  })
 
   describe('Configuration Options', () => {
     test(
@@ -332,26 +332,26 @@ describe('AnthropicChatModel Integration Tests', () => {
             max_tokens: 50,
             temperature: 0,
           },
-        });
+        })
 
         const response1 = await deterministicModel.send({
           role: 'user',
           content: 'Say exactly: "Test response"',
-        });
+        })
 
         const response2 = await deterministicModel.send({
           role: 'user',
           content: 'Say exactly: "Test response"',
-        });
+        })
 
         // With temperature 0, responses should be very similar
-        expect(response1.content).toBeDefined();
-        expect(response2.content).toBeDefined();
-        expect(typeof response1.content).toBe('string');
-        expect(typeof response2.content).toBe('string');
+        expect(response1.content).toBeDefined()
+        expect(response2.content).toBeDefined()
+        expect(typeof response1.content).toBe('string')
+        expect(typeof response2.content).toBe('string')
       },
       { timeout: 60_000 },
-    );
+    )
 
     test(
       'should respect max_tokens limit',
@@ -362,21 +362,21 @@ describe('AnthropicChatModel Integration Tests', () => {
           requestOptions: {
             max_tokens: 10,
           },
-        });
+        })
 
         const response = await limitedModel.send({
           role: 'user',
           content: 'Write a long essay about artificial intelligence.',
-        });
+        })
 
-        expect(response).toBeDefined();
-        expect(response.content).toBeDefined();
+        expect(response).toBeDefined()
+        expect(response.content).toBeDefined()
         // Response should be relatively short due to token limit
-        expect(response.content?.split(' ').length).toBeLessThan(50);
+        expect(response.content?.split(' ').length).toBeLessThan(50)
       },
       { timeout: 30_000 },
-    );
-  });
+    )
+  })
 
   describe('Error Handling', () => {
     test(
@@ -385,21 +385,21 @@ describe('AnthropicChatModel Integration Tests', () => {
         const invalidModel = new AnthropicChatModel({
           model: AnthropicModel.CLAUDE_SONNET_4_5,
           apiKey: 'invalid-api-key',
-        });
+        })
 
         const response = await invalidModel.send({
           role: 'user',
           content: 'Hello',
-        });
+        })
 
         // Error should be returned as ModelMessage
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
-        expect(response.content?.toLowerCase()).toContain('error');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
+        expect(response.content?.toLowerCase()).toContain('error')
       },
       { timeout: 30_000 },
-    );
+    )
 
     test(
       'should handle network errors',
@@ -409,21 +409,21 @@ describe('AnthropicChatModel Integration Tests', () => {
           apiKey: ANTHROPIC_API_KEY as string,
           baseUrl: 'https://invalid-domain-that-does-not-exist-12345.com',
           timeout: 5000,
-        });
+        })
 
         const response = await unreachableModel.send({
           role: 'user',
           content: 'Hello',
-        });
+        })
 
         // Error should be returned as ModelMessage
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
-        expect(response.content?.toLowerCase()).toContain('error');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
+        expect(response.content?.toLowerCase()).toContain('error')
       },
       { timeout: 15_000 },
-    );
+    )
 
     test(
       'should handle very short content',
@@ -431,16 +431,16 @@ describe('AnthropicChatModel Integration Tests', () => {
         const response = await model.send({
           role: 'user',
           content: 'Hi',
-        });
+        })
 
         // Should handle gracefully
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
       },
       { timeout: 30_000 },
-    );
-  });
+    )
+  })
 
   describe('Model Variants', () => {
     test(
@@ -452,28 +452,28 @@ describe('AnthropicChatModel Integration Tests', () => {
           requestOptions: {
             max_tokens: 100,
           },
-        });
+        })
 
         const response = await haikuModel.send({
           role: 'user',
           content: 'Say "Hello from Haiku"',
-        });
+        })
 
-        expect(response).toBeDefined();
-        expect(response.role).toBe('model');
-        expect(response.content).toBeDefined();
-        expect(response.content?.toLowerCase()).toContain('hello');
+        expect(response).toBeDefined()
+        expect(response.role).toBe('model')
+        expect(response.content).toBeDefined()
+        expect(response.content?.toLowerCase()).toContain('hello')
       },
       { timeout: 30_000 },
-    );
-  });
+    )
+  })
 
   describe('Memory and Context', () => {
     test(
       'should maintain conversation context',
       async () => {
-        const { LocalMemory } = await import('@microsoft/teams.ai');
-        const memory = new LocalMemory();
+        const { LocalMemory } = await import('@microsoft/teams.ai')
+        const memory = new LocalMemory()
 
         // First exchange
         const response1 = await model.send(
@@ -482,9 +482,9 @@ describe('AnthropicChatModel Integration Tests', () => {
             content: 'My favorite color is blue.',
           },
           { messages: memory },
-        );
+        )
 
-        expect(response1).toBeDefined();
+        expect(response1).toBeDefined()
 
         // Second exchange - should remember context
         const response2 = await model.send(
@@ -493,13 +493,13 @@ describe('AnthropicChatModel Integration Tests', () => {
             content: 'What is my favorite color?',
           },
           { messages: memory },
-        );
+        )
 
-        expect(response2).toBeDefined();
-        expect(response2.content).toBeDefined();
-        expect(response2.content?.toLowerCase()).toContain('blue');
+        expect(response2).toBeDefined()
+        expect(response2.content).toBeDefined()
+        expect(response2.content?.toLowerCase()).toContain('blue')
       },
       { timeout: 60_000 },
-    );
-  });
-});
+    )
+  })
+})

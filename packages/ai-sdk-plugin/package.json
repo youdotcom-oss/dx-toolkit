@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/ai-sdk-plugin",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Vercel AI SDK plugin for You.com web search, AI agents, and content extraction via MCP",
   "license": "MIT",
   "engines": {
@@ -51,13 +51,9 @@
     "check:biome": "biome check",
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
-    "check:write": "bun run format && bun run lint:fix && bun run format:package",
+    "check:write": "biome check --write && bun run format:package",
     "example": "bun scripts/run-example.ts",
-    "format": "biome format --write",
-    "format:check": "biome format",
     "format:package": "format-package --write",
-    "lint": "biome lint",
-    "lint:fix": "biome lint --write",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
@@ -66,13 +62,13 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/mcp": "1.5.1"
+    "@youdotcom-oss/api": "0.1.1"
   },
   "peerDependencies": {
     "ai": "^6.0.0"
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^3.0.14",
-    "ai": "^6.0.37"
+    "@ai-sdk/anthropic": "^3.0.35",
+    "ai": "^6.0.67"
   }
 }

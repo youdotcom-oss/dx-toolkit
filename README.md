@@ -5,13 +5,15 @@
 Build with You.com's AI capabilities across your entire workflow:
 
 - **📦 NPM Packages** - Ready-to-use integrations for popular frameworks (MCP, AI SDK, Teams.ai)
-- **🎯 Development Skills** - Project-specific patterns and workflows (code patterns, git workflow, testing)
 
 ---
 
 ## NPM Packages
 
 Production-ready packages for building, testing, and shipping agentic workflows:
+
+### [@youdotcom-oss/api](./packages/api/)
+CLI tool and shared TypeScript utilities for You.com API - provides command-line interface and type-safe building blocks used by MCP and AI SDK packages. **[Documentation →](./packages/api/README.md)**
 
 ### [@youdotcom-oss/mcp](./packages/mcp/)
 MCP Server giving AI agents real-time web search, AI answers, and content extraction via Model Context Protocol. **[Documentation →](./packages/mcp/README.md)**
@@ -21,24 +23,6 @@ Vercel AI SDK plugin for You.com web search and AI agents - zero server setup, w
 
 ### [@youdotcom-oss/teams-anthropic](./packages/teams-anthropic/)
 Use Claude models (Opus, Sonnet, Haiku) in Microsoft Teams.ai apps - drop-in replacement for OpenAI with full streaming support. **[Documentation →](./packages/teams-anthropic/README.md)**
-
-## Agent Skills
-
-**Cross-platform integration skills have moved to [youdotcom-oss/agent-skills](https://github.com/youdotcom-oss/agent-skills).**
-
-The agent-skills repository provides guided workflows for integrating You.com packages with popular AI frameworks:
-
-- **ai-sdk-integration** - Vercel AI SDK integration with You.com tools
-- **claude-agent-sdk-integration** - Claude Agent SDK with You.com MCP server
-- **openai-agent-sdk-integration** - OpenAI Agents SDK with You.com MCP server
-- **teams-anthropic-integration** - Microsoft Teams.ai with Anthropic Claude models
-
-**Installation:**
-```bash
-npx skills add youdotcom-oss/agent-skills
-```
-
-**[View all skills →](https://github.com/youdotcom-oss/agent-skills)**
 
 ---
 
@@ -70,7 +54,7 @@ bun install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your YDC_API_KEY and ANTHROPIC_API_KEY
+# Edit .env and add your YDC_API_KEY
 source .env
 
 # Authenticate with GitHub (if using gh CLI)
@@ -85,6 +69,12 @@ bun test
 # Run all quality checks
 bun run check
 ```
+
+**Troubleshooting tests:**
+If you get API key errors when running tests:
+1. Verify `.env` file exists with `YDC_API_KEY=your-key`
+2. Run `source .env` to load environment variables
+3. Try running tests again: `bun test`
 
 **For comprehensive development guidelines**, see [AGENTS.md](./AGENTS.md).
 
@@ -106,83 +96,52 @@ bun run check:write      # Auto-fix all issues across all packages
 
 ### Package-Specific Commands
 
-**From Root** (run specific package commands):
+**From Root** - Two patterns available:
 
 ```bash
-# MCP Server (using root shortcuts)
+# Pattern 1: Root shortcuts (defined in root package.json)
 bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
-# Or call package scripts directly:
-bun --cwd packages/mcp dev
-bun --cwd packages/mcp start
-bun --cwd packages/mcp test
+# Pattern 2: Direct package commands with bun --cwd
+bun --cwd packages/mcp dev      # Start MCP server in dev mode
+bun --cwd packages/mcp start    # Start MCP server in HTTP mode
+bun --cwd packages/mcp test     # Test MCP server
+bun --cwd packages/mcp check    # Run quality checks
 
-# All packages follow this pattern:
-# bun run <command>:<package>
-# bun --cwd packages/<package> <command>
+# Use bun --cwd for any package script:
+bun --cwd packages/api test
+bun --cwd packages/ai-sdk-plugin build
+bun --cwd packages/teams-anthropic check
+```
+
+**From Package Directory**:
+
+```bash
+cd packages/mcp
+bun dev                  # Start in development mode
+bun test                 # Run tests
+bun run check            # Check code quality
 ```
 
 ## Documentation
 
 ### Package Documentation
+- **[API Package README](./packages/api/README.md)** - CLI tool and shared utilities for You.com API
 - **[MCP Server README](./packages/mcp/README.md)** - User-focused setup and usage guide with API examples
 - **[AI SDK Plugin README](./packages/ai-sdk-plugin/README.md)** - Vercel AI SDK integration guide
 - **[Teams Anthropic README](./packages/teams-anthropic/README.md)** - Microsoft Teams.ai integration guide
 
 ### Contributor Documentation
-- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers and agentic IDEs
-- **[Package-Level CONTRIBUTING.md](./packages/mcp/CONTRIBUTING.md)** - Contribution guidelines and pull request process
-
-## Directory Structure
-
-```
-dx-toolkit/
-├── .claude/
-│   ├── rules/             # Universal patterns (code, git, testing)
-│   └── skills/            # Package-specific patterns
-│       ├── documentation/
-│       ├── mcp-patterns/
-│       ├── ai-sdk-patterns/
-│       └── teams-anthropic-patterns/
-├── packages/
-│   ├── mcp/               # MCP Server package
-│   ├── ai-sdk-plugin/     # Vercel AI SDK plugin
-│   └── teams-anthropic/   # Teams.ai Anthropic integration
-│       ├── src/           # Source code
-│       ├── dist/          # Compiled output
-│       ├── templates/     # Code templates
-│       ├── README.md      # User documentation
-│       └── package.json   # Package config
-├── .github/
-│   └── workflows/         # CI/CD workflows
-├── docs/
-│   └── PERFORMANCE.md     # Performance monitoring
-├── AGENTS.md              # Monorepo dev guide
-├── package.json           # Workspace root config
-└── README.md              # This file
-```
-
-## Roadmap
-
-**Packages in Development** (Target: Q1 2026)
-- **@youdotcom-oss/eval** - Evaluation harness for You.com API responses
-- **@youdotcom-oss/cli** - CLI tool for You.com API interactions
-
-**[View complete roadmap →](./docs/ROADMAP.md)**
-
-## Contributing
-
 Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+- **[AGENTS.md](./AGENTS.md)** - Comprehensive development guidelines for maintainers and agentic IDEs
 
 ## License
 
 MIT - See [LICENSE](./LICENSE) for details
 
 ## Support
-
-- **Documentation**: [MCP Server Docs](./packages/mcp/README.md)
 - **Issues**: [GitHub Issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - **Email**: support@you.com
 - **Web**: [You.com Support](https://you.com/support/contact-us)

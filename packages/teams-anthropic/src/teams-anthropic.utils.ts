@@ -1,26 +1,26 @@
-import type Anthropic from '@anthropic-ai/sdk';
-import type { FunctionMessage, Message, ModelMessage, SystemMessage, UserMessage } from '@microsoft/teams.ai';
-import packageJson from '../package.json' with { type: 'json' };
+import type Anthropic from '@anthropic-ai/sdk'
+import type { FunctionMessage, Message, ModelMessage, SystemMessage, UserMessage } from '@microsoft/teams.ai'
+import packageJson from '../package.json' with { type: 'json' }
 
 /**
  * Type guard to check if a message is a UserMessage
  */
-const isUserMessage = (message: Message): message is UserMessage => message.role === 'user';
+const isUserMessage = (message: Message): message is UserMessage => message.role === 'user'
 
 /**
  * Type guard to check if a message is a ModelMessage
  */
-const isModelMessage = (message: Message): message is ModelMessage => message.role === 'model';
+const isModelMessage = (message: Message): message is ModelMessage => message.role === 'model'
 
 /**
  * Type guard to check if a message is a FunctionMessage
  */
-const isFunctionMessage = (message: Message): message is FunctionMessage => message.role === 'function';
+const isFunctionMessage = (message: Message): message is FunctionMessage => message.role === 'function'
 
 /**
  * Type guard to check if a message is a SystemMessage
  */
-const isSystemMessage = (message: Message): message is SystemMessage => message.role === 'system';
+const isSystemMessage = (message: Message): message is SystemMessage => message.role === 'system'
 
 /**
  * Type-safe enum for Anthropic Claude model identifiers
@@ -65,7 +65,7 @@ const MODEL_DISPLAY_NAMES: Record<AnthropicModel, string> = {
   [AnthropicModel.CLAUDE_3_OPUS]: 'Claude 3 Opus',
   [AnthropicModel.CLAUDE_3_SONNET]: 'Claude 3 Sonnet',
   [AnthropicModel.CLAUDE_3_HAIKU]: 'Claude 3 Haiku',
-};
+}
 
 /**
  * Get human-readable display name for a model
@@ -80,8 +80,8 @@ const MODEL_DISPLAY_NAMES: Record<AnthropicModel, string> = {
  * ```
  */
 export const getModelDisplayName = (model: AnthropicModel): string => {
-  return MODEL_DISPLAY_NAMES[model];
-};
+  return MODEL_DISPLAY_NAMES[model]
+}
 
 /**
  * Check if a string is a valid AnthropicModel identifier
@@ -96,8 +96,8 @@ export const getModelDisplayName = (model: AnthropicModel): string => {
  * ```
  */
 export const isValidModel = (value: string): value is AnthropicModel => {
-  return Object.values(AnthropicModel).includes(value as AnthropicModel);
-};
+  return Object.values(AnthropicModel).includes(value as AnthropicModel)
+}
 
 /**
  * Get all available model identifiers
@@ -111,8 +111,8 @@ export const isValidModel = (value: string): value is AnthropicModel => {
  * ```
  */
 export const getAllModels = (): AnthropicModel[] => {
-  return Object.values(AnthropicModel);
-};
+  return Object.values(AnthropicModel)
+}
 
 /**
  * Get model family (opus, sonnet, or haiku)
@@ -127,14 +127,14 @@ export const getAllModels = (): AnthropicModel[] => {
  * ```
  */
 export const getModelFamily = (model: AnthropicModel): 'opus' | 'sonnet' | 'haiku' => {
-  const modelStr = model.toLowerCase();
+  const modelStr = model.toLowerCase()
 
-  if (modelStr.includes('opus')) return 'opus';
-  if (modelStr.includes('sonnet')) return 'sonnet';
-  if (modelStr.includes('haiku')) return 'haiku';
+  if (modelStr.includes('opus')) return 'opus'
+  if (modelStr.includes('sonnet')) return 'sonnet'
+  if (modelStr.includes('haiku')) return 'haiku'
 
-  throw new Error(`Unknown model family for model: ${model}`);
-};
+  throw new Error(`Unknown model family for model: ${model}`)
+}
 
 /**
  * Transform Teams.ai messages to Anthropic message format
@@ -155,12 +155,12 @@ export const getModelFamily = (model: AnthropicModel): 'opus' | 'sonnet' | 'haik
  * @throws Error if message has unsupported role or format
  */
 export const transformToAnthropicMessages = (messages: Message[]): Anthropic.MessageParam[] => {
-  const anthropicMessages: Anthropic.MessageParam[] = [];
+  const anthropicMessages: Anthropic.MessageParam[] = []
 
   for (const message of messages) {
     // Skip system messages (handled separately)
     if (isSystemMessage(message)) {
-      continue;
+      continue
     }
 
     // User messages
@@ -170,22 +170,22 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
       anthropicMessages.push({
         role: 'user',
         content: typeof message.content === 'string' ? message.content : String(message.content),
-      });
-      continue;
+      })
+      continue
     }
 
     // Model messages (assistant responses)
     if (isModelMessage(message)) {
       // If model message has function calls, convert to tool_use blocks
       if (message.function_calls && message.function_calls.length > 0) {
-        const content: Array<Anthropic.TextBlock | Anthropic.ToolUseBlock> = [];
+        const content: Array<Anthropic.TextBlock | Anthropic.ToolUseBlock> = []
 
         // Add text content if present
         if (message.content) {
           content.push({
             type: 'text',
             text: message.content,
-          } as Anthropic.TextBlock);
+          } as Anthropic.TextBlock)
         }
 
         // Add tool_use blocks
@@ -195,21 +195,21 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
             id: fnCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             name: fnCall.name,
             input: fnCall.arguments as Record<string, unknown>,
-          } as Anthropic.ToolUseBlock);
+          } as Anthropic.ToolUseBlock)
         }
 
         anthropicMessages.push({
           role: 'assistant',
           content,
-        });
+        })
       } else {
         // Simple text response
         anthropicMessages.push({
           role: 'assistant',
           content: message.content || '',
-        });
+        })
       }
-      continue;
+      continue
     }
 
     // Function messages (function results)
@@ -226,16 +226,16 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
             content: message.content || '',
           } as Anthropic.ToolResultBlockParam,
         ],
-      });
-      continue;
+      })
+      continue
     }
 
     // TypeScript exhaustive check - this should never be reached
-    throw new Error(`Unsupported message role: ${(message as Message).role}`);
+    throw new Error(`Unsupported message role: ${(message as Message).role}`)
   }
 
-  return anthropicMessages;
-};
+  return anthropicMessages
+}
 
 /**
  * Extract system message from Teams.ai conversation
@@ -260,12 +260,12 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
 export const extractSystemMessage = (messages: Message[]): string | undefined => {
   for (const message of messages) {
     if (isSystemMessage(message)) {
-      return message.content;
+      return message.content
     }
   }
 
-  return undefined;
-};
+  return undefined
+}
 
 /**
  * Transform Anthropic response to Teams.ai ModelMessage format
@@ -291,26 +291,26 @@ export const transformFromAnthropicMessage = (response: Anthropic.Message): Mode
   const modelMessage: ModelMessage = {
     role: 'model',
     content: '',
-  };
+  }
 
   // Extract text and tool use from content blocks
-  const textParts: string[] = [];
-  const toolUses: Array<{ id: string; name: string; input: Record<string, unknown> }> = [];
+  const textParts: string[] = []
+  const toolUses: Array<{ id: string; name: string; input: Record<string, unknown> }> = []
 
   for (const block of response.content) {
     if (block.type === 'text') {
-      textParts.push(block.text);
+      textParts.push(block.text)
     } else if (block.type === 'tool_use') {
       toolUses.push({
         id: block.id,
         name: block.name,
         input: block.input as Record<string, unknown>,
-      });
+      })
     }
   }
 
   // Set text content
-  modelMessage.content = textParts.join('');
+  modelMessage.content = textParts.join('')
 
   // Convert tool uses to function_calls
   if (toolUses.length > 0) {
@@ -318,11 +318,11 @@ export const transformFromAnthropicMessage = (response: Anthropic.Message): Mode
       id: tool.id,
       name: tool.name,
       arguments: tool.input as { [key: string]: unknown },
-    }));
+    }))
   }
 
-  return modelMessage;
-};
+  return modelMessage
+}
 
 /**
  * Configuration options for You.com MCP server
@@ -332,7 +332,7 @@ export interface YouMcpServerConfigOptions {
    * You.com API key for authentication
    * Falls back to YDC_API_KEY environment variable if not provided
    */
-  apiKey?: string;
+  apiKey?: string
 }
 
 /**
@@ -369,10 +369,10 @@ export interface YouMcpServerConfigOptions {
  * ```
  */
 export const getYouMcpConfig = (options: YouMcpServerConfigOptions = {}) => {
-  const apiKey = options.apiKey || process.env.YDC_API_KEY;
+  const apiKey = options.apiKey || process.env.YDC_API_KEY
 
   if (!apiKey) {
-    throw new Error('You.com API key is required. Provide it via apiKey option or YDC_API_KEY environment variable.');
+    throw new Error('You.com API key is required. Provide it via apiKey option or YDC_API_KEY environment variable.')
   }
 
   return {
@@ -383,5 +383,5 @@ export const getYouMcpConfig = (options: YouMcpServerConfigOptions = {}) => {
         Authorization: `Bearer ${apiKey}`,
       },
     },
-  };
-};
+  }
+}

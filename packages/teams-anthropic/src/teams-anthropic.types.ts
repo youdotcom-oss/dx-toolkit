@@ -1,6 +1,6 @@
-import type Anthropic from '@anthropic-ai/sdk';
-import type { ILogger } from '@microsoft/teams.common';
-import type { AnthropicModel } from './teams-anthropic.utils.ts';
+import type Anthropic from '@anthropic-ai/sdk'
+import type { ILogger } from '@microsoft/teams.common'
+import type { AnthropicModel } from './teams-anthropic.utils.ts'
 
 /**
  * Configuration options for AnthropicChatModel
@@ -28,7 +28,7 @@ export type AnthropicChatModelOptions = {
    *
    * @example AnthropicModel.CLAUDE_SONNET_4_5
    */
-  readonly model: AnthropicModel;
+  readonly model: AnthropicModel
 
   /**
    * Anthropic API key
@@ -38,7 +38,7 @@ export type AnthropicChatModelOptions = {
    *
    * @example process.env.ANTHROPIC_API_KEY
    */
-  readonly apiKey?: string;
+  readonly apiKey?: string
 
   /**
    * Base URL for Anthropic API
@@ -48,21 +48,21 @@ export type AnthropicChatModelOptions = {
    *
    * @default 'https://api.anthropic.com'
    */
-  readonly baseUrl?: string;
+  readonly baseUrl?: string
 
   /**
    * Custom headers to include in API requests
    *
    * @example { 'X-Custom-Header': 'value' }
    */
-  readonly headers?: Record<string, string>;
+  readonly headers?: Record<string, string>
 
   /**
    * Request timeout in milliseconds
    *
    * @default 60_000 (60 seconds)
    */
-  readonly timeout?: number;
+  readonly timeout?: number
 
   /**
    * Default request options for Anthropic API calls
@@ -80,7 +80,7 @@ export type AnthropicChatModelOptions = {
    * }
    * ```
    */
-  readonly requestOptions?: AnthropicRequestOptions;
+  readonly requestOptions?: AnthropicRequestOptions
 
   /**
    * Logger for debugging and monitoring
@@ -88,8 +88,8 @@ export type AnthropicChatModelOptions = {
    * @remarks
    * Uses Teams.ai ILogger interface for consistency
    */
-  readonly logger?: ILogger;
-};
+  readonly logger?: ILogger
+}
 
 /**
  * Anthropic API request parameters with managed fields omitted
@@ -121,4 +121,4 @@ export type AnthropicChatModelOptions = {
 export type AnthropicRequestOptions = Omit<
   Anthropic.MessageCreateParams,
   'model' | 'messages' | 'system' | 'stream' | 'tools'
->;
+>
