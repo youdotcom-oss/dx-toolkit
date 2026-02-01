@@ -56,7 +56,7 @@
   },
   "mcpName": "io.github.youdotcom-oss/mcp",
   "dependencies": {
-    "@youdotcom-oss/api": "0.1.0",
+    "@youdotcom-oss/api": "0.0.1",
     "zod": "^4.3.5",
     "@hono/mcp": "^0.2.3",
     "@modelcontextprotocol/sdk": "^1.25.2",
