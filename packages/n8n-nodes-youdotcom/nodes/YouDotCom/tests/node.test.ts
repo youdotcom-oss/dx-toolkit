@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import type { INodePropertyOptions } from 'n8n-workflow'
-import { YouDotCom, YouDotComApi } from '../src/main.ts'
+import { YouDotComApi } from '../../../credentials/YouDotComApi.credentials.ts'
+import { YouDotCom } from '../YouDotCom.node.ts'
 
 /**
  * Unit tests for n8n YouDotCom node
