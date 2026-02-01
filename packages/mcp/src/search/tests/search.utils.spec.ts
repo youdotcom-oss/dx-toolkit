@@ -1,139 +1,6 @@
-import { describe, expect, test } from 'bun:test';
-import type { SearchResponse } from '../search.schemas.ts';
-import { fetchSearchResults, formatSearchResults } from '../search.utils.ts';
-
-const getUserAgent = () => 'MCP/test (You.com; test-client)';
-
-describe('fetchSearchResults', () => {
-  test(
-    'returns valid response structure for basic query',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: { query: 'latest stock news' },
-        getUserAgent,
-      });
-
-      expect(result).toHaveProperty('results');
-      expect(result).toHaveProperty('metadata');
-      expect(result.results).toHaveProperty('web');
-      // expect(result.results).toHaveProperty('news');
-      expect(Array.isArray(result.results.web)).toBe(true);
-      // expect(Array.isArray(result.results.news)).toBe(true);
-
-      // Assert required metadata fields
-      expect(typeof result.metadata?.query).toBe('string');
-
-      // search_uuid is optional but should be string if present
-      expect(result.metadata?.search_uuid).toBeDefined();
-      expect(typeof result.metadata?.search_uuid).toBe('string');
-    },
-    { retry: 2 },
-  );
-
-  test(
-    'handles search with filters',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: {
-          query: 'javascript tutorial',
-          count: 3,
-          freshness: 'week',
-          country: 'US',
-        },
-        getUserAgent,
-      });
-
-      expect(result.results.web?.length).toBeLessThanOrEqual(3);
-      expect(result.metadata?.query).toContain('javascript tutorial');
-    },
-    { retry: 2 },
-  );
-
-  test(
-    'validates response schema',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: { query: 'latest technology news' },
-        getUserAgent,
-      });
-
-      // Test that web results have required properties
-      // biome-ignore lint/style/noNonNullAssertion: Test
-      const webResult = result.results.web![0];
-
-      expect(webResult).toHaveProperty('url');
-      expect(webResult).toHaveProperty('title');
-      expect(webResult).toHaveProperty('description');
-      expect(webResult).toHaveProperty('snippets');
-      expect(Array.isArray(webResult?.snippets)).toBe(true);
-
-      // Test that news results have required properties
-      // const newsResult = result.results.news![0];
-      // expect(newsResult).toHaveProperty('url');
-      // expect(newsResult).toHaveProperty('title');
-      // expect(newsResult).toHaveProperty('description');
-      // expect(newsResult).toHaveProperty('page_age');
-    },
-    { retry: 2 },
-  );
-
-  test(
-    'handles livecrawl parameters',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: {
-          query: 'python tutorial',
-          count: 2,
-          livecrawl: 'web',
-          livecrawl_formats: 'markdown',
-        },
-        getUserAgent,
-      });
-
-      expect(result.results.web?.length).toBeLessThanOrEqual(2);
-      // Livecrawl should return contents field (fails naturally if not present)
-      expect(result.results.web?.[0]).toHaveProperty('contents');
-      expect(result.results.web?.[0]?.contents).toHaveProperty('markdown');
-      expect(typeof result.results.web?.[0]?.contents?.markdown).toBe('string');
-    },
-    { retry: 2 },
-  );
-
-  test(
-    'handles freshness date ranges',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: {
-          query: 'AI news',
-          freshness: '2024-01-01to2024-12-31',
-          count: 3,
-        },
-        getUserAgent,
-      });
-
-      expect(result).toHaveProperty('results');
-      expect(result.metadata?.query).toContain('AI news');
-    },
-    { retry: 2 },
-  );
-
-  test(
-    'handles count greater than 20',
-    async () => {
-      const result = await fetchSearchResults({
-        searchQuery: {
-          query: 'machine learning',
-          count: 50,
-        },
-        getUserAgent,
-      });
-
-      expect(result.results.web?.length).toBeGreaterThan(0);
-      expect(result.results.web?.length).toBeLessThanOrEqual(50);
-    },
-    { retry: 2 },
-  );
-});
+import { describe, expect, test } from 'bun:test'
+import type { SearchResponse } from '@youdotcom-oss/api'
+import { formatSearchResults } from '../search.utils.ts'
 
 describe('formatSearchResults', () => {
   test('formats web results correctly', () => {
@@ -156,36 +23,36 @@ describe('formatSearchResults', () => {
         query: 'test query',
         latency: 0.1,
       },
-    };
+    }
 
-    const result = formatSearchResults(mockResponse);
+    const result = formatSearchResults(mockResponse)
 
-    expect(result).toHaveProperty('content');
-    expect(result).toHaveProperty('structuredContent');
-    expect(result).toHaveProperty('fullResponse');
-    expect(Array.isArray(result.content)).toBe(true);
-    expect(result.content[0]).toHaveProperty('type', 'text');
-    expect(result.content[0]).toHaveProperty('text');
-    expect(result.content[0]?.text).toContain('WEB RESULTS:');
-    expect(result.content[0]?.text).toContain('Test Title');
+    expect(result).toHaveProperty('content')
+    expect(result).toHaveProperty('structuredContent')
+    expect(result).toHaveProperty('fullResponse')
+    expect(Array.isArray(result.content)).toBe(true)
+    expect(result.content[0]).toHaveProperty('type', 'text')
+    expect(result.content[0]).toHaveProperty('text')
+    expect(result.content[0]?.text).toContain('WEB RESULTS:')
+    expect(result.content[0]?.text).toContain('Test Title')
     // URL and page_age should be in text content
-    expect(result.content[0]?.text).toContain('URL: https://example.com');
-    expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00');
-    expect(result.structuredContent).toHaveProperty('resultCounts');
-    expect(result.structuredContent.resultCounts).toHaveProperty('web', 1);
-    expect(result.structuredContent.resultCounts).toHaveProperty('news', 0);
-    expect(result.structuredContent.resultCounts).toHaveProperty('total', 1);
+    expect(result.content[0]?.text).toContain('URL: https://example.com')
+    expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00')
+    expect(result.structuredContent).toHaveProperty('resultCounts')
+    expect(result.structuredContent.resultCounts).toHaveProperty('web', 1)
+    expect(result.structuredContent.resultCounts).toHaveProperty('news', 0)
+    expect(result.structuredContent.resultCounts).toHaveProperty('total', 1)
     // All fields should be in structuredContent.results
-    expect(result.structuredContent).toHaveProperty('results');
-    expect(result.structuredContent.results?.web).toBeDefined();
-    expect(result.structuredContent.results?.web?.length).toBe(1);
+    expect(result.structuredContent).toHaveProperty('results')
+    expect(result.structuredContent.results?.web).toBeDefined()
+    expect(result.structuredContent.results?.web?.length).toBe(1)
     expect(result.structuredContent.results?.web?.[0]).toMatchObject({
       url: 'https://example.com',
       title: 'Test Title',
       page_age: '2023-01-01T00:00:00',
-    });
-    expect(result.fullResponse).toBe(mockResponse);
-  });
+    })
+    expect(result.fullResponse).toBe(mockResponse)
+  })
 
   test('formats news results correctly', () => {
     const mockResponse: SearchResponse = {
@@ -205,29 +72,29 @@ describe('formatSearchResults', () => {
         query: 'test query',
         latency: 0.1,
       },
-    };
+    }
 
-    const result = formatSearchResults(mockResponse);
+    const result = formatSearchResults(mockResponse)
 
-    expect(result.content[0]?.text).toContain('NEWS RESULTS:');
-    expect(result.content[0]?.text).toContain('News Title');
-    expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00');
+    expect(result.content[0]?.text).toContain('NEWS RESULTS:')
+    expect(result.content[0]?.text).toContain('News Title')
+    expect(result.content[0]?.text).toContain('Published: 2023-01-01T00:00:00')
     // URL should be in text content
-    expect(result.content[0]?.text).toContain('URL: https://news.com/article');
-    expect(result.structuredContent).toHaveProperty('resultCounts');
-    expect(result.structuredContent.resultCounts).toHaveProperty('web', 0);
-    expect(result.structuredContent.resultCounts).toHaveProperty('news', 1);
-    expect(result.structuredContent.resultCounts).toHaveProperty('total', 1);
+    expect(result.content[0]?.text).toContain('URL: https://news.com/article')
+    expect(result.structuredContent).toHaveProperty('resultCounts')
+    expect(result.structuredContent.resultCounts).toHaveProperty('web', 0)
+    expect(result.structuredContent.resultCounts).toHaveProperty('news', 1)
+    expect(result.structuredContent.resultCounts).toHaveProperty('total', 1)
     // All fields should be in structuredContent.results
-    expect(result.structuredContent).toHaveProperty('results');
-    expect(result.structuredContent.results?.news).toBeDefined();
-    expect(result.structuredContent.results?.news?.length).toBe(1);
+    expect(result.structuredContent).toHaveProperty('results')
+    expect(result.structuredContent.results?.news).toBeDefined()
+    expect(result.structuredContent.results?.news?.length).toBe(1)
     expect(result.structuredContent.results?.news?.[0]).toMatchObject({
       url: 'https://news.com/article',
       title: 'News Title',
       page_age: '2023-01-01T00:00:00',
-    });
-  });
+    })
+  })
 
   test('formats both web and news results', () => {
     const mockResponse: SearchResponse = {
@@ -256,34 +123,34 @@ describe('formatSearchResults', () => {
         query: 'test query',
         latency: 0.1,
       },
-    };
+    }
 
-    const result = formatSearchResults(mockResponse);
+    const result = formatSearchResults(mockResponse)
 
-    expect(result.content[0]?.text).toContain('WEB RESULTS:');
-    expect(result.content[0]?.text).toContain('NEWS RESULTS:');
-    expect(result.content[0]?.text).toContain(`=${'='.repeat(49)}`);
+    expect(result.content[0]?.text).toContain('WEB RESULTS:')
+    expect(result.content[0]?.text).toContain('NEWS RESULTS:')
+    expect(result.content[0]?.text).toContain(`=${'='.repeat(49)}`)
     // URLs should be in text content
-    expect(result.content[0]?.text).toContain('URL: https://web.com');
-    expect(result.content[0]?.text).toContain('URL: https://news.com/article');
-    expect(result.structuredContent.resultCounts).toHaveProperty('web', 1);
-    expect(result.structuredContent.resultCounts).toHaveProperty('news', 1);
-    expect(result.structuredContent.resultCounts).toHaveProperty('total', 2);
+    expect(result.content[0]?.text).toContain('URL: https://web.com')
+    expect(result.content[0]?.text).toContain('URL: https://news.com/article')
+    expect(result.structuredContent.resultCounts).toHaveProperty('web', 1)
+    expect(result.structuredContent.resultCounts).toHaveProperty('news', 1)
+    expect(result.structuredContent.resultCounts).toHaveProperty('total', 2)
     // All fields should be in structuredContent.results
-    expect(result.structuredContent).toHaveProperty('results');
-    expect(result.structuredContent.results?.web).toBeDefined();
-    expect(result.structuredContent.results?.news).toBeDefined();
-    expect(result.structuredContent.results?.web?.length).toBe(1);
-    expect(result.structuredContent.results?.news?.length).toBe(1);
+    expect(result.structuredContent).toHaveProperty('results')
+    expect(result.structuredContent.results?.web).toBeDefined()
+    expect(result.structuredContent.results?.news).toBeDefined()
+    expect(result.structuredContent.results?.web?.length).toBe(1)
+    expect(result.structuredContent.results?.news?.length).toBe(1)
     expect(result.structuredContent.results?.web?.[0]).toMatchObject({
       url: 'https://web.com',
       title: 'Web Title',
       page_age: '2023-01-01T00:00:00',
-    });
+    })
     expect(result.structuredContent.results?.news?.[0]).toMatchObject({
       url: 'https://news.com/article',
       title: 'News Title',
       page_age: '2023-01-01T00:00:00',
-    });
-  });
-});
+    })
+  })
+})

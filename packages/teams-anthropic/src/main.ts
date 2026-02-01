@@ -24,6 +24,6 @@
  */
 
 // Re-export all public APIs
-export * from './chat-model.ts';
-export * from './teams-anthropic.types.ts';
-export * from './teams-anthropic.utils.ts';
+export * from './chat-model.ts'
+export * from './teams-anthropic.types.ts'
+export * from './teams-anthropic.utils.ts'
