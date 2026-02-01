@@ -54,11 +54,11 @@ Output Format:
   Invalid args: Error message on stderr (exit 2)
 
 Examples:
-  ydc search "AI developments" --client Openclaw
-  ydc search "AI" --client Openclaw | jq '.data.results.web[0].title'
-  ydc express "What happened today?" --client MyAgent --tools web_search
-  ydc contents https://example.com --formats markdown
+  ydc search --json '{"query":"AI developments"}' --client Openclaw
+  ydc express --json '{"input":"What happened today?","tools":[{"type":"web_search"}]}' --client MyAgent
+  ydc contents --json '{"urls":["https://example.com"],"formats":["markdown"]}'
   ydc search --schema  # Get JSON schema for search --json input
+  ydc search --json '{"query":"AI"}' | jq '.data.results.web[0].title'
 
 More info: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api
 `)

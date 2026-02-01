@@ -123,26 +123,31 @@ export * from './cli.ts';  // Wrong - CLI is binary, not library
 
 ### Error Handling
 
-**API utilities return typed errors, NEVER throw:**
+**API utilities throw descriptive errors for better debugging:**
 
 ```typescript
-// ✅ Return error object
+// ✅ Throw with context
+if (!response.ok) {
+  const errorData = await response.json();
+  throw new Error(`Failed to perform search. Error code: ${errorData.code}`);
+}
+
+// ✅ Preserve error context in catch blocks
 try {
   const response = await fetch(url);
   return await response.json();
 } catch (err: unknown) {
-  return {
-    error: err instanceof Error ? err.message : String(err),
-    status: 'failed'
-  };
+  throw new Error(`API request failed: ${err instanceof Error ? err.message : String(err)}`);
 }
 
-// ❌ Don't throw - breaks consumers
-throw new Error('API failed');
+// ❌ Don't silently fail
+if (!response.ok) {
+  return { error: 'failed' };  // Loses context
+}
 ```
 
-*Verify:* `grep 'throw new Error' src/*/utils.ts`  
-*Fix:* Return error objects instead of throwing
+*Verify:* Check error messages include context (status codes, error codes, URLs)
+*Fix:* Add descriptive error messages with relevant context
 
 ### User-Agent Pattern
 

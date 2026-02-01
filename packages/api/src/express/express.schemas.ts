@@ -19,13 +19,13 @@ export type ExpressAgentInput = z.infer<typeof ExpressAgentInputSchema>
 // Search result content item from web_search.results
 // Note: thumbnail_url, source_type, and provider are API-only pass-through fields not used in MCP output
 const ApiSearchResultItemSchema = z.object({
-  source_type: z.string().optional(),
+  source_type: z.string().nullable().optional(),
   citation_uri: z.string().optional(), // Used as fallback for url in transformation
   url: z.string(),
   title: z.string(),
   snippet: z.string(),
-  thumbnail_url: z.string().optional(), // API-only, not transformed to MCP output
-  provider: z.any().optional(), // API-only, not transformed to MCP output
+  thumbnail_url: z.string().nullable().optional(), // API-only, not transformed to MCP output
+  provider: z.string().nullable().optional(), // API-only, not transformed to MCP output
 })
 
 // Union of possible output item types from API
@@ -47,7 +47,15 @@ export const ExpressAgentApiResponseSchema = z
     output: z.array(ExpressAgentApiOutputItemSchema),
     agent: z.string().optional().describe('Agent identifier'),
     mode: z.string().optional().describe('Agent mode'),
-    input: z.array(z.any()).optional().describe('Input messages'),
+    input: z
+      .array(
+        z.object({
+          role: z.enum(['user']).describe('User role'),
+          content: z.string().describe('User question'),
+        }),
+      )
+      .optional()
+      .describe('Input messages'),
   })
   .passthrough()
 
