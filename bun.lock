@@ -32,7 +32,7 @@
     },
     "packages/api": {
       "name": "@youdotcom-oss/api",
-      "version": "0.0.1",
+      "version": "0.1.0",
       "bin": {
         "ydc": "./bin/cli.js",
       },
@@ -955,6 +955,10 @@
     "@radix-ui/react-select/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
 
     "@radix-ui/react-tooltip/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
+
+    "@youdotcom-oss/ai-sdk-plugin/@youdotcom-oss/api": ["@youdotcom-oss/api@0.0.1", "", { "dependencies": { "zod": "^4.3.5" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-P1Dmeci44QUYzEMPi9yWDc0sY9asWhJCalPd/tV1V1ZCbIVaJx9Ajta/KC06r+9fdMxuGKaUjPuKbr1l/4Y2nw=="],
+
+    "@youdotcom-oss/mcp/@youdotcom-oss/api": ["@youdotcom-oss/api@0.0.1", "", { "dependencies": { "zod": "^4.3.5" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-P1Dmeci44QUYzEMPi9yWDc0sY9asWhJCalPd/tV1V1ZCbIVaJx9Ajta/KC06r+9fdMxuGKaUjPuKbr1l/4Y2nw=="],
 
     "caller-callsite/callsites": ["callsites@2.0.0", "", {}, "sha512-ksWePWBloaWPxJYQ8TL0JHvtci6G5QTKwQ95RcWAa/lzoAKuAOflGdAK92hpHXjkwb8zLxoLNUoNYZgVsaJzvQ=="],
 
