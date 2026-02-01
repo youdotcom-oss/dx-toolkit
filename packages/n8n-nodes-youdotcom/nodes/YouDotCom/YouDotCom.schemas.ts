@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Search operation options schema
@@ -25,9 +25,9 @@ export const SearchOptionsSchema = z.object({
     .refine((val) => !val || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(val), {
       message: 'Must be a valid domain format (e.g., example.com)',
     }),
-});
+})
 
-export type SearchOptions = z.infer<typeof SearchOptionsSchema>;
+export type SearchOptions = z.infer<typeof SearchOptionsSchema>
 
 /**
  * Search API response schema
@@ -44,7 +44,7 @@ const WebResultSchema = z
     snippets: z.array(z.string()).optional().describe('Content snippets'),
     page_age: z.string().optional().describe('Publication timestamp'),
   })
-  .passthrough();
+  .passthrough()
 
 const NewsResultSchema = z
   .object({
@@ -53,7 +53,7 @@ const NewsResultSchema = z
     description: z.string().describe('Description snippet of the news article'),
     page_age: z.string().optional().describe('Publication timestamp'),
   })
-  .passthrough();
+  .passthrough()
 
 const MetadataSchema = z
   .object({
@@ -61,7 +61,7 @@ const MetadataSchema = z
     query: z.string().optional().describe('Query that was searched'),
     latency: z.number().optional().describe('Latency in seconds'),
   })
-  .passthrough();
+  .passthrough()
 
 export const SearchResponseSchema = z
   .object({
@@ -73,9 +73,9 @@ export const SearchResponseSchema = z
       .passthrough(),
     metadata: MetadataSchema.optional(),
   })
-  .passthrough();
+  .passthrough()
 
-export type SearchResponse = z.infer<typeof SearchResponseSchema>;
+export type SearchResponse = z.infer<typeof SearchResponseSchema>
 
 /**
  * Contents operation options schema
@@ -89,9 +89,9 @@ export const ContentsOptionsSchema = z.object({
     .optional()
     .describe('Output formats for extracted content'),
   crawl_timeout: z.number().int().min(1).max(60).optional().describe('Timeout in seconds for content crawling (1-60)'),
-});
+})
 
-export type ContentsOptions = z.infer<typeof ContentsOptionsSchema>;
+export type ContentsOptions = z.infer<typeof ContentsOptionsSchema>
 
 /**
  * Contents API response schema
@@ -109,9 +109,9 @@ export const ContentsResponseSchema = z.array(
       metadata: z.record(z.string(), z.unknown()).optional().describe('Metadata extracted from the page'),
     })
     .passthrough(),
-);
+)
 
-export type ContentsResponse = z.infer<typeof ContentsResponseSchema>;
+export type ContentsResponse = z.infer<typeof ContentsResponseSchema>
 
 /**
  * Express operation options schema
@@ -121,9 +121,9 @@ export type ContentsResponse = z.infer<typeof ContentsResponseSchema>;
  */
 export const ExpressOptionsSchema = z.object({
   enableWebSearch: z.boolean().optional().describe('Enable web search augmentation for AI responses'),
-});
+})
 
-export type ExpressOptions = z.infer<typeof ExpressOptionsSchema>;
+export type ExpressOptions = z.infer<typeof ExpressOptionsSchema>
 
 /**
  * Express API response schema
@@ -159,6 +159,6 @@ export const ExpressResponseSchema = z
       .describe('Array of output segments from the AI agent'),
     agent: z.string().optional().describe('Agent identifier used for the response'),
   })
-  .passthrough();
+  .passthrough()
 
-export type ExpressResponse = z.infer<typeof ExpressResponseSchema>;
+export type ExpressResponse = z.infer<typeof ExpressResponseSchema>
