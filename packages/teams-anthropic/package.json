@@ -61,8 +61,6 @@
     "@anthropic-ai/sdk": "^0.72.1"
   },
   "devDependencies": {
-    "@microsoft/teams.apps": "^2.0.5",
-    "@microsoft/teams.mcpclient": "^2.0.5",
     "@microsoft/teams.ai": "^2.0.5",
     "@microsoft/teams.common": "^2.0.5",
     "@types/bun": "latest",
