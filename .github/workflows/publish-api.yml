@@ -1,0 +1,26 @@
+name: "Package: publish @youdotcom-oss/api"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version tag (e.g., 0.1.0)"
+        required: true
+      next:
+        description: "Next prerelease number (optional)"
+        required: false
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/_publish-package.yml
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+    with:
+      npm_package_name: "@youdotcom-oss/api"
+      version: ${{ github.event.inputs.version }}
+      next: ${{ github.event.inputs.next }}

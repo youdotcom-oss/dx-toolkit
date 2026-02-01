@@ -1,6 +1,6 @@
 ---
 name: mcp-patterns
-description: MCP server development patterns including Zod schema design, error handling, logging, response format, and testing strategies. Use when developing or contributing to @youdotcom-oss/mcp package.
+description: MCP server patterns - Zod schemas, error handling, logging, response format, testing. Uses @youdotcom-oss/api utilities.
 license: MIT
 compatibility: Bun >= 1.2.21, MCP SDK >= 1.24.3
 metadata:
@@ -10,281 +10,217 @@ metadata:
   keywords: [mcp, model-context-protocol, zod, error-handling, logging]
 ---
 
-# MCP Server Development Patterns
+# MCP Server Patterns
 
-Development patterns for building MCP (Model Context Protocol) servers with the You.com MCP package.
+MCP server patterns using You.com API utilities from `@youdotcom-oss/api` package.
 
-> **For end users**: See [packages/mcp/README.md](../../packages/mcp/README.md) for setup and usage.
-> **For universal patterns**: See [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md)
+> **For end users**: See [packages/mcp/README.md](../../packages/mcp/README.md)  
+> **For universal patterns**: See [`.plaited/rules/core.md`](../../.plaited/rules/core.md)
 
-## When to Use This Skill
+## When to Use
 
-Use this skill when:
-- Developing or contributing to `@youdotcom-oss/mcp` package
-- Implementing MCP tools and utilities
+- Contributing to `@youdotcom-oss/mcp` package
+- Implementing MCP tools
 - Debugging MCP server issues
-- Understanding MCP-specific patterns and conventions
+
+## Architecture
+
+**MCP wraps API utilities as MCP tools:**
+```
+@youdotcom-oss/api (Foundation)
+├── fetchSearchResults()
+├── SearchQuerySchema
+└── formatSearchResults()
+         ↓
+@youdotcom-oss/mcp (MCP Wrapper)
+└── registerSearchTool() - Wraps API utility as MCP tool
+```
 
 ## Tech Stack
 
-- **Runtime**: Bun >= 1.2.21 (not Node.js)
 - **MCP SDK**: @modelcontextprotocol/sdk ^1.24.3
-- **Validation**: Zod ^4.1.13
-- **HTTP Transport**: Hono ^4.10.7 with Bearer token auth
-- **Testing**: Bun test (built-in test runner)
-- **Code Quality**: Biome 2.3.8 (linter + formatter)
+- **API Utilities**: @youdotcom-oss/api ^0.1.0
+- **HTTP Transport**: Hono ^4.10.7
+- **Testing**: Bun test
 
 ## Quick Start
 
 ```bash
 cd packages/mcp
-
-# Install dependencies (from monorepo root)
-cd ../..
-bun install
-
-# Set up API key
-echo "export YDC_API_KEY=your-actual-api-key-here" > .env
-source .env
-
-# From package directory
-cd packages/mcp
-bun run dev                    # Start stdio server
-bun start                      # Start HTTP server on port 4000
-bun test                       # Run tests
-bun run check                  # Run all checks
+bun test
+bun run check
+bun run dev      # STDIO mode
+bun start        # HTTP mode
 ```
 
 ## MCP-Specific Patterns
 
-### Schema Design with Zod
+### Schema Import from API Package
 
-All MCP tool inputs and API responses must use Zod schemas:
+**ALWAYS import schemas from `@youdotcom-oss/api`:**
 
 ```typescript
-// ✅ Use .describe() for documentation (shows in MCP inspector)
-export const SearchQuerySchema = z.object({
-  query: z.string().describe('Search query string'),
-  count: z.number().int().min(1).max(20).default(10).describe('Number of results'),
-});
+// ✅ Import from API package
+import { SearchQuerySchema } from '@youdotcom-oss/api';
 
-// ✅ Validate API responses
-const response = SearchApiResponseSchema.parse(await apiCall());
+export const registerSearchTool = (mcp: McpServer) => {
+  mcp.tool('search', SearchQuerySchema, async (params) => {
+    // ...
+  });
+};
+
+// ❌ Don't duplicate schemas
+const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
 ```
 
-**Why this pattern?**
-- `.describe()` provides human-readable documentation in MCP inspector
-- Zod validation catches API response format changes early
-- Type safety ensures tool inputs match expected schema
+*Verify:* `grep "z.object" src/*/register-*` should be empty  
+*Fix:* Import schemas from `@youdotcom-oss/api`
 
-### Error Handling
+### Tool Response Format
 
-MCP tools must NEVER throw errors - always return error messages:
+**Return both `content` and `structuredContent`:**
 
 ```typescript
-// ✅ Correct - return error as content
+return {
+  content: [{ type: 'text', text: formatSearchResults(response) }],
+  structuredContent: response  // Original API response
+};
+```
+
+*Verify:* All tool handlers return both fields  
+*Fix:* Add `structuredContent` with raw API response
+
+### Error Handling - NEVER Throw
+
+**MCP tools return errors, never throw:**
+
+```typescript
+// ✅ Return error as content
 try {
-  const result = await apiCall();
-  return { content: [{ type: 'text', text: result }] };
+  const result = await fetchSearchResults({ params, YDC_API_KEY, getUserAgent });
+  return { content: [{ type: 'text', text: formatSearchResults(result) }] };
 } catch (err: unknown) {
-  const error = err instanceof Error ? err.message : String(err);
   return {
-    content: [{ type: 'text', text: `Error: ${error}` }],
+    content: [{ type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
     isError: true
   };
 }
 
-// ❌ Wrong - throwing breaks MCP protocol
-throw new Error('API failed');
+// ❌ Don't throw
+throw new Error('API failed');  // Breaks MCP protocol
 ```
 
-**Why this pattern?**
-- MCP protocol expects all tool calls to return responses
-- Throwing errors breaks the client-server connection
-- `isError: true` flag allows clients to handle errors gracefully
+*Verify:* `grep 'throw new' src/*/register-*` returns nothing  
+*Fix:* Convert throws to error returns
 
-### Logging
+### Logging via MCP Protocol
 
-Use `getLogger(mcp)` for MCP server notifications, NEVER `console.log`:
+**Use `getLogger(mcp)` not `console.log`:**
 
 ```typescript
-// ✅ Correct - MCP notifications
+// ✅ MCP notifications
 const log = getLogger(mcp);
 log('Calling You.com API');
 
-// ❌ Wrong - bypasses MCP protocol
-console.log('Calling You.com API');
+// ❌ Bypasses protocol
+console.log('Calling API');  // Interferes with stdio transport
 ```
 
-**Why this pattern?**
-- MCP clients expect structured notifications via protocol
-- `console.log` outputs to stdout, interfering with stdio transport
-- `getLogger()` properly routes messages through MCP notification system
+*Verify:* `grep 'console.log' src/` in tool files  
+*Fix:* Replace with `getLogger(mcp)`
 
-### Response Format
+### API Utility Usage
 
-All MCP tools must return both `content` and `structuredContent`:
+**Wrap API utilities, don't reimplement:**
 
 ```typescript
-return {
-  content: [
-    { type: 'text', text: 'User-readable summary' }
-  ],
-  structuredContent: {
-    results: [...], // Structured data
-    metadata: {...}
-  }
-};
+// ✅ Use API package utilities
+import { fetchSearchResults, formatSearchResults } from '@youdotcom-oss/api';
+
+const response = await fetchSearchResults({ params, YDC_API_KEY, getUserAgent });
+const text = formatSearchResults(response);
+
+// ❌ Don't duplicate fetch logic
+const response = await fetch(url);  // Wrong - use API utility
 ```
 
-**Why this pattern?**
-- `content` provides human-readable text for display
-- `structuredContent` enables programmatic processing by clients
-- Both formats serve different use cases
-
-### MCP Inspector
-
-Test and debug MCP tools interactively:
-
-```bash
-bun run inspect  # Automatically loads .env variables
-```
-
-**Why this tool?**
-- Interactive testing without writing test code
-- Visual inspection of tool schemas and responses
-- Quick validation of changes during development
+*Verify:* No direct `fetch()` calls in tool files  
+*Fix:* Use `@youdotcom-oss/api` utilities
 
 ## Testing
 
-### MCP-Specific Testing: Shared vs Dedicated Clients
+### Dedicated Clients for Long Tests
 
-Long-running tests with retries may disconnect shared MCP clients from `beforeAll`. Use dedicated clients for isolated tests:
+**Shared clients timeout on long tests, use dedicated:**
 
 ```typescript
-// ✅ Dedicated client for long-running or isolated tests
+// ✅ Dedicated client for long/isolated tests
 test.serial('memory test', async () => {
-  const stdioPath = Bun.resolveSync('../../bin/stdio', import.meta.dir);
   const transport = new StdioClientTransport({
     command: 'npx',
     args: [stdioPath],
     env: { YDC_API_KEY },
   });
 
-  const memoryClient = new Client({
-    name: 'memory-test-client',
-    version: '1.0.0',
-  });
-
-  await memoryClient.connect(transport);
-  await memoryClient.callTool(/* ... */);
-  await memoryClient.close();
+  const client = new Client({ name: 'test', version: '1.0.0' });
+  await client.connect(transport);
+  await client.callTool(/* ... */);
+  await client.close();
 }, { timeout: 15_000 });
 ```
 
-**When to use:**
-- **Shared client**: Quick tests (<30s), no retry, basic integration tests
-- **Dedicated client**: Long tests (>30s), tests with retry, performance tests
+*When*: Long tests (>30s), retry tests, performance tests  
+*Verify*: Check test has `timeout` and dedicated client setup
 
-See `src/tests/processing-lag.spec.ts` for complete example.
+## File Organization
 
-## Architecture
-
-### Request Flow
-
-**Stdio Transport** (Local Development):
-1. MCP Client → stdin → `stdio.ts` → MCP Server → You.com API → stdout → MCP Client
-
-**HTTP Transport** (Remote Deployment):
-1. MCP Client → SSE (`/mcp`) → `http.ts` (Bearer auth) → MCP Server → You.com API → SSE → MCP Client
-
-### Core Files
-
-- `src/stdio.ts` - Stdio transport entry point
-- `src/http.ts` - HTTP transport with Bearer token auth, `/mcp` (SSE), `/mcp-health`
-- `src/get-mcp-server.ts` - MCP server factory
-- `src/*/register-*-tool.ts` - Tool registration
-- `src/*/*.schemas.ts` - Zod schemas
-- `src/*/*.utils.ts` - API calls, formatting
-- `src/utils.ts` - Public API export for library consumers
+```
+src/
+├── search/register-search-tool.ts     # Uses API utilities
+├── express/register-express-tool.ts   # Uses API utilities
+├── contents/register-contents-tool.ts # Uses API utilities
+├── get-mcp-server.ts                  # Server factory
+├── stdio.ts                           # STDIO transport
+├── http.ts                            # HTTP transport
+└── utils.ts                           # Public exports
+```
 
 ## Troubleshooting
 
-### YDC_API_KEY not found
-
+**YDC_API_KEY not found:**
 ```bash
-echo "export YDC_API_KEY=your-actual-api-key-here" > .env
+echo "export YDC_API_KEY=your-key" > .env
 source .env
-echo $YDC_API_KEY  # Verify it's set
 ```
 
-### Test Failures with API Rate Limits
+**Test failures with 429:**  
+Wait before re-running, use `bun test --bail`
 
-**Symptom**: Tests fail with 429 (Too Many Requests)
-
-**Solution**:
-- Wait a few minutes before re-running tests
-- Run specific test suites instead of all at once
-- Use `bun test --bail` to stop after first failure
-- Check rate limits at [api.you.com](https://api.you.com)
-
-### MCP Client Connection Issues (Stdio)
-
+**Stdio connection issues:**  
 ```bash
-# Verify server starts
-bun run dev
-
-# Check API key is set
-echo $YDC_API_KEY
-```
-
-### MCP Client Connection Issues (HTTP)
-
-```bash
-# Verify server starts on port 4000
-bun start
-
-# Test health endpoint
-curl http://localhost:4000/mcp-health
-
-# Test with valid Bearer token
-curl -H "Authorization: Bearer your-key-here" \
-  http://localhost:4000/mcp
+bun run dev  # Verify server starts
+echo $YDC_API_KEY  # Verify API key set
 ```
 
 ## Publishing
 
-> **For standard publishing process**: See [root AGENTS.md](../../AGENTS.md#publishing)
+See [root AGENTS.md](../../AGENTS.md#publishing)
 
-### MCP-Specific Deployment
+**MCP-specific**: Triggers deployment and Anthropic registry update
 
-After npm publish, this package triggers:
-
-1. **Remote Deployment** (via `repository_dispatch`):
-   - `update-mcp-version` event to deployment repository
-   - Stable releases: `deploy-mcp-production` after version update completes
-   - Prereleases skip production deployment
-
-2. **Anthropic MCP Registry** (stable releases only):
-   - Auto-updates `server.json` versions
-   - Makes server discoverable at `io.github.youdotcom-oss/mcp`
-   - Runs after successful production deployment
-
-**Workflow**: `.github/workflows/publish-mcp.yml`
+Workflow: `.github/workflows/publish-mcp.yml`
 
 ## Related Skills
 
-- [`.claude/rules/code-patterns.md`](../../.claude/rules/code-patterns.md) - Universal code patterns
-- [`.claude/rules/git-workflow.md`](../../.claude/rules/git-workflow.md) - Git conventions
-- [`.claude/skills/documentation`](../../.claude/skills/documentation/) - Documentation standards
+- [`.claude/skills/api-patterns`](../api-patterns/SKILL.md) - Foundation API utilities
+- [`.plaited/rules/core.md`](../../.plaited/rules/core.md) - Code patterns
+- [`.plaited/rules/testing.md`](../../.plaited/rules/testing.md) - Test patterns
 
 ## Contributing
 
-See [root AGENTS.md](../../AGENTS.md#contributing) and [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
-
-**Package scope**: Use `mcp` in commit messages:
+Package scope: `mcp` in commits
 
 ```bash
-feat(mcp): add new search filter
-fix(mcp): resolve timeout issue
+feat(mcp): add search filter
+fix(mcp): resolve timeout
 ```

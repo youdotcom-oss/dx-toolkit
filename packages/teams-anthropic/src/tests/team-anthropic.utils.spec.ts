@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, test } from 'bun:test';
-import type Anthropic from '@anthropic-ai/sdk';
-import type { FunctionMessage, Message, ModelMessage, UserMessage } from '@microsoft/teams.ai';
+import { afterEach, describe, expect, test } from 'bun:test'
+import type Anthropic from '@anthropic-ai/sdk'
+import type { FunctionMessage, Message, ModelMessage, UserMessage } from '@microsoft/teams.ai'
 
 import {
   AnthropicModel,
@@ -12,7 +12,7 @@ import {
   isValidModel,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
-} from '../teams-anthropic.utils.ts';
+} from '../teams-anthropic.utils.ts'
 
 describe('message-transformer', () => {
   describe('transformToAnthropicMessages', () => {
@@ -22,16 +22,16 @@ describe('message-transformer', () => {
           role: 'user',
           content: 'Hello, Claude!',
         } as UserMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(1)
       expect(result[0]).toEqual({
         role: 'user',
         content: 'Hello, Claude!',
-      });
-    });
+      })
+    })
 
     test('should transform user message with multi-part content to string', () => {
       // Note: Multi-part content support (images) is planned for future updates
@@ -44,15 +44,15 @@ describe('message-transformer', () => {
             { type: 'image', url: 'https://example.com/image.jpg' },
           ],
         } as UserMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.role).toBe('user');
+      expect(result).toHaveLength(1)
+      expect(result[0]?.role).toBe('user')
       // Current implementation converts to string
-      expect(typeof result[0]?.content).toBe('string');
-    });
+      expect(typeof result[0]?.content).toBe('string')
+    })
 
     test('should transform model message', () => {
       const messages: Message[] = [
@@ -60,16 +60,16 @@ describe('message-transformer', () => {
           role: 'model',
           content: 'Hello! How can I help you?',
         } as ModelMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(1)
       expect(result[0]).toEqual({
         role: 'assistant',
         content: 'Hello! How can I help you?',
-      });
-    });
+      })
+    })
 
     test('should transform model message with function calls', () => {
       const messages: Message[] = [
@@ -84,27 +84,27 @@ describe('message-transformer', () => {
             },
           ],
         } as ModelMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.role).toBe('assistant');
+      expect(result).toHaveLength(1)
+      expect(result[0]?.role).toBe('assistant')
 
-      const content = result[0]?.content as Anthropic.ContentBlock[];
-      expect(Array.isArray(content)).toBe(true);
-      expect(content).toHaveLength(2);
+      const content = result[0]?.content as Anthropic.ContentBlock[]
+      expect(Array.isArray(content)).toBe(true)
+      expect(content).toHaveLength(2)
 
-      const textBlock = content[0] as Anthropic.TextBlock;
-      expect(textBlock.type).toBe('text');
-      expect(textBlock.text).toBe('Let me check the weather for you.');
+      const textBlock = content[0] as Anthropic.TextBlock
+      expect(textBlock.type).toBe('text')
+      expect(textBlock.text).toBe('Let me check the weather for you.')
 
-      expect(content[1]?.type).toBe('tool_use');
-      const toolUse = content[1] as Anthropic.ToolUseBlock;
-      expect(toolUse.id).toBe('call_123');
-      expect(toolUse.name).toBe('get_weather');
-      expect(toolUse.input).toEqual({ location: 'San Francisco' });
-    });
+      expect(content[1]?.type).toBe('tool_use')
+      const toolUse = content[1] as Anthropic.ToolUseBlock
+      expect(toolUse.id).toBe('call_123')
+      expect(toolUse.name).toBe('get_weather')
+      expect(toolUse.input).toEqual({ location: 'San Francisco' })
+    })
 
     test('should transform function message', () => {
       const messages: Message[] = [
@@ -114,23 +114,23 @@ describe('message-transformer', () => {
           name: 'get_weather',
           content: 'Temperature: 72°F, Conditions: Sunny',
         } as FunctionMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.role).toBe('user');
+      expect(result).toHaveLength(1)
+      expect(result[0]?.role).toBe('user')
 
-      const content = result[0]?.content as Anthropic.ToolResultBlockParam[];
-      expect(Array.isArray(content)).toBe(true);
-      expect(content).toHaveLength(1);
+      const content = result[0]?.content as Anthropic.ToolResultBlockParam[]
+      expect(Array.isArray(content)).toBe(true)
+      expect(content).toHaveLength(1)
 
       // Check structure without checking the exact tool_use_id (it's generated)
-      expect(content[0]?.type).toBe('tool_result');
-      expect(content[0]?.tool_use_id).toBeDefined();
-      expect(typeof content[0]?.tool_use_id).toBe('string');
-      expect(content[0]?.content).toBe('Temperature: 72°F, Conditions: Sunny');
-    });
+      expect(content[0]?.type).toBe('tool_result')
+      expect(content[0]?.tool_use_id).toBeDefined()
+      expect(typeof content[0]?.tool_use_id).toBe('string')
+      expect(content[0]?.content).toBe('Temperature: 72°F, Conditions: Sunny')
+    })
 
     test('should skip system messages', () => {
       const messages: Message[] = [
@@ -142,14 +142,14 @@ describe('message-transformer', () => {
           role: 'user',
           content: 'Hello!',
         } as UserMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
       // System message should be filtered out
-      expect(result).toHaveLength(1);
-      expect(result[0]?.role).toBe('user');
-    });
+      expect(result).toHaveLength(1)
+      expect(result[0]?.role).toBe('user')
+    })
 
     test('should handle conversation with multiple message types', () => {
       const messages: Message[] = [
@@ -178,16 +178,16 @@ describe('message-transformer', () => {
           role: 'model',
           content: 'The temperature in San Francisco is 72°F.',
         } as ModelMessage,
-      ];
+      ]
 
-      const result = transformToAnthropicMessages(messages);
+      const result = transformToAnthropicMessages(messages)
 
-      expect(result).toHaveLength(4);
-      expect(result[0]?.role).toBe('user');
-      expect(result[1]?.role).toBe('assistant');
-      expect(result[2]?.role).toBe('user'); // Function result as user message
-      expect(result[3]?.role).toBe('assistant');
-    });
+      expect(result).toHaveLength(4)
+      expect(result[0]?.role).toBe('user')
+      expect(result[1]?.role).toBe('assistant')
+      expect(result[2]?.role).toBe('user') // Function result as user message
+      expect(result[3]?.role).toBe('assistant')
+    })
 
     test('should throw error for unsupported message role', () => {
       const messages: Message[] = [
@@ -195,11 +195,11 @@ describe('message-transformer', () => {
           role: 'unknown' as never,
           content: 'Test',
         },
-      ];
+      ]
 
-      expect(() => transformToAnthropicMessages(messages)).toThrow('Unsupported message role: unknown');
-    });
-  });
+      expect(() => transformToAnthropicMessages(messages)).toThrow('Unsupported message role: unknown')
+    })
+  })
 
   describe('extractSystemMessage', () => {
     test('should extract system message from conversation', () => {
@@ -212,12 +212,12 @@ describe('message-transformer', () => {
           role: 'user',
           content: 'Hello!',
         } as UserMessage,
-      ];
+      ]
 
-      const result = extractSystemMessage(messages);
+      const result = extractSystemMessage(messages)
 
-      expect(result).toBe('You are a helpful assistant.');
-    });
+      expect(result).toBe('You are a helpful assistant.')
+    })
 
     test('should return undefined when no system message', () => {
       const messages: Message[] = [
@@ -225,12 +225,12 @@ describe('message-transformer', () => {
           role: 'user',
           content: 'Hello!',
         } as UserMessage,
-      ];
+      ]
 
-      const result = extractSystemMessage(messages);
+      const result = extractSystemMessage(messages)
 
-      expect(result).toBeUndefined();
-    });
+      expect(result).toBeUndefined()
+    })
 
     test('should return first system message when multiple exist', () => {
       const messages: Message[] = [
@@ -242,13 +242,13 @@ describe('message-transformer', () => {
           role: 'system',
           content: 'Second system message',
         },
-      ];
+      ]
 
-      const result = extractSystemMessage(messages);
+      const result = extractSystemMessage(messages)
 
-      expect(result).toBe('First system message');
-    });
-  });
+      expect(result).toBe('First system message')
+    })
+  })
 
   describe('transformFromAnthropicMessage', () => {
     test('should transform text-only response', () => {
@@ -275,14 +275,14 @@ describe('message-transformer', () => {
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
         },
-      };
+      }
 
-      const result = transformFromAnthropicMessage(anthropicResponse);
+      const result = transformFromAnthropicMessage(anthropicResponse)
 
-      expect(result.role).toBe('model');
-      expect(result.content).toBe('Hello! How can I help you today?');
-      expect(result.function_calls).toBeUndefined();
-    });
+      expect(result.role).toBe('model')
+      expect(result.content).toBe('Hello! How can I help you today?')
+      expect(result.function_calls).toBeUndefined()
+    })
 
     test('should transform response with tool use', () => {
       const anthropicResponse: Anthropic.Message = {
@@ -314,21 +314,21 @@ describe('message-transformer', () => {
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
         },
-      };
+      }
 
-      const result = transformFromAnthropicMessage(anthropicResponse);
+      const result = transformFromAnthropicMessage(anthropicResponse)
 
-      expect(result.role).toBe('model');
-      expect(result.content).toBe('Let me check the weather for you.');
-      expect(result.function_calls).toBeDefined();
-      expect(result.function_calls).toHaveLength(1);
+      expect(result.role).toBe('model')
+      expect(result.content).toBe('Let me check the weather for you.')
+      expect(result.function_calls).toBeDefined()
+      expect(result.function_calls).toHaveLength(1)
 
       expect(result.function_calls?.[0]).toEqual({
         id: 'toolu_123',
         name: 'get_weather',
         arguments: { location: 'San Francisco' },
-      });
-    });
+      })
+    })
 
     test('should handle multiple text blocks', () => {
       const anthropicResponse: Anthropic.Message = {
@@ -359,12 +359,12 @@ describe('message-transformer', () => {
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
         },
-      };
+      }
 
-      const result = transformFromAnthropicMessage(anthropicResponse);
+      const result = transformFromAnthropicMessage(anthropicResponse)
 
-      expect(result.content).toBe('First part. Second part.');
-    });
+      expect(result.content).toBe('First part. Second part.')
+    })
 
     test('should handle multiple tool uses', () => {
       const anthropicResponse: Anthropic.Message = {
@@ -397,14 +397,14 @@ describe('message-transformer', () => {
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
         },
-      };
+      }
 
-      const result = transformFromAnthropicMessage(anthropicResponse);
+      const result = transformFromAnthropicMessage(anthropicResponse)
 
-      expect(result.function_calls).toHaveLength(2);
-      expect(result.function_calls?.[0]?.name).toBe('get_weather');
-      expect(result.function_calls?.[1]?.name).toBe('get_time');
-    });
+      expect(result.function_calls).toHaveLength(2)
+      expect(result.function_calls?.[0]?.name).toBe('get_weather')
+      expect(result.function_calls?.[1]?.name).toBe('get_time')
+    })
 
     test('should handle empty content', () => {
       const anthropicResponse: Anthropic.Message = {
@@ -424,269 +424,269 @@ describe('message-transformer', () => {
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
         },
-      };
+      }
 
-      const result = transformFromAnthropicMessage(anthropicResponse);
+      const result = transformFromAnthropicMessage(anthropicResponse)
 
-      expect(result.role).toBe('model');
-      expect(result.content).toBe('');
-      expect(result.function_calls).toBeUndefined();
-    });
-  });
-});
+      expect(result.role).toBe('model')
+      expect(result.content).toBe('')
+      expect(result.function_calls).toBeUndefined()
+    })
+  })
+})
 
 describe('anthropic-model.enum', () => {
   describe('AnthropicModel enum', () => {
     test('should have correct model identifiers', () => {
-      expect(AnthropicModel.CLAUDE_OPUS_4_5 as string).toBe('claude-opus-4-5-20251101');
-      expect(AnthropicModel.CLAUDE_SONNET_4_5 as string).toBe('claude-sonnet-4-5-20250929');
-      expect(AnthropicModel.CLAUDE_OPUS_3_5 as string).toBe('claude-opus-3-5-20240229');
-      expect(AnthropicModel.CLAUDE_SONNET_3_5 as string).toBe('claude-3-5-sonnet-20241022');
-      expect(AnthropicModel.CLAUDE_HAIKU_3_5 as string).toBe('claude-3-5-haiku-20241022');
-      expect(AnthropicModel.CLAUDE_3_OPUS as string).toBe('claude-3-opus-20240229');
-      expect(AnthropicModel.CLAUDE_3_SONNET as string).toBe('claude-3-sonnet-20240229');
-      expect(AnthropicModel.CLAUDE_3_HAIKU as string).toBe('claude-3-haiku-20240307');
-    });
-  });
+      expect(AnthropicModel.CLAUDE_OPUS_4_5 as string).toBe('claude-opus-4-5-20251101')
+      expect(AnthropicModel.CLAUDE_SONNET_4_5 as string).toBe('claude-sonnet-4-5-20250929')
+      expect(AnthropicModel.CLAUDE_OPUS_3_5 as string).toBe('claude-opus-3-5-20240229')
+      expect(AnthropicModel.CLAUDE_SONNET_3_5 as string).toBe('claude-3-5-sonnet-20241022')
+      expect(AnthropicModel.CLAUDE_HAIKU_3_5 as string).toBe('claude-3-5-haiku-20241022')
+      expect(AnthropicModel.CLAUDE_3_OPUS as string).toBe('claude-3-opus-20240229')
+      expect(AnthropicModel.CLAUDE_3_SONNET as string).toBe('claude-3-sonnet-20240229')
+      expect(AnthropicModel.CLAUDE_3_HAIKU as string).toBe('claude-3-haiku-20240307')
+    })
+  })
 
   describe('getModelDisplayName', () => {
     test('should return correct display name for Claude Opus 4.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_4_5);
-      expect(displayName).toBe('Claude Opus 4.5');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_4_5)
+      expect(displayName).toBe('Claude Opus 4.5')
+    })
 
     test('should return correct display name for Claude Sonnet 4.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_5);
-      expect(displayName).toBe('Claude Sonnet 4.5');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_5)
+      expect(displayName).toBe('Claude Sonnet 4.5')
+    })
 
     test('should return correct display name for Claude Opus 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_3_5);
-      expect(displayName).toBe('Claude Opus 3.5');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_3_5)
+      expect(displayName).toBe('Claude Opus 3.5')
+    })
 
     test('should return correct display name for Claude Sonnet 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_3_5);
-      expect(displayName).toBe('Claude Sonnet 3.5');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_3_5)
+      expect(displayName).toBe('Claude Sonnet 3.5')
+    })
 
     test('should return correct display name for Claude Haiku 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_HAIKU_3_5);
-      expect(displayName).toBe('Claude Haiku 3.5');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_HAIKU_3_5)
+      expect(displayName).toBe('Claude Haiku 3.5')
+    })
 
     test('should return correct display name for Claude 3 Opus', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_OPUS);
-      expect(displayName).toBe('Claude 3 Opus');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_OPUS)
+      expect(displayName).toBe('Claude 3 Opus')
+    })
 
     test('should return correct display name for Claude 3 Sonnet', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_SONNET);
-      expect(displayName).toBe('Claude 3 Sonnet');
-    });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_SONNET)
+      expect(displayName).toBe('Claude 3 Sonnet')
+    })
 
     test('should return correct display name for Claude 3 Haiku', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_HAIKU);
-      expect(displayName).toBe('Claude 3 Haiku');
-    });
-  });
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_HAIKU)
+      expect(displayName).toBe('Claude 3 Haiku')
+    })
+  })
 
   describe('isValidModel', () => {
     test('should return true for valid Claude Opus 4.5', () => {
-      expect(isValidModel('claude-opus-4-5-20251101')).toBe(true);
-    });
+      expect(isValidModel('claude-opus-4-5-20251101')).toBe(true)
+    })
 
     test('should return true for valid Claude Sonnet 4.5', () => {
-      expect(isValidModel('claude-sonnet-4-5-20250929')).toBe(true);
-    });
+      expect(isValidModel('claude-sonnet-4-5-20250929')).toBe(true)
+    })
 
     test('should return true for valid Claude Opus 3.5', () => {
-      expect(isValidModel('claude-opus-3-5-20240229')).toBe(true);
-    });
+      expect(isValidModel('claude-opus-3-5-20240229')).toBe(true)
+    })
 
     test('should return true for valid Claude Sonnet 3.5', () => {
-      expect(isValidModel('claude-3-5-sonnet-20241022')).toBe(true);
-    });
+      expect(isValidModel('claude-3-5-sonnet-20241022')).toBe(true)
+    })
 
     test('should return true for valid Claude Haiku 3.5', () => {
-      expect(isValidModel('claude-3-5-haiku-20241022')).toBe(true);
-    });
+      expect(isValidModel('claude-3-5-haiku-20241022')).toBe(true)
+    })
 
     test('should return true for valid Claude 3 Opus', () => {
-      expect(isValidModel('claude-3-opus-20240229')).toBe(true);
-    });
+      expect(isValidModel('claude-3-opus-20240229')).toBe(true)
+    })
 
     test('should return true for valid Claude 3 Sonnet', () => {
-      expect(isValidModel('claude-3-sonnet-20240229')).toBe(true);
-    });
+      expect(isValidModel('claude-3-sonnet-20240229')).toBe(true)
+    })
 
     test('should return true for valid Claude 3 Haiku', () => {
-      expect(isValidModel('claude-3-haiku-20240307')).toBe(true);
-    });
+      expect(isValidModel('claude-3-haiku-20240307')).toBe(true)
+    })
 
     test('should return false for invalid model identifier', () => {
-      expect(isValidModel('invalid-model-id')).toBe(false);
-    });
+      expect(isValidModel('invalid-model-id')).toBe(false)
+    })
 
     test('should return false for empty string', () => {
-      expect(isValidModel('')).toBe(false);
-    });
+      expect(isValidModel('')).toBe(false)
+    })
 
     test('should return false for similar but incorrect identifier', () => {
-      expect(isValidModel('claude-sonnet-4-5')).toBe(false);
-    });
-  });
+      expect(isValidModel('claude-sonnet-4-5')).toBe(false)
+    })
+  })
 
   describe('getAllModels', () => {
     test('should return all model enum values', () => {
-      const allModels = getAllModels();
+      const allModels = getAllModels()
 
-      expect(allModels).toHaveLength(8);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_4_5);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_4_5);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_3_5);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_3_5);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_HAIKU_3_5);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_3_OPUS);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_3_SONNET);
-      expect(allModels).toContain(AnthropicModel.CLAUDE_3_HAIKU);
-    });
+      expect(allModels).toHaveLength(8)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_4_5)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_4_5)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_3_5)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_3_5)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_HAIKU_3_5)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_3_OPUS)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_3_SONNET)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_3_HAIKU)
+    })
 
     test('should return array of valid model identifiers', () => {
-      const allModels = getAllModels();
+      const allModels = getAllModels()
 
       for (const model of allModels) {
-        expect(isValidModel(model)).toBe(true);
+        expect(isValidModel(model)).toBe(true)
       }
-    });
-  });
+    })
+  })
 
   describe('getModelFamily', () => {
     test('should return "opus" for Opus 4.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5);
-      expect(family).toBe('opus');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5)
+      expect(family).toBe('opus')
+    })
 
     test('should return "sonnet" for Sonnet 4.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_4_5);
-      expect(family).toBe('sonnet');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_4_5)
+      expect(family).toBe('sonnet')
+    })
 
     test('should return "opus" for Opus 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_3_5);
-      expect(family).toBe('opus');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_3_5)
+      expect(family).toBe('opus')
+    })
 
     test('should return "sonnet" for Sonnet 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_3_5);
-      expect(family).toBe('sonnet');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_3_5)
+      expect(family).toBe('sonnet')
+    })
 
     test('should return "haiku" for Haiku 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_3_5);
-      expect(family).toBe('haiku');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_3_5)
+      expect(family).toBe('haiku')
+    })
 
     test('should return "opus" for Claude 3 Opus', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_3_OPUS);
-      expect(family).toBe('opus');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_3_OPUS)
+      expect(family).toBe('opus')
+    })
 
     test('should return "sonnet" for Claude 3 Sonnet', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_3_SONNET);
-      expect(family).toBe('sonnet');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_3_SONNET)
+      expect(family).toBe('sonnet')
+    })
 
     test('should return "haiku" for Claude 3 Haiku', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_3_HAIKU);
-      expect(family).toBe('haiku');
-    });
+      const family = getModelFamily(AnthropicModel.CLAUDE_3_HAIKU)
+      expect(family).toBe('haiku')
+    })
 
     test('should handle case insensitivity', () => {
       // Test that the function works with lowercase model strings
-      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5);
-      expect(family).toBe('opus');
-    });
-  });
-});
+      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5)
+      expect(family).toBe('opus')
+    })
+  })
+})
 
 describe('getYouMcpConfig', () => {
-  const originalEnv = process.env.YDC_API_KEY;
+  const originalEnv = process.env.YDC_API_KEY
 
   afterEach(() => {
     // Restore original environment variable
     if (originalEnv) {
-      process.env.YDC_API_KEY = originalEnv;
+      process.env.YDC_API_KEY = originalEnv
     } else {
-      delete process.env.YDC_API_KEY;
+      delete process.env.YDC_API_KEY
     }
-  });
+  })
 
   test('should return valid MCP client configuration', () => {
-    const config = getYouMcpConfig({ apiKey: 'test-key-123' });
+    const config = getYouMcpConfig({ apiKey: 'test-key-123' })
 
-    expect(config).toBeDefined();
-    expect(config.url).toBeDefined();
-    expect(config.url).toBe('https://api.you.com/mcp');
-    expect(config.params).toBeDefined();
-    expect(config.params.headers).toBeDefined();
-  });
+    expect(config).toBeDefined()
+    expect(config.url).toBeDefined()
+    expect(config.url).toBe('https://api.you.com/mcp')
+    expect(config.params).toBeDefined()
+    expect(config.params.headers).toBeDefined()
+  })
 
   test('should include proper authentication header', () => {
-    const testKey = 'test-key-456';
-    const config = getYouMcpConfig({ apiKey: testKey });
+    const testKey = 'test-key-456'
+    const config = getYouMcpConfig({ apiKey: testKey })
 
-    expect(config.params.headers.Authorization).toBe(`Bearer ${testKey}`);
-  });
+    expect(config.params.headers.Authorization).toBe(`Bearer ${testKey}`)
+  })
 
   test('should include User-Agent with package version', () => {
-    const config = getYouMcpConfig({ apiKey: 'test-key' });
+    const config = getYouMcpConfig({ apiKey: 'test-key' })
 
-    expect(config.params.headers['User-Agent']).toBeDefined();
-    expect(config.params.headers['User-Agent']).toMatch(/^TEAMS-MCP-CLIENT\//);
-    expect(config.params.headers['User-Agent']).toContain('You.com');
-    expect(config.params.headers['User-Agent']).toContain('microsoft-teams');
-  });
+    expect(config.params.headers['User-Agent']).toBeDefined()
+    expect(config.params.headers['User-Agent']).toMatch(/^TEAMS-MCP-CLIENT\//)
+    expect(config.params.headers['User-Agent']).toContain('You.com')
+    expect(config.params.headers['User-Agent']).toContain('microsoft-teams')
+  })
 
   test('should use custom API key when provided', () => {
-    const customKey = 'custom-api-key-789';
-    const config = getYouMcpConfig({ apiKey: customKey });
+    const customKey = 'custom-api-key-789'
+    const config = getYouMcpConfig({ apiKey: customKey })
 
-    expect(config.params.headers.Authorization).toBe(`Bearer ${customKey}`);
-  });
+    expect(config.params.headers.Authorization).toBe(`Bearer ${customKey}`)
+  })
 
   test('should fall back to YDC_API_KEY environment variable', () => {
-    const envKey = 'env-api-key-101112';
-    process.env.YDC_API_KEY = envKey;
+    const envKey = 'env-api-key-101112'
+    process.env.YDC_API_KEY = envKey
 
-    const config = getYouMcpConfig();
+    const config = getYouMcpConfig()
 
-    expect(config.params.headers.Authorization).toBe(`Bearer ${envKey}`);
-  });
+    expect(config.params.headers.Authorization).toBe(`Bearer ${envKey}`)
+  })
 
   test('should prefer explicit API key over environment variable', () => {
-    const explicitKey = 'explicit-key';
-    const envKey = 'env-key';
-    process.env.YDC_API_KEY = envKey;
+    const explicitKey = 'explicit-key'
+    const envKey = 'env-key'
+    process.env.YDC_API_KEY = envKey
 
-    const config = getYouMcpConfig({ apiKey: explicitKey });
+    const config = getYouMcpConfig({ apiKey: explicitKey })
 
-    expect(config.params.headers.Authorization).toBe(`Bearer ${explicitKey}`);
-  });
+    expect(config.params.headers.Authorization).toBe(`Bearer ${explicitKey}`)
+  })
 
   test('should throw error when no API key provided and YDC_API_KEY not set', () => {
-    delete process.env.YDC_API_KEY;
+    delete process.env.YDC_API_KEY
 
     expect(() => {
-      getYouMcpConfig();
-    }).toThrow(/You.com API key is required/);
-  });
+      getYouMcpConfig()
+    }).toThrow(/You.com API key is required/)
+  })
 
   test('should throw error with helpful message', () => {
-    delete process.env.YDC_API_KEY;
+    delete process.env.YDC_API_KEY
 
     expect(() => {
-      getYouMcpConfig();
-    }).toThrow(/YDC_API_KEY environment variable/);
-  });
-});
+      getYouMcpConfig()
+    }).toThrow(/YDC_API_KEY environment variable/)
+  })
+})

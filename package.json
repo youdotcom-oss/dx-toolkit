@@ -16,18 +16,9 @@
     "check": "bun run check:workspace-deps && bun run --filter '*' check",
     "check:workspace-deps": "bash scripts/check-workspace-deps.sh",
     "check:write": "bun run --filter '*' check:write",
-    "dev:mcp": "bun --cwd packages/mcp dev",
-    "format": "bun run --filter '*' format",
-    "lint": "bun run --filter '*' lint",
-    "lint:fix": "bun run --filter '*' lint:fix",
     "prepare": "git config core.hooksPath .hooks",
-    "start:mcp": "bun --cwd packages/mcp start",
-    "test": "bun run test:mcp && bun run test:teams-anthropic && bun run test:ai-sdk-plugin",
-    "test:ai-sdk-plugin": "bun --cwd packages/ai-sdk-plugin test",
-    "test:coverage": "bun run --filter '*' test:coverage",
-    "test:mcp": "bun --cwd packages/mcp test",
-    "test:teams-anthropic": "bun --cwd packages/teams-anthropic test",
-    "test:watch": "bun run --filter '*' test:watch"
+    "test": "bun test",
+    "test:coverage": "bun test test:coverage"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -42,13 +33,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.13",
-    "@commitlint/cli": "^20.3.1",
-    "@commitlint/config-conventional": "^20.3.1",
+    "@commitlint/cli": "^20.4.0",
+    "@commitlint/config-conventional": "^20.4.0",
     "@types/bun": "latest",
     "format-package": "^7.0.0",
     "lint-staged": "^16.2.7",
     "typescript": "5.9.3",
     "typescript-language-server": "5.1.3",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   }
 }
