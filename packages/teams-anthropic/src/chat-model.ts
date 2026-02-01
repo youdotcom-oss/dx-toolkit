@@ -1,27 +1,27 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk'
 import {
   type ChatSendOptions,
   type IChatModel,
   LocalMemory,
   type Message,
   type ModelMessage,
-} from '@microsoft/teams.ai';
-import { ConsoleLogger, type ILogger } from '@microsoft/teams.common';
-import type { AnthropicChatModelOptions, AnthropicRequestOptions } from './teams-anthropic.types.ts';
+} from '@microsoft/teams.ai'
+import { ConsoleLogger, type ILogger } from '@microsoft/teams.common'
+import type { AnthropicChatModelOptions, AnthropicRequestOptions } from './teams-anthropic.types.ts'
 import {
   extractSystemMessage,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
-} from './teams-anthropic.utils.ts';
+} from './teams-anthropic.utils.ts'
 
 const isInputModelMessage = (input: Message): input is ModelMessage =>
-  input.role === 'model' && Boolean(input?.function_calls);
+  input.role === 'model' && Boolean(input?.function_calls)
 const isHandler = (
   fn: unknown,
 ): fn is {
-  (): unknown;
-  handler: (args: unknown) => Promise<unknown>;
-} => Boolean(fn && Object.hasOwn(fn, 'handler'));
+  (): unknown
+  handler: (args: unknown) => Promise<unknown>
+} => Boolean(fn && Object.hasOwn(fn, 'handler'))
 
 /**
  * Type guard to check if a function definition has a description property
@@ -30,7 +30,7 @@ const isFunctionWithDescription = (fn: unknown): fn is { description: string } =
   typeof fn === 'object' &&
   fn !== null &&
   'description' in fn &&
-  typeof (fn as { description: unknown }).description === 'string';
+  typeof (fn as { description: unknown }).description === 'string'
 
 /**
  * Type guard to check if a function definition has a parameters property
@@ -38,7 +38,7 @@ const isFunctionWithDescription = (fn: unknown): fn is { description: string } =
 const isFunctionWithParameters = (
   fn: unknown,
 ): fn is { parameters: { properties?: Record<string, unknown>; required?: string[] } } =>
-  typeof fn === 'object' && fn !== null && 'parameters' in fn;
+  typeof fn === 'object' && fn !== null && 'parameters' in fn
 
 /**
  * Anthropic Claude chat model implementation for Microsoft Teams.ai
@@ -72,10 +72,10 @@ const isFunctionWithParameters = (
  * ```
  */
 export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
-  #anthropic: Anthropic;
-  #model: string;
-  #requestOptions?: AnthropicRequestOptions;
-  #log: ILogger;
+  #anthropic: Anthropic
+  #model: string
+  #requestOptions?: AnthropicRequestOptions
+  #log: ILogger
 
   /**
    * Create a new AnthropicChatModel instance
@@ -84,9 +84,9 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
    * @throws Error if API key is not provided and ANTHROPIC_API_KEY env var is not set
    */
   constructor(options: AnthropicChatModelOptions) {
-    this.#model = options.model;
-    this.#requestOptions = options.requestOptions;
-    this.#log = options.logger || new ConsoleLogger('AnthropicChatModel', { level: 'info' });
+    this.#model = options.model
+    this.#requestOptions = options.requestOptions
+    this.#log = options.logger || new ConsoleLogger('AnthropicChatModel', { level: 'info' })
 
     // Initialize Anthropic SDK client
     this.#anthropic = new Anthropic({
@@ -94,9 +94,9 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       baseURL: options.baseUrl,
       defaultHeaders: options.headers,
       timeout: options.timeout || 60_000,
-    });
+    })
 
-    this.#log.log('info', `AnthropicChatModel initialized with model: ${this.#model}`);
+    this.#log.log('info', `AnthropicChatModel initialized with model: ${this.#model}`)
   }
 
   /**
@@ -129,44 +129,44 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
   async send(input: Message, options?: ChatSendOptions<AnthropicRequestOptions>): Promise<ModelMessage> {
     try {
       // Initialize memory if not provided
-      const memory = options?.messages || new LocalMemory();
+      const memory = options?.messages || new LocalMemory()
 
       // Add input message to memory
-      await memory.push(input);
+      await memory.push(input)
 
       // Handle function execution if input is a model message with function calls
       if (isInputModelMessage(input)) {
         if (options?.autoFunctionCalling !== false && input.function_calls && options?.functions) {
-          this.#log.log('debug', `Auto-executing ${input.function_calls.length} function calls`);
+          this.#log.log('debug', `Auto-executing ${input.function_calls.length} function calls`)
 
           // Execute all function calls
           for (const call of input.function_calls) {
-            const func = options.functions[call.name];
+            const func = options.functions[call.name]
 
             if (isHandler(func)) {
               try {
-                const handler = func.handler;
-                const result = await handler(call.arguments);
+                const handler = func.handler
+                const result = await handler(call.arguments)
                 const message: Message = {
                   role: 'function',
                   function_id: call.id || call.name,
                   content: typeof result === 'string' ? result : JSON.stringify(result),
-                };
+                }
 
                 // Recursively call send() with function result
-                return await this.send(message, options);
+                return await this.send(message, options)
               } catch (error: unknown) {
-                const fnErrorMsg = error instanceof Error ? error.message : String(error);
-                this.#log.log('error', `Function execution failed: ${fnErrorMsg}`);
+                const fnErrorMsg = error instanceof Error ? error.message : String(error)
+                this.#log.log('error', `Function execution failed: ${fnErrorMsg}`)
 
                 // Return error as function result
                 const message: Message = {
                   role: 'function',
                   function_id: call.id || call.name,
                   content: `Error: ${fnErrorMsg}`,
-                };
+                }
 
-                return await this.send(message, options);
+                return await this.send(message, options)
               }
             }
           }
@@ -174,17 +174,17 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       }
 
       // Get conversation messages
-      const conversationMessages = await memory.values();
+      const conversationMessages = await memory.values()
 
       // Extract system message (Anthropic requires separate system param)
       const systemMessage = extractSystemMessage(
         options?.system ? [options.system, ...conversationMessages] : conversationMessages,
-      );
+      )
 
       // Transform messages to Anthropic format
-      const anthropicMessages = transformToAnthropicMessages(conversationMessages);
+      const anthropicMessages = transformToAnthropicMessages(conversationMessages)
 
-      this.#log.log('debug', `Sending ${anthropicMessages.length} messages to Anthropic API`);
+      this.#log.log('debug', `Sending ${anthropicMessages.length} messages to Anthropic API`)
 
       // Build API request parameters
       const requestParams: Anthropic.MessageCreateParams = {
@@ -193,25 +193,25 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
         max_tokens: options?.request?.max_tokens || this.#requestOptions?.max_tokens || 4096,
         ...this.#requestOptions,
         ...options?.request,
-      };
+      }
 
       // Add system message if present
       if (systemMessage) {
-        requestParams.system = systemMessage;
+        requestParams.system = systemMessage
       }
 
       // Add tools if functions provided
       if (options?.functions) {
         requestParams.tools = Object.entries(options.functions).map(([name, fn]) => {
           // Extract properties and required from Teams.ai parameters schema
-          let properties: Record<string, unknown> = {};
-          let required: string[] = [];
+          let properties: Record<string, unknown> = {}
+          let required: string[] = []
 
           if (isFunctionWithParameters(fn)) {
             // Teams.ai uses { type: 'object', properties: {...}, required: [...] }
             // Extract the actual properties object
-            properties = fn.parameters.properties || {};
-            required = fn.parameters.required || [];
+            properties = fn.parameters.properties || {}
+            required = fn.parameters.required || []
           }
 
           return {
@@ -222,8 +222,8 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
               properties,
               required,
             },
-          };
-        });
+          }
+        })
       }
 
       // Check if streaming is enabled
@@ -232,20 +232,20 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
         const stream = this.#anthropic.messages.stream({
           ...requestParams,
           stream: true,
-        });
+        })
 
-        const textParts: string[] = [];
-        const toolUses: Array<{ id: string; name: string; input: Record<string, unknown> }> = [];
+        const textParts: string[] = []
+        const toolUses: Array<{ id: string; name: string; input: Record<string, unknown> }> = []
 
         for await (const event of stream) {
           if (event.type === 'content_block_delta') {
             if (event.delta.type === 'text_delta') {
-              const delta = event.delta.text;
-              textParts.push(delta);
+              const delta = event.delta.text
+              textParts.push(delta)
 
               // Call onChunk callback
               if (options.onChunk) {
-                await options.onChunk(delta);
+                await options.onChunk(delta)
               }
             }
           } else if (event.type === 'content_block_start') {
@@ -254,7 +254,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
                 id: event.content_block.id,
                 name: event.content_block.name,
                 input: event.content_block.input as Record<string, unknown>,
-              });
+              })
             }
           }
         }
@@ -263,7 +263,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
         const modelMessage: ModelMessage = {
           role: 'model',
           content: textParts.join(''),
-        };
+        }
 
         // Add function calls if tools were used
         if (toolUses.length > 0) {
@@ -271,46 +271,46 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
             id: tool.id,
             name: tool.name,
             arguments: tool.input,
-          }));
+          }))
         }
 
         // Add response to memory
-        await memory.push(modelMessage);
+        await memory.push(modelMessage)
 
         // If function calls present and auto-execution enabled, execute them
         if (modelMessage.function_calls && options.autoFunctionCalling !== false && options.functions) {
-          return await this.send(modelMessage, options);
+          return await this.send(modelMessage, options)
         }
 
-        return modelMessage;
+        return modelMessage
       }
 
       // Non-streaming mode
-      const response = await this.#anthropic.messages.create(requestParams);
+      const response = await this.#anthropic.messages.create(requestParams)
 
-      this.#log.log('debug', `Received response from Anthropic API: ${response.id}`);
+      this.#log.log('debug', `Received response from Anthropic API: ${response.id}`)
 
       // Transform response to ModelMessage
-      const modelMessage = transformFromAnthropicMessage(response);
+      const modelMessage = transformFromAnthropicMessage(response)
 
       // Add response to memory
-      await memory.push(modelMessage);
+      await memory.push(modelMessage)
 
       // If function calls present and auto-execution enabled, execute them
       if (modelMessage.function_calls && options?.autoFunctionCalling !== false && options?.functions) {
-        return await this.send(modelMessage, options);
+        return await this.send(modelMessage, options)
       }
 
-      return modelMessage;
+      return modelMessage
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      this.#log.log('error', `AnthropicChatModel.send failed: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      this.#log.log('error', `AnthropicChatModel.send failed: ${errorMessage}`)
 
       // Return error as ModelMessage
       return {
         role: 'model',
         content: `Error: ${errorMessage}`,
-      };
+      }
     }
   }
 }

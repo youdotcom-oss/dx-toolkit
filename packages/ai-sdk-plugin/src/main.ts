@@ -4,22 +4,24 @@ import {
   ExpressAgentInputSchema,
   fetchContents,
   fetchSearchResults,
+  type GetUserAgent,
   SearchQuerySchema,
-} from '@youdotcom-oss/mcp';
-import { tool } from 'ai';
-import packageJson from '../package.json' with { type: 'json' };
+} from '@youdotcom-oss/api'
+import { tool } from 'ai'
+import packageJson from '../package.json' with { type: 'json' }
 
 /**
  * Configuration for You.com AI SDK tools
  */
 export type YouToolsConfig = {
-  apiKey?: string;
-};
+  apiKey?: string
+}
 
 /**
  * Creates a User-Agent string for API requests
  */
-const getUserAgent = () => `AI-SDK-Plugin//${packageJson.version} (You.com; ai-sdk-plugin)`;
+const getUserAgent: GetUserAgent = () =>
+  `AI-SDK-Plugin/${packageJson.version} (You.com;${process.env.NEXT_PUBLIC_SITE_URL || ''})`
 
 /**
  * You.com web search tool for Vercel AI SDK
@@ -43,7 +45,7 @@ const getUserAgent = () => `AI-SDK-Plugin//${packageJson.version} (You.com; ai-s
  * ```
  */
 export const youSearch = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return tool({
     description:
@@ -51,20 +53,20 @@ export const youSearch = (config: YouToolsConfig = {}) => {
     inputSchema: SearchQuerySchema,
     execute: async (params) => {
       if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.');
+        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
       }
 
       const response = await fetchSearchResults({
         searchQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
-      });
+      })
 
       // Return raw API response for maximum flexibility
-      return response;
+      return response
     },
-  });
-};
+  })
+}
 
 /**
  * You.com AI agent tool for Vercel AI SDK
@@ -90,7 +92,7 @@ export const youSearch = (config: YouToolsConfig = {}) => {
  * ```
  */
 export const youExpress = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return tool({
     description:
@@ -98,20 +100,20 @@ export const youExpress = (config: YouToolsConfig = {}) => {
     inputSchema: ExpressAgentInputSchema,
     execute: async (params) => {
       if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.');
+        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
       }
 
       const response = await callExpressAgent({
         agentInput: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
-      });
+      })
 
       // Return raw API response for maximum flexibility
-      return response;
+      return response
     },
-  });
-};
+  })
+}
 
 /**
  * You.com content extraction tool for Vercel AI SDK
@@ -137,7 +139,7 @@ export const youExpress = (config: YouToolsConfig = {}) => {
  * ```
  */
 export const youContents = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY;
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return tool({
     description:
@@ -145,17 +147,17 @@ export const youContents = (config: YouToolsConfig = {}) => {
     inputSchema: ContentsQuerySchema,
     execute: async (params) => {
       if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.');
+        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
       }
 
       const response = await fetchContents({
         contentsQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
-      });
+      })
 
       // Return raw API response for maximum flexibility
-      return response;
+      return response
     },
-  });
-};
+  })
+}

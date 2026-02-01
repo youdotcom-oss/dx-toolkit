@@ -1,91 +1,13 @@
-import { SEARCH_API_URL } from '../shared/api-constants.ts';
-import { checkResponseForErrors } from '../shared/check-response-for-errors.ts';
-import { formatSearchResultsText } from '../shared/format-search-results-text.ts';
-import { type NewsResult, type SearchQuery, type SearchResponse, SearchResponseSchema } from './search.schemas.ts';
-
-export const fetchSearchResults = async ({
-  YDC_API_KEY = process.env.YDC_API_KEY,
-  searchQuery: { query, site, fileType, language, exactTerms, excludeTerms, ...rest },
-  getUserAgent,
-}: {
-  searchQuery: SearchQuery;
-  YDC_API_KEY?: string;
-  getUserAgent: () => string;
-}) => {
-  const url = new URL(SEARCH_API_URL);
-
-  const searchParams = new URLSearchParams();
-
-  // Build Query Param
-  const searchQuery = [query];
-  site && searchQuery.push(`site:${site}`);
-  fileType && searchQuery.push(`filetype:${fileType}`);
-  language && searchQuery.push(`lang:${language}`);
-  if (exactTerms && excludeTerms) {
-    throw new Error('Cannot specify both exactTerms and excludeTerms - please use only one');
-  }
-  exactTerms &&
-    searchQuery.push(
-      exactTerms
-        .split('|')
-        .map((term) => `+${term}`)
-        .join(' AND '),
-    );
-  excludeTerms &&
-    searchQuery.push(
-      excludeTerms
-        .split('|')
-        .map((term) => `-${term}`)
-        .join(' AND '),
-    );
-  searchParams.append('query', searchQuery.join(' '));
-
-  // Append additional advanced Params
-  for (const [name, value] of Object.entries(rest)) {
-    if (value) searchParams.append(name, `${value}`);
-  }
-
-  url.search = searchParams.toString();
-
-  const options = {
-    method: 'GET',
-    headers: new Headers({
-      'X-API-Key': YDC_API_KEY || '',
-      'User-Agent': getUserAgent(),
-    }),
-  };
-
-  const response = await fetch(url, options);
-
-  if (!response.ok) {
-    const errorCode = response.status;
-
-    if (errorCode === 429) {
-      throw new Error('Rate limited by You.com API. Please try again later.');
-    } else if (errorCode === 403) {
-      throw new Error('Forbidden. Please check your You.com API key.');
-    }
-
-    throw new Error(`Failed to perform search. Error code: ${errorCode}`);
-  }
-
-  const results = await response.json();
-
-  // Check for error field in 200 responses (e.g., API limit errors)
-  checkResponseForErrors(results);
-
-  const parsedResults = SearchResponseSchema.parse(results);
-
-  return parsedResults;
-};
+import type { NewsResult, SearchResponse } from '@youdotcom-oss/api'
+import { formatSearchResultsText } from '../shared/format-search-results-text.ts'
 
 export const formatSearchResults = (response: SearchResponse) => {
-  let formattedResults = '';
+  let formattedResults = ''
 
   // Format web results using shared utility
   if (response.results.web?.length) {
-    const webResults = formatSearchResultsText(response.results.web);
-    formattedResults += `WEB RESULTS:\n\n${webResults}`;
+    const webResults = formatSearchResultsText(response.results.web)
+    formattedResults += `WEB RESULTS:\n\n${webResults}`
   }
 
   // Format news results
@@ -95,29 +17,29 @@ export const formatSearchResults = (response: SearchResponse) => {
         (article: NewsResult) =>
           `Title: ${article.title}\nURL: ${article.url}\nDescription: ${article.description}\nPublished: ${article.page_age}`,
       )
-      .join('\n\n---\n\n');
+      .join('\n\n---\n\n')
 
     if (formattedResults) {
-      formattedResults += `\n\n${'='.repeat(50)}\n\n`;
+      formattedResults += `\n\n${'='.repeat(50)}\n\n`
     }
-    formattedResults += `NEWS RESULTS:\n\n${newsResults}`;
+    formattedResults += `NEWS RESULTS:\n\n${newsResults}`
   }
 
   // Extract fields for structuredContent
   const structuredResults: {
-    web?: Array<{ url: string; title: string; page_age?: string }>;
-    news?: Array<{ url: string; title: string; page_age: string }>;
-  } = {};
+    web?: Array<{ url: string; title: string; page_age?: string }>
+    news?: Array<{ url: string; title: string; page_age: string }>
+  } = {}
 
   if (response.results.web?.length) {
     structuredResults.web = response.results.web.map((result) => {
       const item: { url: string; title: string; page_age?: string } = {
         url: result.url,
         title: result.title,
-      };
-      if (result.page_age) item.page_age = result.page_age;
-      return item;
-    });
+      }
+      if (result.page_age) item.page_age = result.page_age
+      return item
+    })
   }
 
   if (response.results.news?.length) {
@@ -125,7 +47,7 @@ export const formatSearchResults = (response: SearchResponse) => {
       url: article.url,
       title: article.title,
       page_age: article.page_age,
-    }));
+    }))
   }
 
   return {
@@ -144,5 +66,5 @@ export const formatSearchResults = (response: SearchResponse) => {
       results: Object.keys(structuredResults).length > 0 ? structuredResults : undefined,
     },
     fullResponse: response,
-  };
-};
+  }
+}

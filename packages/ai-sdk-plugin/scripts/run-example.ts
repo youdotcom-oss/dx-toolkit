@@ -1,4 +1,4 @@
-import { $ } from 'bun';
+import { $ } from 'bun'
 
 const examples = {
   search: 'examples/basic-search.ts',
@@ -6,33 +6,33 @@ const examples = {
   extract: 'examples/content-extraction.ts',
   stream: 'examples/streaming-text.ts',
   error: 'examples/error-handling.ts',
-} as const;
+} as const
 
-const showUsage = () => {};
+const showUsage = () => {}
 
 const main = async () => {
-  const exampleName = process.argv[2] || 'search';
+  const exampleName = process.argv[2] || 'search'
 
   if (exampleName === 'help' || exampleName === '--help' || exampleName === '-h') {
-    showUsage();
-    process.exit(0);
+    showUsage()
+    process.exit(0)
   }
 
   if (!(exampleName in examples)) {
-    showUsage();
-    process.exit(1);
+    showUsage()
+    process.exit(1)
   }
 
-  const examplePath = examples[exampleName as keyof typeof examples];
-  const fullPath = Bun.resolveSync(`../${examplePath}`, import.meta.dir);
+  const examplePath = examples[exampleName as keyof typeof examples]
+  const fullPath = Bun.resolveSync(`../${examplePath}`, import.meta.dir)
 
   try {
-    await $`bun ${fullPath}`;
+    await $`bun ${fullPath}`
   } catch (error) {
     if (error instanceof Error) {
     }
-    process.exit(1);
+    process.exit(1)
   }
-};
+}
 
-main();
+main()

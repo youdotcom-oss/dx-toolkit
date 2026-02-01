@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod'
 
 export const ExpressAgentInputSchema = z.object({
   input: z.string().min(1, 'Input is required').describe('Query or prompt'),
@@ -10,9 +10,9 @@ export const ExpressAgentInputSchema = z.object({
     )
     .optional()
     .describe('Tools (web search only)'),
-});
+})
 
-export type ExpressAgentInput = z.infer<typeof ExpressAgentInputSchema>;
+export type ExpressAgentInput = z.infer<typeof ExpressAgentInputSchema>
 
 // API Response Schema - Validates the full response from You.com API
 
@@ -26,7 +26,7 @@ const ApiSearchResultItemSchema = z.object({
   snippet: z.string(),
   thumbnail_url: z.string().optional(), // API-only, not transformed to MCP output
   provider: z.any().optional(), // API-only, not transformed to MCP output
-});
+})
 
 // Union of possible output item types from API
 const ExpressAgentApiOutputItemSchema = z.union([
@@ -40,7 +40,7 @@ const ExpressAgentApiOutputItemSchema = z.union([
     type: z.literal('message.answer'),
     text: z.string(),
   }),
-]);
+])
 
 export const ExpressAgentApiResponseSchema = z
   .object({
@@ -49,9 +49,9 @@ export const ExpressAgentApiResponseSchema = z
     mode: z.string().optional().describe('Agent mode'),
     input: z.array(z.any()).optional().describe('Input messages'),
   })
-  .passthrough();
+  .passthrough()
 
-export type ExpressAgentApiResponse = z.infer<typeof ExpressAgentApiResponseSchema>;
+export type ExpressAgentApiResponse = z.infer<typeof ExpressAgentApiResponseSchema>
 
 // MCP Output Schema - Defines what we return to the MCP client (answer + optional search results, token efficient)
 
@@ -60,7 +60,7 @@ const McpSearchResultItemSchema = z.object({
   url: z.string().describe('URL'),
   title: z.string().describe('Title'),
   snippet: z.string().describe('Snippet'),
-});
+})
 
 // MCP response structure: answer (always) + results (optional when web_search used)
 const ExpressAgentMcpResponseSchema = z.object({
@@ -72,28 +72,6 @@ const ExpressAgentMcpResponseSchema = z.object({
     .optional()
     .describe('Search results'),
   agent: z.string().optional().describe('Agent ID'),
-});
+})
 
-export type ExpressAgentMcpResponse = z.infer<typeof ExpressAgentMcpResponseSchema>;
-
-// Minimal schema for structuredContent (reduces payload duplication)
-export const ExpressStructuredContentSchema = z.object({
-  answer: z.string().describe('AI answer'),
-  hasResults: z.boolean().describe('Has web results'),
-  resultCount: z.number().describe('Result count'),
-  agent: z.string().optional().describe('Agent ID'),
-  results: z
-    .object({
-      web: z
-        .array(
-          z.object({
-            url: z.string().describe('URL'),
-            title: z.string().describe('Title'),
-          }),
-        )
-        .optional()
-        .describe('Web results'),
-    })
-    .optional()
-    .describe('Search results'),
-});
+export type ExpressAgentMcpResponse = z.infer<typeof ExpressAgentMcpResponseSchema>

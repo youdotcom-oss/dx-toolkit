@@ -46,14 +46,11 @@
     "build:bundle": "bun build src/main.ts --outdir dist --target node --external @anthropic-ai/sdk --external @microsoft/teams.ai --external @microsoft/teams.common",
     "build:types": "tsc --project tsconfig.build.json --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
-    "check:biome": "biome check .",
+    "check:biome": "biome check",
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
-    "check:write": "bun run lint:fix && bun run format && bun run format:package",
-    "format": "biome format --write .",
+    "check:write": "biome check --write && bun run format:package",
     "format:package": "format-package --write",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
@@ -61,7 +58,7 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2"
+    "@anthropic-ai/sdk": "^0.72.1"
   },
   "peerDependencies": {
     "@microsoft/teams.ai": "^2.0.5",

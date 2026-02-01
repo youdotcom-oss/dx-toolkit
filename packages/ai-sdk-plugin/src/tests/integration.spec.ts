@@ -1,7 +1,7 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
-import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText, stepCountIs, streamText } from 'ai';
-import { youContents, youExpress, youSearch } from '../main.ts';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { createAnthropic } from '@ai-sdk/anthropic'
+import { generateText, stepCountIs, streamText } from 'ai'
+import { youContents, youExpress, youSearch } from '../main.ts'
 
 /**
  * Integration tests for AI SDK Plugin
@@ -25,10 +25,10 @@ import { youContents, youExpress, youSearch } from '../main.ts';
  */
 const getExecuteResult = <T>(result: T | AsyncIterable<T> | undefined): T => {
   if (!result || typeof result === 'symbol' || Symbol.asyncIterator in Object(result)) {
-    throw new Error('Invalid result type');
+    throw new Error('Invalid result type')
   }
-  return result as T;
-};
+  return result as T
+}
 
 /**
  * Validates that a string field contains real, non-trivial content
@@ -37,148 +37,159 @@ const getExecuteResult = <T>(result: T | AsyncIterable<T> | undefined): T => {
  * @param fieldName - Field name for error messages (default: 'field')
  */
 const expectRealString = (value: unknown, minLength = 1, fieldName = 'field') => {
-  expect(value, `${fieldName} should be defined`).toBeDefined();
-  expect(typeof value, `${fieldName} should be a string`).toBe('string');
-  expect((value as string).length, `${fieldName} should have content`).toBeGreaterThan(minLength);
-  expect((value as string).trim(), `${fieldName} should not be whitespace only`).not.toBe('');
-};
+  expect(value, `${fieldName} should be defined`).toBeDefined()
+  expect(typeof value, `${fieldName} should be a string`).toBe('string')
+  expect((value as string).length, `${fieldName} should have content`).toBeGreaterThan(minLength)
+  expect((value as string).trim(), `${fieldName} should not be whitespace only`).not.toBe('')
+}
 
 describe('AI SDK Plugin Integration Tests', () => {
-  const apiKey = process.env.YDC_API_KEY;
+  const apiKey = process.env.YDC_API_KEY
+  let originalSiteUrl: string | undefined
+
   beforeAll(() => {
     if (!apiKey) {
-      throw new Error('YDC_API_KEY environment variable is required for integration tests');
+      throw new Error('YDC_API_KEY environment variable is required for integration tests')
     }
     if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests');
+      throw new Error('ANTHROPIC_API_KEY environment variable is required for integration tests')
     }
-  });
+
+    // Set test environment variable
+    originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'TEST'
+  })
+
+  afterAll(() => {
+    // Restore original value
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl
+  })
 
   describe('Smoke Tests', () => {
     test(
       'youSearch - basic wrapper execution',
       async () => {
-        const searchTool = youSearch({ apiKey });
+        const searchTool = youSearch({ apiKey })
         const executeResult = await searchTool.execute?.(
           {
             query: 'TypeScript best practices',
             count: 3,
           },
           { toolCallId: 'test', messages: [] },
-        );
+        )
 
         // Validate wrapper returns raw API response
-        const result = getExecuteResult(executeResult) as any;
-        expect(result.results).toBeDefined();
-        expect(result.results.web).toBeDefined();
-        expect(Array.isArray(result.results.web)).toBe(true);
-        expect(result.results.web.length).toBeGreaterThan(0);
+        const result = getExecuteResult(executeResult) as any
+        expect(result.results).toBeDefined()
+        expect(result.results.web).toBeDefined()
+        expect(Array.isArray(result.results.web)).toBe(true)
+        expect(result.results.web.length).toBeGreaterThan(0)
 
-        const firstResult = result.results.web[0];
-        expect(firstResult).toBeDefined();
+        const firstResult = result.results.web[0]
+        expect(firstResult).toBeDefined()
 
         // Validate URL is real and well-formed
-        expectRealString(firstResult.url, 10, 'url');
-        expect(firstResult.url).toMatch(/^https?:\/\/.+/);
+        expectRealString(firstResult.url, 10, 'url')
+        expect(firstResult.url).toMatch(/^https?:\/\/.+/)
 
         // Validate title has meaningful content
-        expectRealString(firstResult.title, 5, 'title');
+        expectRealString(firstResult.title, 5, 'title')
 
         // Validate description has meaningful content
-        expectRealString(firstResult.description, 20, 'description');
+        expectRealString(firstResult.description, 20, 'description')
 
         // Verify content relevance to query
-        const combinedText = `${firstResult.title} ${firstResult.description}`.toLowerCase();
-        expect(combinedText).toMatch(/typescript|javascript|js|best practice|programming|code/);
+        const combinedText = `${firstResult.title} ${firstResult.description}`.toLowerCase()
+        expect(combinedText).toMatch(/typescript|javascript|js|best practice|programming|code/)
       },
       { timeout: 30_000, retry: 2 },
-    );
+    )
 
     test(
       'youExpress - basic wrapper execution',
       async () => {
-        const expressTool = youExpress({ apiKey });
+        const expressTool = youExpress({ apiKey })
         const executeResult = await expressTool.execute?.(
           {
             input: 'What are the key benefits of using TypeScript?',
           },
           { toolCallId: 'test', messages: [] },
-        );
+        )
 
         // Validate wrapper returns raw API response
-        const result = getExecuteResult(executeResult);
+        const result = getExecuteResult(executeResult)
 
         // Validate answer has meaningful content
-        expectRealString(result.answer, 50, 'answer');
+        expectRealString(result.answer, 50, 'answer')
 
         // Verify content relevance to query
-        const answerLower = result.answer.toLowerCase();
-        expect(answerLower).toContain('typescript');
+        const answerLower = result.answer.toLowerCase()
+        expect(answerLower).toContain('typescript')
 
         // Verify answer contains actual information (not just echoing the question)
-        expect(answerLower).toMatch(/type|static|safety|error|compile|benefit/);
+        expect(answerLower).toMatch(/type|static|safety|error|compile|benefit/)
       },
       { timeout: 60_000, retry: 2 },
-    );
+    )
 
     test(
       'youContents - basic wrapper execution',
       async () => {
-        const contentsTool = youContents({ apiKey });
+        const contentsTool = youContents({ apiKey })
         const executeResult = await contentsTool.execute?.(
           {
             urls: ['https://documentation.you.com/developer-resources/mcp-server'],
             format: 'markdown',
           },
           { toolCallId: 'test', messages: [] },
-        );
+        )
 
         // Validate wrapper returns raw API response
-        const result = getExecuteResult(executeResult) as any;
-        expect(Array.isArray(result)).toBe(true);
-        expect(result.length).toBeGreaterThan(0);
+        const result = getExecuteResult(executeResult) as any
+        expect(Array.isArray(result)).toBe(true)
+        expect(result.length).toBeGreaterThan(0)
 
-        const firstItem = result[0];
-        expect(firstItem).toBeDefined();
+        const firstItem = result[0]
+        expect(firstItem).toBeDefined()
 
         // Validate URL matches request
-        expect(firstItem.url).toBe('https://documentation.you.com/developer-resources/mcp-server');
+        expect(firstItem.url).toBe('https://documentation.you.com/developer-resources/mcp-server')
 
         // Validate markdown has substantial content
-        expectRealString(firstItem.markdown, 100, 'markdown');
+        expectRealString(firstItem.markdown, 100, 'markdown')
 
         // Verify content structure (real markdown content)
-        expect(firstItem.markdown).toMatch(/[a-zA-Z]{3,}/); // Contains actual words
-        expect(firstItem.markdown.split('\n').length).toBeGreaterThan(5); // Multiple lines
+        expect(firstItem.markdown).toMatch(/[a-zA-Z]{3,}/) // Contains actual words
+        expect(firstItem.markdown.split('\n').length).toBeGreaterThan(5) // Multiple lines
 
         // Verify content relevance to known MCP server documentation
-        const markdownLower = firstItem.markdown.toLowerCase();
-        expect(markdownLower).toMatch(/mcp|model context protocol|server|tool/);
+        const markdownLower = firstItem.markdown.toLowerCase()
+        expect(markdownLower).toMatch(/mcp|model context protocol|server|tool/)
       },
       { timeout: 30_000, retry: 2 },
-    );
-  });
+    )
+  })
 
   describe('Error Handling', () => {
     test('missing API key throws error during execution', async () => {
-      const searchTool = youSearch({ apiKey: '' });
+      const searchTool = youSearch({ apiKey: '' })
 
       await expect(async () => {
-        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] });
-      }).toThrow(/YDC_API_KEY is required/);
-    });
+        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] })
+      }).toThrow(/YDC_API_KEY is required/)
+    })
 
     test('invalid API key format is handled with clear error', async () => {
-      const searchTool = youSearch({ apiKey: 'invalid-key-format' });
+      const searchTool = youSearch({ apiKey: 'invalid-key-format' })
 
       await expect(async () => {
-        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] });
-      }).toThrow();
-    });
-  });
+        await searchTool.execute?.({ query: 'test' }, { toolCallId: 'test', messages: [] })
+      }).toThrow()
+    })
+  })
 
   describe('AI SDK Integration', () => {
-    const anthropic = createAnthropic();
+    const anthropic = createAnthropic()
 
     test(
       'single tool with generateText',
@@ -189,48 +200,48 @@ describe('AI SDK Plugin Integration Tests', () => {
             search: youSearch({ apiKey }),
           },
           prompt: 'Search for the latest developments in AI agents',
-        });
+        })
 
         // Validate tool execution
-        expect(result.toolCalls).toBeDefined();
-        expect(result.toolCalls.length).toBeGreaterThan(0);
-        expect(result.toolCalls[0]?.toolName).toBe('search');
+        expect(result.toolCalls).toBeDefined()
+        expect(result.toolCalls.length).toBeGreaterThan(0)
+        expect(result.toolCalls[0]?.toolName).toBe('search')
 
         // Validate tool results contain raw API response
-        expect(result.toolResults).toBeDefined();
-        expect(result.toolResults.length).toBeGreaterThan(0);
+        expect(result.toolResults).toBeDefined()
+        expect(result.toolResults.length).toBeGreaterThan(0)
 
         // Extract tool result from steps
-        const toolResult = result.steps?.[0]?.content?.find((c: any) => c.type === 'tool-result') as any;
-        expect(toolResult).toBeDefined();
-        expect(toolResult?.output).toBeDefined();
+        const toolResult = result.steps?.[0]?.content?.find((c: any) => c.type === 'tool-result') as any
+        expect(toolResult).toBeDefined()
+        expect(toolResult?.output).toBeDefined()
 
         // Validate raw API response structure
-        const output = toolResult?.output as any;
-        expect(output.results).toBeDefined();
-        expect(output.results.web).toBeDefined();
-        expect(Array.isArray(output.results.web)).toBe(true);
-        expect(output.results.web.length).toBeGreaterThan(0);
+        const output = toolResult?.output as any
+        expect(output.results).toBeDefined()
+        expect(output.results.web).toBeDefined()
+        expect(Array.isArray(output.results.web)).toBe(true)
+        expect(output.results.web.length).toBeGreaterThan(0)
 
-        const firstResult = output.results.web[0];
-        expect(firstResult).toBeDefined();
+        const firstResult = output.results.web[0]
+        expect(firstResult).toBeDefined()
 
         // Validate URL is real and well-formed
-        expectRealString(firstResult.url, 10, 'url');
-        expect(firstResult.url).toMatch(/^https?:\/\/.+/);
+        expectRealString(firstResult.url, 10, 'url')
+        expect(firstResult.url).toMatch(/^https?:\/\/.+/)
 
         // Validate title has meaningful content
-        expectRealString(firstResult.title, 10, 'title');
+        expectRealString(firstResult.title, 10, 'title')
 
         // Validate description has meaningful content
-        expectRealString(firstResult.description, 30, 'description');
+        expectRealString(firstResult.description, 30, 'description')
 
         // Verify content relevance to query
-        const content = `${firstResult.title} ${firstResult.description}`.toLowerCase();
-        expect(content).toMatch(/ai|agent|artificial intelligence|machine learning|llm|model/);
+        const content = `${firstResult.title} ${firstResult.description}`.toLowerCase()
+        expect(content).toMatch(/ai|agent|artificial intelligence|machine learning|llm|model/)
       },
       { timeout: 120_000, retry: 2 },
-    );
+    )
 
     test(
       'multiple tools with generateText',
@@ -243,34 +254,34 @@ describe('AI SDK Plugin Integration Tests', () => {
             agent: youExpress({ apiKey }),
           },
           prompt: 'What is WebAssembly? Then search for real-world examples and extract code samples',
-        });
+        })
 
         // Validate exactly 1 step with multiple tools called in parallel
-        expect(result.steps.length).toBe(1);
+        expect(result.steps.length).toBe(1)
 
-        const firstStep = result.steps[0];
-        expect(firstStep).toBeDefined();
-        expect(firstStep?.content).toBeDefined();
+        const firstStep = result.steps[0]
+        expect(firstStep).toBeDefined()
+        expect(firstStep?.content).toBeDefined()
 
         // Find tool-call objects in content
-        const toolCallContent = firstStep?.content.filter((item: any) => item.type === 'tool-call') ?? [];
-        expect(toolCallContent.length).toBeGreaterThan(1);
+        const toolCallContent = firstStep?.content.filter((item: any) => item.type === 'tool-call') ?? []
+        expect(toolCallContent.length).toBeGreaterThan(1)
 
         // Get unique tool names from content
-        const toolNames = new Set(toolCallContent.map((item: any) => item.toolName));
-        expect(toolNames.size).toBeGreaterThan(1); // Multiple different tools used
+        const toolNames = new Set(toolCallContent.map((item: any) => item.toolName))
+        expect(toolNames.size).toBeGreaterThan(1) // Multiple different tools used
 
         // Validate at least 2 of these 3 tools were called: agent, search, extract
-        const calledTools = ['agent', 'search', 'extract'].filter((tool) => toolNames.has(tool));
-        expect(calledTools.length).toBeGreaterThanOrEqual(2);
+        const calledTools = ['agent', 'search', 'extract'].filter((tool) => toolNames.has(tool))
+        expect(calledTools.length).toBeGreaterThanOrEqual(2)
 
         // Validate the final text response contains WebAssembly information
-        expectRealString(result.text, 50, 'final response text');
-        const responseText = result.text.toLowerCase();
-        expect(responseText).toMatch(/webassembly|wasm/i);
+        expectRealString(result.text, 50, 'final response text')
+        const responseText = result.text.toLowerCase()
+        expect(responseText).toMatch(/webassembly|wasm/i)
       },
       { timeout: 180_000, retry: 2 },
-    );
+    )
 
     test(
       'tools work with streamText',
@@ -282,21 +293,21 @@ describe('AI SDK Plugin Integration Tests', () => {
           },
           stopWhen: stepCountIs(3),
           prompt: 'Search for cookie recipes and then invent a pepermint cookie recipe',
-        });
+        })
 
         // Collect all chunks
-        const chunks: string[] = [];
+        const chunks: string[] = []
         for await (const chunk of textStream) {
-          chunks.push(chunk);
+          chunks.push(chunk)
         }
 
         // Validate streaming produced content
-        expect(chunks.length).toBeGreaterThan(5);
-        const fullText = chunks.join('');
-        expect(fullText.length).toBeGreaterThan(5);
+        expect(chunks.length).toBeGreaterThan(5)
+        const fullText = chunks.join('')
+        expect(fullText.length).toBeGreaterThan(5)
       },
       { timeout: 120_000, retry: 2 },
-    );
+    )
 
     test(
       'tool errors are handled gracefully in AI context',
@@ -308,13 +319,13 @@ describe('AI SDK Plugin Integration Tests', () => {
             search: youSearch({ apiKey: 'invalid-key' }),
           },
           prompt: 'Search for TypeScript',
-        });
+        })
 
         // The AI should still respond, possibly indicating tool failure
-        expect(result.text).toBeDefined();
-        expect(result.toolCalls).toBeDefined();
+        expect(result.text).toBeDefined()
+        expect(result.toolCalls).toBeDefined()
       },
       { timeout: 60_000, retry: 2 },
-    );
-  });
-});
+    )
+  })
+})

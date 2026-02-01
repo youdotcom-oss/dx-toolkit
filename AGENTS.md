@@ -30,6 +30,8 @@ This monorepo uses both rules (`.plaited/rules/`) and skills (`.claude/skills/`)
 **Skills** (`.claude/skills/`) - Package-specific patterns:
 | Skill | Coverage |
 |-------|----------|
+| api-patterns | CLI tool, shared utilities, Zod schemas, foundation for MCP/AI SDK packages |
+| create-package | Package scaffolding workflow (interactive Q&A, templates, validation) |
 | documentation | README/AGENTS.md standards, TSDoc strategy, thin philosophy |
 | mcp-patterns | Zod schemas, error handling, logging, response format |
 | ai-sdk-patterns | Input schemas, API key handling, response format |
@@ -51,41 +53,59 @@ These indicate that detailed information is available in the referenced rule fil
 
 ## Monorepo Structure
 
+```mermaid
+graph TD
+    Root[dx-toolkit/]
+    
+    Root --> Plaited[.plaited/]
+    Root --> Claude[.claude/]
+    Root --> Packages[packages/]
+    Root --> GitHub[.github/]
+    Root --> Scripts[scripts/]
+    Root --> Docs[docs/]
+    Root --> Config[package.json, bun.lock, AGENTS.md]
+    
+    Plaited --> PlaitedRules[rules/ - Universal patterns]
+    Plaited --> PlaitedSkills[skills/ - Development skills]
+    
+    Claude --> ClaudeRules[rules → ../.plaited/rules]
+    Claude --> ClaudeSkills[skills/]
+    ClaudeSkills --> DocSkill[documentation/]
+    ClaudeSkills --> McpSkill[mcp-patterns/]
+    ClaudeSkills --> AiSkill[ai-sdk-patterns/]
+    ClaudeSkills --> TeamsSkill[teams-anthropic-patterns/]
+    ClaudeSkills --> SymSkill[code-documentation@plaited_... → symlink]
+    
+    Packages --> Mcp[mcp/ - MCP Server]
+    Packages --> Api[api/ - API Client]
+    Packages --> AiSdk[ai-sdk-plugin/]
+    Packages --> TeamsAnthropic[teams-anthropic/]
+    
+    Mcp --> McpSrc[src/, bin/, docs/, tests/]
+    Mcp --> McpDocs[README.md, package.json]
+    
+    GitHub --> Workflows[workflows/]
+    Workflows --> PubPkg[_publish-package.yml]
+    Workflows --> CI[ci.yml]
+    Workflows --> Review[code-review.yml]
+    Workflows --> PubMcp[publish-mcp.yml]
+    
+    Scripts --> PerfMon[Performance monitoring]
+    Docs --> PerfDoc[PERFORMANCE.md]
+    
+    style Root fill:#e1f5ff
+    style Plaited fill:#fff3cd
+    style Claude fill:#fff3cd
+    style Packages fill:#d4edda
+    style GitHub fill:#f8d7da
 ```
-dx-toolkit/
-├── .plaited/
-│   ├── rules/             # Universal patterns (code, git, testing, workflows)
-│   └── skills/            # Development skills (code-documentation, optimize-agents-md, etc.)
-├── .claude/
-│   ├── rules -> ../.plaited/rules   # Symlink to universal patterns
-│   └── skills/            # Package-specific patterns + development skills (symlinked)
-│       ├── documentation/
-│       ├── mcp-patterns/
-│       ├── ai-sdk-patterns/
-│       ├── teams-anthropic-patterns/
-│       └── code-documentation@plaited_development-skills -> ../../.plaited/skills/...
-├── packages/
-│   └── mcp/               # MCP Server package (@youdotcom-oss/mcp)
-│       ├── src/           # Source code
-│       ├── bin/           # Compiled output
-│       ├── docs/          # API documentation
-│       ├── tests/         # Tests
-│       ├── README.md      # User documentation
-│       └── package.json   # Package config
-├── .github/
-│   └── workflows/         # CI/CD workflows
-│       ├── _publish-package.yml        # Reusable workflow for publishing packages
-│       ├── ci.yml                      # Run lint test to validate libraries
-│       ├── code-review.yml             # Agentic code for internal contributors
-│       ├── external-code-review.yml    # Agentic code for external contributors
-│       └── publish-mcp.yml             # Publish mcp server and trigger remote deployment
-├── scripts/               # CI scripts and performance monitoring
-├── docs/
-│   └── PERFORMANCE.md     # Performance monitoring documentation
-├── package.json           # Workspace root config
-├── bun.lock              # Workspace lock file (root only)
-└── AGENTS.md             # This file (monorepo dev guide)
-```
+
+**Key directories:**
+- `.plaited/rules/` - Universal patterns (code, git, testing, workflows)
+- `.claude/skills/` - Package-specific patterns (documentation, mcp-patterns, ai-sdk-patterns, teams-anthropic-patterns)
+- `packages/` - NPM packages (mcp, api, ai-sdk-plugin, teams-anthropic)
+- `.github/workflows/` - CI/CD workflows (_publish-package.yml, ci.yml, code-review.yml)
+- `scripts/` - Performance monitoring and CI scripts
 
 ### Package Naming Convention
 
@@ -168,11 +188,23 @@ cd dx-toolkit
 # Install dependencies (installs for all packages)
 bun install
 
-# Set up API key (for running MCP server)
-echo "export YDC_API_KEY=your-actual-api-key-here" > .env
-
+# Set up API key
+cp .env.example .env
+# Edit .env and add your YDC_API_KEY
 source .env
+
+# Build all packages
+bun run build
+
+# Run tests
+bun test
 ```
+
+**Troubleshooting API key errors:**
+If you get API key errors when running tests:
+1. Verify `.env` file exists with `YDC_API_KEY=your-key`
+2. Run `source .env` to load environment variables into your shell
+3. Try running tests again: `bun test`
 
 **GitHub CLI**: Install `gh` CLI for working with PRs and issues:
 - macOS: `brew install gh`
@@ -202,44 +234,35 @@ bun run start:mcp          # Start MCP server in HTTP mode
 
 ### Package-Specific Commands
 
-All packages in this monorepo support the following standard commands when run from the package directory:
+**From Root** - Two patterns available:
 
 ```bash
-cd packages/<package-name>
-
-bun run dev              # Start package in development mode
-bun start                # Start package in production mode
-bun test                 # Run package tests
-bun run check            # Check package code quality
-bun run check:write      # Auto-fix package issues
-```
-
-**From Root**: You can also run package-specific commands from the repository root:
-
-```bash
-# MCP Server
+# Pattern 1: Root shortcuts (defined in root package.json)
 bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
-# Future packages will follow the same pattern:
-# bun run dev:<package>
-# bun run start:<package>
-# bun run test:<package>
+# Pattern 2: Direct package commands with bun --cwd
+bun --cwd packages/mcp dev      # Start MCP server in dev mode
+bun --cwd packages/mcp start    # Start MCP server in HTTP mode
+bun --cwd packages/mcp test     # Test MCP server
+bun --cwd packages/mcp check    # Run quality checks
+
+# Use bun --cwd for any package:
+bun --cwd packages/api test
+bun --cwd packages/ai-sdk-plugin build
+bun --cwd packages/teams-anthropic check
 ```
 
-**Example - Working with MCP Server**:
+**From Package Directory**:
 
 ```bash
-# From root
-bun run dev:mcp          # Quick start
-
-# Or from package directory for more control
 cd packages/mcp
-bun run dev              # Development mode (STDIO)
-bun start                # Production mode (HTTP on port 4000)
-bun test                 # Run package tests
-bun run check            # Verify code quality
+bun dev                  # Start in development mode
+bun start                # Start in production mode
+bun test                 # Run tests
+bun run check            # Check code quality
+bun run check:write      # Auto-fix issues
 ```
 
 ## Code Style
@@ -599,7 +622,29 @@ bun test                         # Test specific package
 
 ## Package-Specific Documentation
 
-See `.claude/skills/` for package-specific development patterns:
+### api
+
+Core You.com API client with bundled CLI for bash-based AI agents.
+
+**Purpose**: Provides lightweight API client and CLI tools for web search, AI answers, and content extraction. Optimized for bash-based AI agents with livecrawl, instant content extraction, and citation-backed answers.
+
+**Usage**:
+- Programmatic: `import { fetchSearchResults } from '@youdotcom-oss/api'`
+- CLI: `bunx @youdotcom-oss/api search "query" --client Openclaw`
+
+**Key Features**:
+- Livecrawl: Search AND extract content in one API call
+- JSON/text output for bash pipelines (jq, grep, awk)
+- Client tracking via --client flag or YDC_CLIENT env
+- Exit codes for error handling (0=success, 1=API error, 2=invalid args)
+
+**For bash agent integration**: See [openclaw-youdotcom skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/openclaw-youdotcom)
+
+**Development patterns**: No dedicated patterns file - simple API package following core.md rules
+
+---
+
+See `.claude/skills/` for other package-specific development patterns:
 - **mcp-patterns** - MCP server (Zod schemas, error handling, logging, response format, testing)
 - **teams-ai-patterns** - Teams.ai integration (Memory API, function calling, streaming, message transformation)
 - **documentation** - README/AGENTS.md standards (tone, structure, TSDoc strategy, validation)

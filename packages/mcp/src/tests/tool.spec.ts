@@ -1,44 +1,44 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { $ } from 'bun';
-import type { ContentsStructuredContent } from '../contents/contents.schemas.ts';
-import type { SearchStructuredContent } from '../search/search.schemas.ts';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+import { $ } from 'bun'
+import type { ContentsStructuredContent } from '../contents/contents.schemas.ts'
+import type { SearchStructuredContent } from '../search/search.schema.ts'
 
-let client: Client;
+let client: Client
 
 beforeAll(async () => {
-  await $`bun run build`; // 1256
+  await $`bun run build` // 1256
   const transport = new StdioClientTransport({
     command: 'npx',
     args: [Bun.resolveSync('../../bin/stdio', import.meta.dir)],
     env: {
       YDC_API_KEY: process.env.YDC_API_KEY ?? '',
     },
-  });
+  })
 
   client = new Client({
     name: 'test-client',
     version: '0.0.1',
-  });
+  })
 
-  await client.connect(transport);
-});
+  await client.connect(transport)
+})
 
 afterAll(async () => {
-  await client.close();
-});
+  await client.close()
+})
 
 describe('registerSearchTool', () => {
   test('tool is registered and available', async () => {
-    const tools = await client.listTools();
+    const tools = await client.listTools()
 
-    const searchTool = tools.tools.find((t) => t.name === 'you-search');
+    const searchTool = tools.tools.find((t) => t.name === 'you-search')
 
-    expect(searchTool).toBeDefined();
-    expect(searchTool?.title).toBe('Web Search');
-    expect(searchTool?.description).toContain('Web and news search');
-  });
+    expect(searchTool).toBeDefined()
+    expect(searchTool?.title).toBe('Web Search')
+    expect(searchTool?.description).toContain('Web and news search')
+  })
 
   test(
     'performs basic search successfully',
@@ -49,26 +49,26 @@ describe('registerSearchTool', () => {
           query: 'javascript tutorial',
           count: 3,
         },
-      });
-      const content = result.content as { type: string; text: string }[];
-      expect(result).toHaveProperty('content');
-      expect(Array.isArray(content)).toBe(true);
-      expect(content[0]).toHaveProperty('type', 'text');
-      expect(content[0]).toHaveProperty('text');
+      })
+      const content = result.content as { type: string; text: string }[]
+      expect(result).toHaveProperty('content')
+      expect(Array.isArray(content)).toBe(true)
+      expect(content[0]).toHaveProperty('type', 'text')
+      expect(content[0]).toHaveProperty('text')
 
-      const text = content[0]?.text;
-      expect(text).toContain('Search Results for');
-      expect(text).toContain('javascript tutorial');
-      const structuredContent = result.structuredContent as SearchStructuredContent;
+      const text = content[0]?.text
+      expect(text).toContain('Search Results for')
+      expect(text).toContain('javascript tutorial')
+      const structuredContent = result.structuredContent as SearchStructuredContent
       // Should have structured content with minimal format
-      expect(result).toHaveProperty('structuredContent');
-      expect(structuredContent).toHaveProperty('resultCounts');
-      expect(structuredContent.resultCounts).toHaveProperty('web');
-      expect(structuredContent.resultCounts).toHaveProperty('news');
-      expect(structuredContent.resultCounts).toHaveProperty('total');
+      expect(result).toHaveProperty('structuredContent')
+      expect(structuredContent).toHaveProperty('resultCounts')
+      expect(structuredContent.resultCounts).toHaveProperty('web')
+      expect(structuredContent.resultCounts).toHaveProperty('news')
+      expect(structuredContent.resultCounts).toHaveProperty('total')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles search with web results formatting',
@@ -79,31 +79,31 @@ describe('registerSearchTool', () => {
           query: 'react components',
           count: 2,
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      const text = content[0]?.text;
-      expect(text).toContain('WEB RESULTS:');
-      expect(text).toContain('Title:');
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
+      expect(text).toContain('WEB RESULTS:')
+      expect(text).toContain('Title:')
       // URL should be in text content
-      expect(text).toContain('URL:');
-      expect(text).toContain('Description:');
-      expect(text).toContain('Snippets:');
+      expect(text).toContain('URL:')
+      expect(text).toContain('Description:')
+      expect(text).toContain('Snippets:')
 
       // Verify structured data has result counts
-      const structuredContent = result.structuredContent as SearchStructuredContent;
-      expect(structuredContent.resultCounts.web).toBeGreaterThan(0);
-      expect(structuredContent.resultCounts.total).toBeGreaterThan(0);
+      const structuredContent = result.structuredContent as SearchStructuredContent
+      expect(structuredContent.resultCounts.web).toBeGreaterThan(0)
+      expect(structuredContent.resultCounts.total).toBeGreaterThan(0)
 
       // URLs should be in structuredContent.results
-      expect(structuredContent.results).toBeDefined();
-      expect(structuredContent.results?.web).toBeDefined();
-      expect(structuredContent.results?.web?.length).toBeGreaterThan(0);
-      expect(structuredContent.results?.web?.[0]).toHaveProperty('url');
-      expect(structuredContent.results?.web?.[0]).toHaveProperty('title');
+      expect(structuredContent.results).toBeDefined()
+      expect(structuredContent.results?.web).toBeDefined()
+      expect(structuredContent.results?.web?.length).toBeGreaterThan(0)
+      expect(structuredContent.results?.web?.[0]).toHaveProperty('url')
+      expect(structuredContent.results?.web?.[0]).toHaveProperty('title')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles search with news results',
@@ -114,21 +114,21 @@ describe('registerSearchTool', () => {
           query: 'technology news',
           count: 2,
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      const text = content[0]?.text;
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
 
-      const structuredContent = result.structuredContent as SearchStructuredContent;
+      const structuredContent = result.structuredContent as SearchStructuredContent
       // Check if news results are included
       if (structuredContent.resultCounts.news > 0) {
-        expect(text).toContain('NEWS RESULTS:');
-        expect(text).toContain('Published:');
-        expect(structuredContent.resultCounts.news).toBeGreaterThan(0);
+        expect(text).toContain('NEWS RESULTS:')
+        expect(text).toContain('Published:')
+        expect(structuredContent.resultCounts.news).toBeGreaterThan(0)
       }
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles mixed web and news results with proper separation',
@@ -139,23 +139,23 @@ describe('registerSearchTool', () => {
           query: 'artificial intelligence',
           count: 3,
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      const text = content[0]?.text;
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
 
       // Should have web results
-      expect(text).toContain('WEB RESULTS:');
+      expect(text).toContain('WEB RESULTS:')
 
-      const structuredContent = result.structuredContent as SearchStructuredContent;
+      const structuredContent = result.structuredContent as SearchStructuredContent
       // If both web and news results exist, check for separator
       if (structuredContent.resultCounts.news > 0) {
-        expect(text).toContain('NEWS RESULTS:');
-        expect(text).toContain('='.repeat(50));
+        expect(text).toContain('NEWS RESULTS:')
+        expect(text).toContain('='.repeat(50))
       }
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles freshness parameter',
@@ -166,14 +166,14 @@ describe('registerSearchTool', () => {
           query: 'recent news',
           freshness: 'week',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]).toHaveProperty('text');
-      expect(content[0]?.text).toContain('recent news');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]).toHaveProperty('text')
+      expect(content[0]?.text).toContain('recent news')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles country parameter',
@@ -184,14 +184,14 @@ describe('registerSearchTool', () => {
           query: 'local news',
           country: 'US',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]).toHaveProperty('text');
-      expect(content[0]?.text).toContain('local news');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]).toHaveProperty('text')
+      expect(content[0]?.text).toContain('local news')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles safesearch parameter',
@@ -202,14 +202,14 @@ describe('registerSearchTool', () => {
           query: 'educational content',
           safesearch: 'strict',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]).toHaveProperty('text');
-      expect(content[0]?.text).toContain('educational content');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]).toHaveProperty('text')
+      expect(content[0]?.text).toContain('educational content')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles site parameter',
@@ -220,13 +220,13 @@ describe('registerSearchTool', () => {
           query: 'react components',
           site: 'github.com',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('react components');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('react components')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles fileType parameter',
@@ -237,13 +237,13 @@ describe('registerSearchTool', () => {
           query: 'documentation',
           fileType: 'pdf',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('documentation');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('documentation')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles language parameter',
@@ -254,13 +254,13 @@ describe('registerSearchTool', () => {
           query: 'tutorial',
           language: 'es',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('tutorial');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('tutorial')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles exactTerms parameter',
@@ -271,13 +271,13 @@ describe('registerSearchTool', () => {
           query: 'programming',
           exactTerms: 'javascript|typescript',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('programming');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('programming')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles excludeTerms parameter',
@@ -288,13 +288,13 @@ describe('registerSearchTool', () => {
           query: 'tutorial',
           excludeTerms: 'beginner|basic',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('tutorial');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('tutorial')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles multi-word phrases with parentheses in exactTerms',
@@ -305,13 +305,13 @@ describe('registerSearchTool', () => {
           query: 'programming',
           exactTerms: '(machine learning)|typescript',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('programming');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('programming')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles multi-word phrases with parentheses in excludeTerms',
@@ -322,13 +322,13 @@ describe('registerSearchTool', () => {
           query: 'programming',
           excludeTerms: '(social media)|ads',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('programming');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('programming')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles complex search with multiple parameters',
@@ -346,20 +346,20 @@ describe('registerSearchTool', () => {
           fileType: 'md',
           language: 'en',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]).toHaveProperty('text');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]).toHaveProperty('text')
       // Test should pass even if no results (very specific query might have no results)
 
       // Verify results are limited by count if there are results
-      const structuredContent = result.structuredContent as SearchStructuredContent;
+      const structuredContent = result.structuredContent as SearchStructuredContent
       if (structuredContent.resultCounts.web > 0) {
-        expect(structuredContent.resultCounts.web).toBeLessThanOrEqual(5);
+        expect(structuredContent.resultCounts.web).toBeLessThanOrEqual(5)
       }
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles special characters in query',
@@ -369,14 +369,14 @@ describe('registerSearchTool', () => {
         arguments: {
           query: 'C++ programming "hello world"',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]).toHaveProperty('text');
-      expect(content[0]?.text).toContain('C++');
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]).toHaveProperty('text')
+      expect(content[0]?.text).toContain('C++')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles empty search results gracefully',
@@ -386,22 +386,22 @@ describe('registerSearchTool', () => {
         arguments: {
           query: '_',
         },
-      });
+      })
 
-      const content = result.content as { type: string; text: string }[];
+      const content = result.content as { type: string; text: string }[]
 
       // Should still have content even if no results
-      expect(content[0]).toHaveProperty('text');
+      expect(content[0]).toHaveProperty('text')
 
-      const text = content[0]?.text;
-      const structuredContent = result.structuredContent as SearchStructuredContent;
-      expect(structuredContent.resultCounts.web).toBe(0);
-      expect(structuredContent.resultCounts.news).toBe(0);
-      expect(structuredContent.resultCounts.total).toBe(0);
-      expect(text).toContain('No results found');
+      const text = content[0]?.text
+      const structuredContent = result.structuredContent as SearchStructuredContent
+      expect(structuredContent.resultCounts.web).toBe(0)
+      expect(structuredContent.resultCounts.news).toBe(0)
+      expect(structuredContent.resultCounts.total).toBe(0)
+      expect(text).toContain('No results found')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'validates structured response format',
@@ -412,24 +412,24 @@ describe('registerSearchTool', () => {
           query: `what's the latest tech news`,
           count: 2,
         },
-      });
+      })
 
-      const structuredContent = result.structuredContent as SearchStructuredContent;
+      const structuredContent = result.structuredContent as SearchStructuredContent
       // Validate minimal structured content schema
-      expect(structuredContent).toHaveProperty('resultCounts');
+      expect(structuredContent).toHaveProperty('resultCounts')
 
       // Check result counts structure
-      const resultCounts = structuredContent.resultCounts;
-      expect(resultCounts).toHaveProperty('web');
-      expect(resultCounts).toHaveProperty('news');
-      expect(resultCounts).toHaveProperty('total');
-      expect(typeof resultCounts.web).toBe('number');
-      expect(typeof resultCounts.news).toBe('number');
-      expect(typeof resultCounts.total).toBe('number');
-      expect(resultCounts.total).toBe(resultCounts.web + resultCounts.news);
+      const resultCounts = structuredContent.resultCounts
+      expect(resultCounts).toHaveProperty('web')
+      expect(resultCounts).toHaveProperty('news')
+      expect(resultCounts).toHaveProperty('total')
+      expect(typeof resultCounts.web).toBe('number')
+      expect(typeof resultCounts.news).toBe('number')
+      expect(typeof resultCounts.total).toBe('number')
+      expect(resultCounts.total).toBe(resultCounts.web + resultCounts.news)
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'returns error when both exactTerms and excludeTerms are provided',
@@ -441,14 +441,14 @@ describe('registerSearchTool', () => {
           exactTerms: 'javascript',
           excludeTerms: 'beginner',
         },
-      });
+      })
 
-      expect(result.isError).toBe(true);
-      const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('Cannot specify both exactTerms and excludeTerms - please use only one');
+      expect(result.isError).toBe(true)
+      const content = result.content as { type: string; text: string }[]
+      expect(content[0]?.text).toContain('Cannot specify both exactTerms and excludeTerms - please use only one')
     },
     { retry: 2 },
-  );
+  )
 
   test('handles API errors gracefully', async () => {
     try {
@@ -457,26 +457,26 @@ describe('registerSearchTool', () => {
         arguments: {
           query: undefined,
         },
-      });
+      })
     } catch (error) {
       // If it errors, that's also acceptable behavior
-      expect(error).toBeDefined();
+      expect(error).toBeDefined()
     }
-  });
-});
+  })
+})
 
 // NOTE: The following tests require a You.com API key with access to the Contents API
 // Using example.com and Wikipedia URLs that work with the Contents API
 describe('registerContentsTool', () => {
   test('tool is registered and available', async () => {
-    const tools = await client.listTools();
+    const tools = await client.listTools()
 
-    const contentsTool = tools.tools.find((t) => t.name === 'you-contents');
+    const contentsTool = tools.tools.find((t) => t.name === 'you-contents')
 
-    expect(contentsTool).toBeDefined();
-    expect(contentsTool?.title).toBe('Extract Web Page Contents');
-    expect(contentsTool?.description).toContain('Extract page content');
-  });
+    expect(contentsTool).toBeDefined()
+    expect(contentsTool?.title).toBe('Extract Web Page Contents')
+    expect(contentsTool?.description).toContain('Extract page content')
+  })
 
   test(
     'extracts content from a single URL',
@@ -487,38 +487,38 @@ describe('registerContentsTool', () => {
           urls: ['https://documentation.you.com/developer-resources/mcp-server'],
           format: 'markdown',
         },
-      });
+      })
 
-      expect(result).toHaveProperty('content');
-      expect(result).toHaveProperty('structuredContent');
+      expect(result).toHaveProperty('content')
+      expect(result).toHaveProperty('structuredContent')
 
-      const content = result.content as { type: string; text: string }[];
-      expect(Array.isArray(content)).toBe(true);
-      expect(content[0]).toHaveProperty('type', 'text');
-      expect(content[0]).toHaveProperty('text');
+      const content = result.content as { type: string; text: string }[]
+      expect(Array.isArray(content)).toBe(true)
+      expect(content[0]).toHaveProperty('type', 'text')
+      expect(content[0]).toHaveProperty('text')
 
-      const text = content[0]?.text;
-      expect(text).toContain('Successfully extracted content');
-      expect(text).toContain('https://documentation.you.com/developer-resources/mcp-server');
-      expect(text).toContain('Formats: markdown');
+      const text = content[0]?.text
+      expect(text).toContain('Successfully extracted content')
+      expect(text).toContain('https://documentation.you.com/developer-resources/mcp-server')
+      expect(text).toContain('Formats: markdown')
 
-      const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent).toHaveProperty('count', 1);
-      expect(structuredContent).toHaveProperty('formats');
-      expect(structuredContent.formats).toEqual(['markdown']);
-      expect(structuredContent).toHaveProperty('items');
-      expect(structuredContent.items).toHaveLength(1);
+      const structuredContent = result.structuredContent as ContentsStructuredContent
+      expect(structuredContent).toHaveProperty('count', 1)
+      expect(structuredContent).toHaveProperty('formats')
+      expect(structuredContent.formats).toEqual(['markdown'])
+      expect(structuredContent).toHaveProperty('items')
+      expect(structuredContent.items).toHaveLength(1)
 
-      const item = structuredContent.items[0];
-      expect(item).toBeDefined();
+      const item = structuredContent.items[0]
+      expect(item).toBeDefined()
 
-      expect(item).toHaveProperty('url', 'https://documentation.you.com/developer-resources/mcp-server');
-      expect(item).toHaveProperty('markdown');
-      expect(typeof item?.markdown).toBe('string');
-      expect(item?.markdown?.length).toBeGreaterThan(0);
+      expect(item).toHaveProperty('url', 'https://documentation.you.com/developer-resources/mcp-server')
+      expect(item).toHaveProperty('markdown')
+      expect(typeof item?.markdown).toBe('string')
+      expect(item?.markdown?.length).toBeGreaterThan(0)
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'extracts content from multiple URLs',
@@ -532,18 +532,18 @@ describe('registerContentsTool', () => {
           ],
           format: 'markdown',
         },
-      });
+      })
 
-      const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent.count).toBe(2);
-      expect(structuredContent.items).toHaveLength(2);
+      const structuredContent = result.structuredContent as ContentsStructuredContent
+      expect(structuredContent.count).toBe(2)
+      expect(structuredContent.items).toHaveLength(2)
 
-      const content = result.content as { type: string; text: string }[];
-      const text = content[0]?.text;
-      expect(text).toContain('Successfully extracted content from 2 URL(s)');
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
+      expect(text).toContain('Successfully extracted content from 2 URL(s)')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'handles html format',
@@ -554,17 +554,17 @@ describe('registerContentsTool', () => {
           urls: ['https://documentation.you.com/developer-resources/mcp-server'],
           format: 'html',
         },
-      });
+      })
 
-      const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent.formats).toEqual(['html']);
+      const structuredContent = result.structuredContent as ContentsStructuredContent
+      expect(structuredContent.formats).toEqual(['html'])
 
-      const content = result.content as { type: string; text: string }[];
-      const text = content[0]?.text;
-      expect(text).toContain('Formats: html');
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
+      expect(text).toContain('Formats: html')
     },
     { retry: 2 },
-  );
+  )
 
   test(
     'defaults to markdown format when not specified',
@@ -574,11 +574,11 @@ describe('registerContentsTool', () => {
         arguments: {
           urls: ['https://documentation.you.com/developer-resources/mcp-server'],
         },
-      });
+      })
 
-      const structuredContent = result.structuredContent as ContentsStructuredContent;
-      expect(structuredContent.formats).toEqual(['markdown']);
+      const structuredContent = result.structuredContent as ContentsStructuredContent
+      expect(structuredContent.formats).toEqual(['markdown'])
     },
     { retry: 2 },
-  );
-});
+  )
+})
