@@ -32,7 +32,7 @@
     },
     "packages/api": {
       "name": "@youdotcom-oss/api",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "ydc": "./bin/cli.js",
       },
