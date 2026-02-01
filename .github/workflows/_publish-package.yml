@@ -261,86 +261,6 @@ jobs:
             git push origin "$BRANCH_NAME"
           fi
 
-      - name: Update dependent packages
-        id: update_dependents
-        env:
-          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-          VERSION: ${{ steps.set_version.outputs.version }}
-          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
-          PACKAGE_NAME: ${{ steps.derive_package.outputs.package_name }}
-          BRANCH_NAME: ${{ github.ref_name }}
-        run: |
-          # Find and update packages that depend on this package
-          echo "Updating workspace packages that depend on ${NPM_PACKAGE_NAME}..."
-
-          UPDATED_PACKAGES=""
-
-          # Check packages/ directory
-          for pkg_json in packages/*/package.json; do
-            # Skip the package we just published
-            if [[ "$pkg_json" == "packages/${PACKAGE_NAME}/package.json" ]]; then
-              continue
-            fi
-
-            # Check if this package depends on the published package
-            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
-              '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
-              "$pkg_json" >/dev/null 2>&1; then
-
-              PKG_DIR=$(dirname "$pkg_json")
-              PKG_NAME=$(jq -r '.name' "$pkg_json")
-              CURRENT_VER=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
-                '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
-              DEP_TYPE=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
-                'if .dependencies[$pkg] then "dependencies" else "devDependencies" end' "$pkg_json")
-
-              echo "Updating ${PKG_NAME} from ${CURRENT_VER} to ${VERSION} in ${DEP_TYPE}..."
-
-              # Update the dependency version using jq
-              if [[ "$DEP_TYPE" == "dependencies" ]]; then
-                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
-                  '.dependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
-              else
-                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
-                  '.devDependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
-              fi
-
-              mv "${pkg_json}.tmp" "$pkg_json"
-
-              if [[ -n "$UPDATED_PACKAGES" ]]; then
-                UPDATED_PACKAGES="${UPDATED_PACKAGES}"$'\n'
-              fi
-              UPDATED_PACKAGES="${UPDATED_PACKAGES}- **${PKG_NAME}**: Updated from \`${CURRENT_VER}\` to \`${VERSION}\` in ${DEP_TYPE}"
-            fi
-          done
-
-          if [[ -n "$UPDATED_PACKAGES" ]]; then
-            echo "has_dependents=true" >> $GITHUB_OUTPUT
-            echo "dependents<<EOF" >> $GITHUB_OUTPUT
-            echo "$UPDATED_PACKAGES" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-
-            # Update lock file
-            echo "Updating bun.lock after dependency changes..."
-            rm -rf bun.lock node_modules
-            bun install
-            echo "✅ Lock file updated"
-
-            # Commit the dependency updates
-            git add packages/*/package.json bun.lock
-            if ! git diff --staged --quiet; then
-              git commit -m "chore: update ${NPM_PACKAGE_NAME} to ${VERSION} in dependent packages [skip ci]"
-              git push origin "$BRANCH_NAME"
-              echo "✅ Committed dependency updates"
-            fi
-
-            echo "Updated dependent packages:"
-            echo "$UPDATED_PACKAGES"
-          else
-            echo "has_dependents=false" >> $GITHUB_OUTPUT
-            echo "No dependent packages found"
-          fi
-
       - name: Check for dependent packages and plugins
         id: check_dependents
         env:
@@ -473,10 +393,112 @@ jobs:
             npm publish --access public
           fi
 
+  update-dependents:
+    if: needs.update-version.outputs.has_dependents == 'true'
+    runs-on: ubuntu-latest
+    name: Update Dependent Packages
+    needs: [update-version, npm-publish]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Configure Git
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+
+      - name: Update dependent package versions
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          VERSION: ${{ needs.update-version.outputs.version }}
+          NPM_PACKAGE_NAME: ${{ inputs.npm_package_name }}
+          PACKAGE_NAME: ${{ needs.update-version.outputs.package_name }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          # Find and update packages that depend on this package
+          echo "Updating workspace packages that depend on ${NPM_PACKAGE_NAME}..."
+
+          UPDATED_PACKAGES=""
+
+          # Check packages/ directory
+          for pkg_json in packages/*/package.json; do
+            # Skip the package we just published
+            if [[ "$pkg_json" == "packages/${PACKAGE_NAME}/package.json" ]]; then
+              continue
+            fi
+
+            # Check if this package depends on the published package
+            if jq -e --arg pkg "${NPM_PACKAGE_NAME}" \
+              '(.dependencies[$pkg] // .devDependencies[$pkg]) != null' \
+              "$pkg_json" >/dev/null 2>&1; then
+
+              PKG_DIR=$(dirname "$pkg_json")
+              PKG_NAME=$(jq -r '.name' "$pkg_json")
+              CURRENT_VER=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                '.dependencies[$pkg] // .devDependencies[$pkg]' "$pkg_json")
+              DEP_TYPE=$(jq -r --arg pkg "${NPM_PACKAGE_NAME}" \
+                'if .dependencies[$pkg] then "dependencies" else "devDependencies" end' "$pkg_json")
+
+              echo "Updating ${PKG_NAME} from ${CURRENT_VER} to ${VERSION} in ${DEP_TYPE}..."
+
+              # Update the dependency version using jq
+              if [[ "$DEP_TYPE" == "dependencies" ]]; then
+                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
+                  '.dependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
+              else
+                jq --arg pkg "${NPM_PACKAGE_NAME}" --arg ver "${VERSION}" \
+                  '.devDependencies[$pkg] = $ver' "$pkg_json" > "${pkg_json}.tmp"
+              fi
+
+              mv "${pkg_json}.tmp" "$pkg_json"
+
+              if [[ -n "$UPDATED_PACKAGES" ]]; then
+                UPDATED_PACKAGES="${UPDATED_PACKAGES}"$'\n'
+              fi
+              UPDATED_PACKAGES="${UPDATED_PACKAGES}- **${PKG_NAME}**: Updated from \`${CURRENT_VER}\` to \`${VERSION}\` in ${DEP_TYPE}"
+            fi
+          done
+
+          if [[ -n "$UPDATED_PACKAGES" ]]; then
+            # Update lock file - package now exists on npm so this will succeed
+            echo "Updating bun.lock after dependency changes..."
+            rm -rf bun.lock node_modules
+            bun install
+            echo "✅ Lock file updated"
+
+            # Commit the dependency updates
+            git add packages/*/package.json bun.lock
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: update ${NPM_PACKAGE_NAME} to ${VERSION} in dependent packages [skip ci]"
+              git push origin "$BRANCH_NAME"
+              echo "✅ Committed dependency updates"
+            fi
+
+            echo "Updated dependent packages:"
+            echo "$UPDATED_PACKAGES"
+          else
+            echo "No dependent packages found"
+          fi
+
   create-release:
     runs-on: ubuntu-latest
     name: Create GitHub Release
-    needs: [update-version, npm-publish]
+    needs: [update-version, npm-publish, update-dependents]
+    if: always() && needs.npm-publish.result == 'success'
     permissions:
       contents: write
     outputs:
@@ -519,7 +541,7 @@ jobs:
     if: needs.update-version.outputs.has_dependents == 'true'
     runs-on: ubuntu-latest
     name: Create Dependency Update Issue
-    needs: [update-version, npm-publish, create-release]
+    needs: [update-version, npm-publish, update-dependents, create-release]
     permissions:
       contents: read
       issues: write

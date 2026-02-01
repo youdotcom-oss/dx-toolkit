@@ -20,7 +20,7 @@
       "name": "@youdotcom-oss/ai-sdk-plugin",
       "version": "1.0.1",
       "dependencies": {
-        "@youdotcom-oss/api": "0.1.0",
+        "@youdotcom-oss/api": "0.0.1",
       },
       "devDependencies": {
         "@ai-sdk/anthropic": "^3.0.14",
@@ -32,7 +32,7 @@
     },
     "packages/api": {
       "name": "@youdotcom-oss/api",
-      "version": "0.1.0",
+      "version": "0.0.1",
       "bin": {
         "ydc": "./bin/cli.js",
       },
@@ -47,7 +47,7 @@
       "dependencies": {
         "@hono/mcp": "^0.2.3",
         "@modelcontextprotocol/sdk": "^1.25.2",
-        "@youdotcom-oss/api": "0.1.0",
+        "@youdotcom-oss/api": "0.0.1",
         "hono": "^4.11.4",
         "zod": "^4.3.5",
       },
