@@ -19,24 +19,20 @@ jobs:
           # Check repository permission (works for both public and private org members)
           RESPONSE=$(gh api repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }}/permission 2>/dev/null || echo '{"permission":"none"}')
           PERMISSION=$(echo "$RESPONSE" | jq -r '.permission')
+          echo "Author permission: $PERMISSION"
 
           # Admin, maintain, or write = internal contributor
-          if [[ "$PERMISSION" == "admin" ]] || [[ "$PERMISSION" == "maintain" ]] || [[ "$PERMISSION" == "write" ]]; then
-            echo "is_internal=true" >> $GITHUB_OUTPUT
-            echo "✓ User has $PERMISSION permission on repository"
-          else
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "maintain" && "$PERMISSION" != "write" ]]; then
+            echo "Skipping review: Only users with admin, maintain, or write permissions can trigger internal code review"
+            echo "Current permission level: $PERMISSION"
             echo "is_internal=false" >> $GITHUB_OUTPUT
-            echo "✗ User has $PERMISSION permission (not internal)"
+            exit 0
           fi
+
+          echo "Author is authorized, proceeding with review"
+          echo "is_internal=true" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
-
-      - name: Skip if external contributor
-        if: steps.check_internal.outputs.is_internal != 'true'
-        run: |
-          echo "Skipping code review for external contributor"
-          echo "User: ${{ github.event.pull_request.user.login }}"
-          exit 0
 
       - uses: actions/checkout@v4
         if: steps.check_internal.outputs.is_internal == 'true'
@@ -66,6 +62,9 @@ jobs:
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Before reviewing, gather existing PR feedback:
+            - `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json comments,reviews,reviewThreads`
 
             Please review this pull request focusing on:
             - Code quality and adherence to project standards (see AGENTS.md)
