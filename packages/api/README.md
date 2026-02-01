@@ -38,7 +38,7 @@ bunx @youdotcom-oss/api contents --json '{
 }' --client MyAgent
 
 # Discover available parameters with --schema
-api search --schema | jq '.properties | keys'
+ydc search --schema | jq '.properties | keys'
 ```
 
 ### Programmatic Usage
@@ -99,9 +99,9 @@ export YDC_CLIENT="YourAgentName"  # Optional: default client for tracking
 All commands require the `--json` flag with a JSON string containing the query parameters:
 
 ```bash
-api search --json '{"query":"..."}'
-api express --json '{"input":"..."}'
-api contents --json '{"urls":["..."]}'
+ydc search --json '{"query":"..."}'
+ydc express --json '{"input":"..."}'
+ydc contents --json '{"urls":["..."]}'
 ```
 
 ### Global Options
@@ -118,13 +118,13 @@ Use `--schema` to discover what parameters each command accepts:
 
 ```bash
 # Get schema for search command
-api search --schema
+ydc search --schema
 
 # Get schema for express command
-api express --schema
+ydc express --schema
 
 # Get schema for contents command
-api contents --schema
+ydc contents --schema
 ```
 
 The schema output describes the JSON structure to pass via `--json`.
@@ -132,21 +132,21 @@ The schema output describes the JSON structure to pass via `--json`.
 ### Search Command
 
 ```bash
-api search --json '{"query":"..."}' [options]
+ydc search --json '{"query":"..."}' [options]
 
 Examples:
   # Basic search
-  api search --json '{"query":"machine learning"}' --client Openclaw
+  ydc search --json '{"query":"machine learning"}' --client Openclaw
 
   # Search with livecrawl (KEY FEATURE)
-  api search --json '{
+  ydc search --json '{
     "query":"documentation",
     "livecrawl":"web",
     "livecrawl_formats":"markdown"
   }' --client Openclaw
 
   # Advanced filters
-  api search --json '{
+  ydc search --json '{
     "query":"AI papers",
     "site":"arxiv.org",
     "fileType":"pdf",
@@ -185,7 +185,7 @@ Examples:
 ### Express Command
 
 ```bash
-api express --json '{"input":"..."}' [options]
+ydc express --json '{"input":"..."}' [options]
 
 Examples:
   # Fast answer
@@ -212,7 +212,7 @@ Examples:
 ### Contents Command
 
 ```bash
-api contents --json '{"urls":["..."]}' [options]
+ydc contents --json '{"urls":["..."]}' [options]
 
 Examples:
   # Extract markdown
@@ -275,7 +275,7 @@ Examples:
 
 ```bash
 # Direct access to response fields
-api search --json '{"query":"AI"}' | jq '.results.web[0].title'
+ydc search --json '{"query":"AI"}' | jq '.results.web[0].title'
 
 # No need to unwrap .data or .success
 ```
@@ -390,9 +390,9 @@ exit 1
 
 ```bash
 #!/usr/bin/env bash
-api search --json '{"query":"AI"}' --client Openclaw &
-api search --json '{"query":"ML"}' --client Openclaw &
-api search --json '{"query":"LLM"}' --client Openclaw &
+ydc search --json '{"query":"AI"}' --client Openclaw &
+ydc search --json '{"query":"ML"}' --client Openclaw &
+ydc search --json '{"query":"LLM"}' --client Openclaw &
 wait
 ```
 
@@ -418,7 +418,7 @@ answer=$(api express --json '{
 
 # Extract top result URL and fetch content
 url=$(echo "$search" | jq -r '.results.web[0].url')
-api contents --json "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
+ydc contents --json "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
   --client Openclaw | jq -r '.[0].markdown' > output.md
 ```
 
@@ -441,7 +441,7 @@ query=$(jq -n '{
 }')
 
 # Execute search
-api search --json "$query" --client Openclaw
+ydc search --json "$query" --client Openclaw
 ```
 
 ## Agent Skills Integration
