@@ -72,7 +72,7 @@ Get AI-generated answers with web search and citations. Perfect for RAG (Retriev
 
 ## Credentials
 
-1. Visit [you.com/api](https://you.com/api) to get an API key
+1. Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get an API key
 2. In n8n, go to **Credentials > New Credential**
 3. Search for "You.com API"
 4. Enter your API key and save
@@ -107,9 +107,9 @@ bun run check
 ## Resources
 
 - [You.com API Documentation](https://docs.you.com/)
-- [Search API Reference](https://docs.you.com/api-reference/search)
+- [Search API Reference](https://docs.you.com/api-reference/search/v1-search)
 - [Contents API Reference](https://docs.you.com/api-reference/search/contents)
-- [Express Agent Reference](https://docs.you.com/agents/overview#express-agent)
+- [Express Agent Reference](https://docs.you.com/api-reference/agents/express-agent/express-agent-runs)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## License
