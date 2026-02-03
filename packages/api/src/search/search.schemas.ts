@@ -1,7 +1,10 @@
 import * as z from 'zod'
 
 export const SearchQuerySchema = z.object({
-  query: z.string().min(1, 'Query is required').describe('Search query (supports +, -, site:, filetype:, lang:)'),
+  query: z
+    .string()
+    .min(1, 'Query is required')
+    .describe('Search query (supports +, -, site:, filetype:, AND, OR, NOT)'),
   count: z.number().int().min(1).max(100).optional().describe('Max results per section'),
   freshness: z.string().optional().describe('day/week/month/year or YYYY-MM-DDtoYYYY-MM-DD'),
   offset: z.number().int().min(0).max(9).optional().describe('Pagination offset'),

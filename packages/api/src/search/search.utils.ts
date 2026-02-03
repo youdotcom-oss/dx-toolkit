@@ -5,7 +5,7 @@ import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
 
 export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
-  searchQuery: { query, site, fileType, language, exactTerms, excludeTerms, ...rest },
+  searchQuery: { query, site, fileType, exactTerms, excludeTerms, ...rest },
   getUserAgent,
 }: {
   searchQuery: SearchQuery
@@ -16,11 +16,10 @@ export const fetchSearchResults = async ({
 
   const searchParams = new URLSearchParams()
 
-  // Build Query Param
+  // Build Query Param with search operators
   const searchQuery = [query]
   site && searchQuery.push(`site:${site}`)
   fileType && searchQuery.push(`filetype:${fileType}`)
-  language && searchQuery.push(`lang:${language}`)
   if (exactTerms && excludeTerms) {
     throw new Error('Cannot specify both exactTerms and excludeTerms - please use only one')
   }
