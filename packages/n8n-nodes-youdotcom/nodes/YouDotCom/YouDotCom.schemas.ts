@@ -9,22 +9,12 @@ import { z } from 'zod'
 export const SearchOptionsSchema = z.object({
   count: z.number().int().min(1).max(100).optional().describe('Number of search results to return (1-100)'),
   country: z.string().optional().describe('Two-letter country code to filter results (e.g., US, GB)'),
-  excludeTerms: z.string().optional().describe('Terms to exclude from search results'),
-  exactTerms: z.string().optional().describe('Exact phrase to match in search results'),
-  fileType: z.string().optional().describe('File type extension to filter results (e.g., pdf, doc)'),
   freshness: z.enum(['day', 'week', 'month', 'year']).optional().describe('Filter results by recency'),
   language: z.string().optional().describe('BCP 47 language code to filter results (e.g., en, es, fr)'),
   livecrawl: z.enum(['web', 'news', 'all']).optional().describe('Type of content to crawl in real-time'),
   livecrawl_formats: z.enum(['html', 'markdown']).optional().describe('Format for live-crawled content'),
   offset: z.number().int().min(0).max(9).optional().describe('Pagination offset for search results (0-9)'),
   safesearch: z.enum(['off', 'moderate', 'strict']).optional().describe('Safe search filtering level'),
-  site: z
-    .string()
-    .optional()
-    .describe('Domain to restrict search results (e.g., example.com)')
-    .refine((val) => !val || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(val), {
-      message: 'Must be a valid domain format (e.g., example.com)',
-    }),
 })
 
 export type SearchOptions = z.infer<typeof SearchOptionsSchema>

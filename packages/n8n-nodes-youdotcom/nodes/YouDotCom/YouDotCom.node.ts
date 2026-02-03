@@ -104,9 +104,9 @@ export class YouDotCom implements INodeType {
           },
         },
         default: '',
-        placeholder: 'e.g., latest AI news',
+        placeholder: 'e.g., AI news site:github.com filetype:pdf',
         description:
-          'The search query to retrieve relevant results from the web. Supports search operators for refined searches.',
+          'The search query. Supports operators: site: (domain), filetype: (file type), + (require), - (exclude), AND, OR, NOT. Example: Python OR PyTorch -TensorFlow filetype:pdf',
       },
       {
         displayName: 'Search Options',
@@ -176,30 +176,6 @@ export class YouDotCom implements INodeType {
               { name: 'United Kingdom', value: 'GB' },
               { name: 'United States', value: 'US' },
             ],
-          },
-          {
-            displayName: 'Exact Terms',
-            name: 'exactTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., machine learning|AI',
-            description: 'Require exact phrase matches (pipe-separated, e.g., "machine learning|deep learning")',
-          },
-          {
-            displayName: 'Exclude Terms',
-            name: 'excludeTerms',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., spam|ads',
-            description: 'Terms to exclude from results (pipe-separated, e.g., "spam|ads|promo")',
-          },
-          {
-            displayName: 'File Type',
-            name: 'fileType',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., pdf',
-            description: 'Filter results by file type (e.g., pdf, doc, xls)',
           },
           {
             displayName: 'Freshness',
@@ -326,14 +302,6 @@ export class YouDotCom implements INodeType {
               { name: 'Moderate', value: 'moderate' },
               { name: 'Strict', value: 'strict' },
             ],
-          },
-          {
-            displayName: 'Site',
-            name: 'site',
-            type: 'string',
-            default: '',
-            placeholder: 'e.g., github.com',
-            description: 'Restrict results to a specific domain (e.g., github.com)',
           },
         ],
       },
@@ -541,10 +509,6 @@ export class YouDotCom implements INodeType {
     if (options.livecrawl_formats) qs.livecrawl_formats = options.livecrawl_formats
     if (options.offset !== undefined) qs.offset = options.offset
     if (options.safesearch) qs.safesearch = options.safesearch
-    if (options.site) qs.site = options.site
-    if (options.fileType) qs.fileType = options.fileType
-    if (options.excludeTerms) qs.excludeTerms = options.excludeTerms
-    if (options.exactTerms) qs.exactTerms = options.exactTerms
 
     const rawResponse = await context.helpers.httpRequestWithAuthentication.call(context, 'youDotComApi', {
       method: 'GET',

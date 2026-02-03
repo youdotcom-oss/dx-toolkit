@@ -232,30 +232,6 @@ describe('YouDotCom Node', () => {
       expect(safesearchValues).toContain('moderate')
       expect(safesearchValues).toContain('strict')
     })
-
-    test('has site option', () => {
-      const siteOption = getSearchOption('Site')
-      expect(siteOption).toBeDefined()
-      expect(siteOption?.type).toBe('string')
-    })
-
-    test('has fileType option', () => {
-      const fileTypeOption = getSearchOption('File Type')
-      expect(fileTypeOption).toBeDefined()
-      expect(fileTypeOption?.type).toBe('string')
-    })
-
-    test('has excludeTerms option', () => {
-      const excludeTermsOption = getSearchOption('Exclude Terms')
-      expect(excludeTermsOption).toBeDefined()
-      expect(excludeTermsOption?.type).toBe('string')
-    })
-
-    test('has exactTerms option', () => {
-      const exactTermsOption = getSearchOption('Exact Terms')
-      expect(exactTermsOption).toBeDefined()
-      expect(exactTermsOption?.type).toBe('string')
-    })
   })
 
   describe('Contents Parameters', () => {
