@@ -19,7 +19,7 @@ This project adheres to professional open-source standards. Be respectful, const
 ### Prerequisites
 
 - Bun >= 1.2.21
-- You.com API key from [api.you.com](https://api.you.com)
+- You.com API key from [you.com/platform/api-keys](https://you.com/platform/api-keys)
 
 ### Quick Setup
 
