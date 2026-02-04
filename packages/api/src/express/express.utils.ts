@@ -60,7 +60,7 @@ export const callExpressAgent = async ({
   const options = {
     method: 'POST',
     headers: new Headers({
-      Authorization: `Bearer ${YDC_API_KEY || ''}`,
+      'X-API-Key': YDC_API_KEY || '',
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'User-Agent': getUserAgent(),

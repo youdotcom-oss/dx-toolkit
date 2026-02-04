@@ -29,6 +29,8 @@ const ContentsItemSchema = z.object({
   markdown: z.string().optional().describe('Markdown content'),
   metadata: z
     .object({
+      site_name: z.string().optional().describe('OpenGraph site name'),
+      favicon_url: z.string().optional().describe('Favicon URL'),
       jsonld: z.array(z.record(z.string(), z.unknown())).optional().describe('JSON-LD structured data (Schema.org)'),
       opengraph: z.record(z.string(), z.string()).optional().describe('OpenGraph meta tags'),
       twitter: z.record(z.string(), z.string()).optional().describe('Twitter Card metadata'),
