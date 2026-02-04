@@ -1,6 +1,6 @@
 # n8n-nodes-youdotcom
 
-An n8n community node for integrating [You.com APIs](https://you.com/api) into your n8n workflows. Search the web, extract content from URLs, or get AI-powered answers with citations.
+An n8n community node for integrating [You.com APIs](https://you.com/apis) into your n8n workflows. Search the web, extract content from URLs, or get AI-powered answers with citations.
 
 ## Installation
 
@@ -84,7 +84,7 @@ Get AI-generated answers with web search and citations. Perfect for RAG (Retriev
 
 ## Credentials
 
-1. Visit [you.com/apis](https://you.com/apis) to get an API key
+1. Visit [you.com/platform](https://you.com/platform) to get an API key
 2. In n8n, go to **Credentials > New Credential**
 3. Search for "You.com API"
 4. Enter your API key and save
