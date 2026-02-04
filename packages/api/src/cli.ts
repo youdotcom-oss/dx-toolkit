@@ -14,10 +14,17 @@
  *   --help, -h                  - Show help
  */
 import { parseArgs } from 'node:util'
+import type * as z from 'zod'
 import packageJson from '../package.json' with { type: 'json' }
-import { contentsCommand } from './commands/contents.ts'
-import { expressCommand } from './commands/express.ts'
-import { searchCommand } from './commands/search.ts'
+import { ContentsQuerySchema } from './contents/contents.schemas.ts'
+import { fetchContents } from './contents/contents.utils.ts'
+import { ExpressAgentInputSchema } from './express/express.schemas.ts'
+import { callExpressAgent } from './express/express.utils.ts'
+import { SearchQuerySchema } from './search/search.schemas.ts'
+import { fetchSearchResults } from './search/search.utils.ts'
+import type { GetUserAgent } from './shared/api.types.ts'
+import { runCommand } from './shared/command-runner.ts'
+import { buildContentsRequest, buildExpressRequest, buildSearchRequest } from './shared/dry-run-utils.ts'
 import { generateErrorReportLink } from './shared/generate-error-report-link.ts'
 import { useGetUserAgent } from './shared/use-get-user-agents.ts'
 
@@ -43,6 +50,7 @@ Global Options:
   --api-key <key>             You.com API key (overrides YDC_API_KEY)
   --client <name>             Client name for tracking and debugging
   --schema                    Output JSON schema for what can be passed to --json
+  --dry-run                   Show request details without making API call
   --help, -h                  Show this help
 
 Environment Variables:
@@ -58,6 +66,7 @@ Examples:
   ydc express --json '{"input":"What happened today?","tools":[{"type":"web_search"}]}' --client MyAgent
   ydc contents --json '{"urls":["https://example.com"],"formats":["markdown"]}'
   ydc search --schema  # Get JSON schema for search --json input
+  ydc search --json '{"query":"AI"}' --dry-run  # Inspect request without API call
   ydc search --json '{"query":"AI"}' | jq '.data.results.web[0].title'
 
 More info: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api
@@ -65,22 +74,83 @@ More info: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api
   process.exit(command ? 0 : 2)
 }
 
+// Command configuration map
+const commands = {
+  search: {
+    schema: SearchQuerySchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof SearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => fetchSearchResults({ searchQuery: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof SearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildSearchRequest({ searchQuery: input, YDC_API_KEY, getUserAgent }),
+  },
+  express: {
+    schema: ExpressAgentInputSchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ExpressAgentInputSchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => callExpressAgent({ agentInput: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ExpressAgentInputSchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildExpressRequest({ agentInput: input, YDC_API_KEY, getUserAgent }),
+  },
+  contents: {
+    schema: ContentsQuerySchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ContentsQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => fetchContents({ contentsQuery: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ContentsQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildContentsRequest({ contentsQuery: input, YDC_API_KEY, getUserAgent }),
+  },
+}
+
+// Validate command
+if (!(command in commands)) {
+  console.error(`Unknown command: ${command}`)
+  console.error(`Run 'ydc --help' for usage`)
+  process.exit(2)
+}
+
+// Execute command
 try {
-  switch (command) {
-    case 'search':
-      await searchCommand(args)
-      break
-    case 'express':
-      await expressCommand(args)
-      break
-    case 'contents':
-      await contentsCommand(args)
-      break
-    default:
-      console.error(`Unknown command: ${command}`)
-      console.error(`Run 'ydc --help' for usage`)
-      process.exit(2)
-  }
+  await runCommand(args, commands[command as keyof typeof commands])
   process.exit(0)
 } catch (error) {
   console.error(error)
