@@ -20,7 +20,6 @@ describe('buildExpressRequest', () => {
     expect(request.headers.Accept).toBe('application/json')
     expect(request.headers['User-Agent']).toBe('test-agent')
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.agent).toBe('express')
     expect(body.input).toBe('What is AI?')
@@ -38,7 +37,6 @@ describe('buildExpressRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.tools).toEqual([{ type: 'web_search' }])
   })
@@ -50,7 +48,6 @@ describe('buildExpressRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.tools).toBeUndefined()
   })
@@ -62,7 +59,6 @@ describe('buildExpressRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.stream).toBe(false)
   })
@@ -74,7 +70,6 @@ describe('buildExpressRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.agent).toBe('express')
   })

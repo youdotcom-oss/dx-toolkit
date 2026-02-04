@@ -7,6 +7,7 @@
 
 import { parseArgs } from 'node:util'
 import * as z from 'zod'
+import type { GetUserAgent } from './api.types.ts'
 import type { DryRunResult } from './dry-run-utils.ts'
 import { useGetUserAgent } from './use-get-user-agents.ts'
 
@@ -16,18 +17,10 @@ import { useGetUserAgent } from './use-get-user-agents.ts'
  * @typeParam TInput - Zod-inferred input type
  * @typeParam TOutput - Command output type
  */
-type CommandConfig<TInput, TOutput> = {
+export type CommandConfig<TInput, TOutput> = {
   schema: z.ZodType<TInput>
-  handler: (params: {
-    input: TInput
-    YDC_API_KEY: string
-    getUserAgent: ReturnType<typeof useGetUserAgent>
-  }) => Promise<TOutput>
-  dryRunHandler?: (params: {
-    input: TInput
-    YDC_API_KEY: string
-    getUserAgent: ReturnType<typeof useGetUserAgent>
-  }) => DryRunResult
+  handler: (params: { input: TInput; YDC_API_KEY: string; getUserAgent: GetUserAgent }) => Promise<TOutput>
+  dryRunHandler?: (params: { input: TInput; YDC_API_KEY: string; getUserAgent: GetUserAgent }) => DryRunResult
 }
 
 /**

@@ -23,7 +23,7 @@ import { callExpressAgent } from './express/express.utils.ts'
 import { SearchQuerySchema } from './search/search.schemas.ts'
 import { fetchSearchResults } from './search/search.utils.ts'
 import type { GetUserAgent } from './shared/api.types.ts'
-import { runCommand } from './shared/command-runner.ts'
+import { type CommandConfig, runCommand } from './shared/command-runner.ts'
 import { buildContentsRequest, buildExpressRequest, buildSearchRequest } from './shared/dry-run-utils.ts'
 import { generateErrorReportLink } from './shared/generate-error-report-link.ts'
 import { useGetUserAgent } from './shared/use-get-user-agents.ts'
@@ -150,7 +150,8 @@ if (!(command in commands)) {
 
 // Execute command
 try {
-  await runCommand(args, commands[command as keyof typeof commands])
+  // Type assertion is safe because we validated command exists above
+  await runCommand(args, commands[command as keyof typeof commands] as CommandConfig<unknown, unknown>)
   process.exit(0)
 } catch (error) {
   console.error(error)

@@ -19,7 +19,6 @@ describe('buildContentsRequest', () => {
     expect(request.headers['Content-Type']).toBe('application/json')
     expect(request.headers['User-Agent']).toBe('test-agent')
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.urls).toEqual(['https://example.com'])
     expect(body.formats).toEqual(['markdown'])
@@ -34,7 +33,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.urls).toEqual(['https://a.com', 'https://b.com', 'https://c.com'])
   })
@@ -49,7 +47,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.formats).toEqual(['html', 'markdown', 'metadata'])
   })
@@ -64,7 +61,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.formats).toEqual(['html'])
   })
@@ -80,7 +76,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.formats).toEqual(['markdown', 'metadata'])
   })
@@ -95,7 +90,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.crawl_timeout).toBe(30)
   })
@@ -109,7 +103,6 @@ describe('buildContentsRequest', () => {
       getUserAgent,
     })
 
-    // biome-ignore lint/style/noNonNullAssertion: Test code - body is always defined
     const body = JSON.parse(request.body!)
     expect(body.crawl_timeout).toBeUndefined()
   })

@@ -57,7 +57,6 @@ describe('fetchSearchResults', () => {
       })
 
       // Test that web results have required properties
-      // biome-ignore lint/style/noNonNullAssertion: Test
       const webResult = result.results.web![0]
 
       expect(webResult).toHaveProperty('url')
