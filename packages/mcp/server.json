@@ -3,7 +3,7 @@
   "name": "io.github.youdotcom-oss/mcp",
   "title": "You.com Web Access & AI",
   "description": "Web search, AI agent, and content extraction via You.com APIs",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "remotes": [
     {
       "type": "streamable-http",
@@ -22,7 +22,7 @@
     {
       "registryType": "npm",
       "identifier": "@youdotcom-oss/mcp",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "transport": {
         "type": "stdio"
       },
