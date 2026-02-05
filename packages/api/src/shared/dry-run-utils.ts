@@ -7,9 +7,9 @@
  */
 
 import type { ContentsQuery } from '../contents/contents.schemas.ts'
-import type { ExpressAgentInput } from '../express/express.schemas.ts'
+import type { DeepSearchQuery } from '../deep-search/deep-search.schemas.ts'
 import type { SearchQuery } from '../search/search.schemas.ts'
-import { CONTENTS_API_URL, EXPRESS_API_URL, SEARCH_API_URL } from './api.constants.ts'
+import { CONTENTS_API_URL, DEEP_SEARCH_API_URL, SEARCH_API_URL } from './api.constants.ts'
 import type { GetUserAgent } from './api.types.ts'
 
 /**
@@ -111,48 +111,31 @@ export const buildContentsRequest = ({
 }
 
 /**
- * Build express agent request details without making API call
+ * Build deep-search request details without making API call
  * Useful for testing and debugging POST body construction
  *
- * @param params - Express agent input parameters
+ * @param params - Deep-search query parameters
  * @returns Request details including URL, headers, and POST body
  *
  * @public
  */
-export const buildExpressRequest = ({
-  agentInput: { input, tools },
+export const buildDeepSearchRequest = ({
+  deepSearchQuery,
   YDC_API_KEY,
   getUserAgent,
 }: {
-  agentInput: ExpressAgentInput
+  deepSearchQuery: DeepSearchQuery
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
 }): DryRunResult => {
-  const requestBody: {
-    agent: string
-    input: string
-    stream: boolean
-    tools?: Array<{ type: 'web_search' }>
-  } = {
-    agent: 'express',
-    input,
-    stream: false, // Use non-streaming JSON response
-  }
-
-  // Only include tools if provided
-  if (tools) {
-    requestBody.tools = tools
-  }
-
   return {
-    url: EXPRESS_API_URL,
+    url: DEEP_SEARCH_API_URL,
     method: 'POST',
     headers: {
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
-      Accept: 'application/json',
       'User-Agent': getUserAgent(),
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(deepSearchQuery),
   }
 }

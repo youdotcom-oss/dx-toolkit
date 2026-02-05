@@ -1,7 +1,5 @@
 import {
   ContentsQuerySchema,
-  callExpressAgent,
-  ExpressAgentInputSchema,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
@@ -58,53 +56,6 @@ export const youSearch = (config: YouToolsConfig = {}) => {
 
       const response = await fetchSearchResults({
         searchQuery: params,
-        YDC_API_KEY: apiKey,
-        getUserAgent,
-      })
-
-      // Return raw API response for maximum flexibility
-      return response
-    },
-  })
-}
-
-/**
- * You.com AI agent tool for Vercel AI SDK
- *
- * Fast AI responses with optional web search integration.
- *
- * @param config - Configuration options
- * @returns A tool that can be used with AI SDK's generateText, streamText, etc.
- *
- * @example
- * ```ts
- * import { generateText, stepCountIs } from 'ai';
- * import { youExpress } from '@youdotcom-oss/ai-sdk-plugin';
- *
- * const { text } = await generateText({
- *   model: 'anthropic/claude-sonnet-4.5',
- *   prompt: 'What are the latest AI developments?',
- *   tools: {
- *     agent: youExpress(),
- *   },
- *   stopWhen: stepCountIs(3),
- * });
- * ```
- */
-export const youExpress = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
-
-  return tool({
-    description:
-      'Fast AI agent powered by You.com that provides quick answers with optional web search. Use this for straightforward queries that benefit from real-time web information.',
-    inputSchema: ExpressAgentInputSchema,
-    execute: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
-      }
-
-      const response = await callExpressAgent({
-        agentInput: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

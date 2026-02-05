@@ -3,7 +3,6 @@ import { type Context, Hono } from 'hono'
 import { trimTrailingSlash } from 'hono/trailing-slash'
 import packageJson from '../package.json' with { type: 'json' }
 import { registerContentsTool } from './contents/register-contents-tool.ts'
-import { registerExpressTool } from './express/register-express-tool.ts'
 import { getMCpServer } from './get-mcp-server.ts'
 import { registerSearchTool } from './search/register-search-tool.ts'
 import { useGetClientVersion } from './shared/use-client-version.ts'
@@ -39,7 +38,6 @@ const handleMcpRequest = async (c: Context) => {
     YDC_API_KEY,
     getUserAgent,
   })
-  registerExpressTool({ mcp, YDC_API_KEY, getUserAgent })
   registerContentsTool({ mcp, YDC_API_KEY, getUserAgent })
 
   const transport = new StreamableHTTPTransport()

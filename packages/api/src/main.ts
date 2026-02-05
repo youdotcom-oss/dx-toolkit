@@ -10,9 +10,9 @@
 // Contents
 export * from './contents/contents.schemas.ts'
 export * from './contents/contents.utils.ts'
-// Express
-export * from './express/express.schemas.ts'
-export * from './express/express.utils.ts'
+// Deep-Search
+export * from './deep-search/deep-search.schemas.ts'
+export * from './deep-search/deep-search.utils.ts'
 // Search
 export * from './search/search.schemas.ts'
 export * from './search/search.utils.ts'
