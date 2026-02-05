@@ -1,10 +1,26 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import * as z from 'zod'
 import { runCommand } from '../command-runner.ts'
 
 describe('runCommand', () => {
   const TestSchema = z.object({
     value: z.string(),
+  })
+
+  let originalApiKey: string | undefined
+
+  beforeAll(() => {
+    // Save original API key
+    originalApiKey = process.env.YDC_API_KEY
+  })
+
+  afterAll(() => {
+    // Restore original API key
+    if (originalApiKey) {
+      process.env.YDC_API_KEY = originalApiKey
+    } else {
+      delete process.env.YDC_API_KEY
+    }
   })
 
   test('outputs JSON schema when --schema flag is provided', async () => {
