@@ -59,7 +59,12 @@ export const LanguageSchema = z.enum([
 ])
 
 export const SearchQuerySchema = z.object({
-  query: z.string().min(1, 'Query is required').describe('Search query (supports +, -, site:, filetype:, lang:)'),
+  query: z
+    .string()
+    .min(1, 'Query is required')
+    .describe(
+      'Search query. Supports operators: site:domain.com (domain filter), filetype:pdf (file type), +term (include), -term (exclude), AND/OR/NOT (boolean logic), lang:en (language). Example: "machine learning (Python OR PyTorch) -TensorFlow filetype:pdf"',
+    ),
   count: z.number().int().min(1).max(100).optional().describe('Max results per section'),
   freshness: z.string().optional().describe('day/week/month/year or YYYY-MM-DDtoYYYY-MM-DD'),
   offset: z.number().int().min(0).max(9).optional().describe('Pagination offset'),
@@ -106,11 +111,6 @@ export const SearchQuerySchema = z.object({
     .optional()
     .describe('Country code'),
   safesearch: z.enum(['off', 'moderate', 'strict']).optional().describe('Filter level'),
-  site: z.string().optional().describe('Specific domain'),
-  fileType: z.string().optional().describe('File type'),
-  language: LanguageSchema.optional().describe('BCP 47 language code (e.g., EN, ES, ZH-HANS)'),
-  excludeTerms: z.string().optional().describe('Terms to exclude (pipe-separated)'),
-  exactTerms: z.string().optional().describe('Exact terms (pipe-separated)'),
   livecrawl: z.enum(['web', 'news', 'all']).optional().describe('Live-crawl sections for full content'),
   livecrawl_formats: z.enum(['html', 'markdown']).optional().describe('Format for crawled content'),
 })

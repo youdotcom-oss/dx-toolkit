@@ -35,7 +35,7 @@ export type DryRunResult = {
  * @public
  */
 export const buildSearchRequest = ({
-  searchQuery: { query, site, fileType, language, exactTerms, excludeTerms, ...rest },
+  searchQuery,
   YDC_API_KEY,
   getUserAgent,
 }: {
@@ -43,36 +43,13 @@ export const buildSearchRequest = ({
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
 }): DryRunResult => {
-  // Build query param with search operators (lines 19-41 from search.utils.ts)
-  const searchQuery = [query]
-  site && searchQuery.push(`site:${site}`)
-  fileType && searchQuery.push(`filetype:${fileType}`)
-  language && searchQuery.push(`lang:${language}`)
-  if (exactTerms && excludeTerms) {
-    throw new Error('Cannot specify both exactTerms and excludeTerms - please use only one')
-  }
-  exactTerms &&
-    searchQuery.push(
-      exactTerms
-        .split('|')
-        .map((term) => `+${term}`)
-        .join(' AND '),
-    )
-  excludeTerms &&
-    searchQuery.push(
-      excludeTerms
-        .split('|')
-        .map((term) => `-${term}`)
-        .join(' AND '),
-    )
+  // Convert all search query params to query string parameters
+  const queryParams: Record<string, string> = {}
 
-  const queryParams: Record<string, string> = {
-    query: searchQuery.join(' '),
-  }
-
-  // Append additional advanced params
-  for (const [name, value] of Object.entries(rest)) {
-    if (value) queryParams[name] = `${value}`
+  for (const [name, value] of Object.entries(searchQuery)) {
+    if (value !== undefined && value !== null) {
+      queryParams[name] = `${value}`
+    }
   }
 
   return {

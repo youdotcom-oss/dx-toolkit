@@ -20,9 +20,9 @@ describe('buildSearchRequest', () => {
     expect(request.queryParams?.query).toBe('AI')
   })
 
-  test('builds query with site: operator', () => {
+  test('passes query with site: operator directly', () => {
     const request = buildSearchRequest({
-      searchQuery: { query: 'AI', site: 'you.com' },
+      searchQuery: { query: 'AI site:you.com' },
       YDC_API_KEY,
       getUserAgent,
     })
@@ -30,9 +30,9 @@ describe('buildSearchRequest', () => {
     expect(request.queryParams?.query).toBe('AI site:you.com')
   })
 
-  test('builds query with filetype: operator', () => {
+  test('passes query with filetype: operator directly', () => {
     const request = buildSearchRequest({
-      searchQuery: { query: 'tutorial', fileType: 'pdf' },
+      searchQuery: { query: 'tutorial filetype:pdf' },
       YDC_API_KEY,
       getUserAgent,
     })
@@ -40,48 +40,44 @@ describe('buildSearchRequest', () => {
     expect(request.queryParams?.query).toBe('tutorial filetype:pdf')
   })
 
-  test('builds query with lang: operator', () => {
+  test('passes query with lang: operator directly', () => {
     const request = buildSearchRequest({
-      searchQuery: { query: 'search', language: 'EN' },
+      searchQuery: { query: 'search lang:en' },
       YDC_API_KEY,
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('search lang:EN')
+    expect(request.queryParams?.query).toBe('search lang:en')
   })
 
-  test('builds query with exactTerms', () => {
+  test('passes query with +term inclusion operator directly', () => {
     const request = buildSearchRequest({
-      searchQuery: { query: 'search', exactTerms: 'machine|learning' },
+      searchQuery: { query: 'search +machine +learning' },
       YDC_API_KEY,
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('search +machine AND +learning')
+    expect(request.queryParams?.query).toBe('search +machine +learning')
   })
 
-  test('builds query with excludeTerms', () => {
+  test('passes query with -term exclusion operator directly', () => {
     const request = buildSearchRequest({
-      searchQuery: { query: 'python', excludeTerms: 'django|flask' },
+      searchQuery: { query: 'python -django -flask' },
       YDC_API_KEY,
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('python -django AND -flask')
+    expect(request.queryParams?.query).toBe('python -django -flask')
   })
 
-  test('throws error when both exactTerms and excludeTerms are provided', () => {
-    expect(() =>
-      buildSearchRequest({
-        searchQuery: {
-          query: 'test',
-          exactTerms: 'include',
-          excludeTerms: 'exclude',
-        },
-        YDC_API_KEY,
-        getUserAgent,
-      }),
-    ).toThrow('Cannot specify both exactTerms and excludeTerms')
+  test('passes query with boolean operators directly', () => {
+    const request = buildSearchRequest({
+      searchQuery: { query: '(Python OR JavaScript) AND tutorial -deprecated' },
+      YDC_API_KEY,
+      getUserAgent,
+    })
+
+    expect(request.queryParams?.query).toBe('(Python OR JavaScript) AND tutorial -deprecated')
   })
 
   test('includes advanced search parameters', () => {
@@ -100,6 +96,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
+    expect(request.queryParams?.query).toBe('AI')
     expect(request.queryParams?.count).toBe('10')
     expect(request.queryParams?.freshness).toBe('week')
     expect(request.queryParams?.offset).toBe('5')
@@ -109,18 +106,17 @@ describe('buildSearchRequest', () => {
     expect(request.queryParams?.livecrawl_formats).toBe('markdown')
   })
 
-  test('combines multiple operators', () => {
+  test('combines multiple operators in query string', () => {
     const request = buildSearchRequest({
       searchQuery: {
-        query: 'AI',
-        site: 'you.com',
-        fileType: 'pdf',
-        language: 'EN',
+        query: 'machine learning best practices (Python OR PyTorch) -TensorFlow filetype:pdf',
       },
       YDC_API_KEY,
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('AI site:you.com filetype:pdf lang:EN')
+    expect(request.queryParams?.query).toBe(
+      'machine learning best practices (Python OR PyTorch) -TensorFlow filetype:pdf',
+    )
   })
 })
