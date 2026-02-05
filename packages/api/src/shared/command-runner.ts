@@ -67,7 +67,7 @@ export const runCommand = async <TInput, TOutput>(args: string[], config: Comman
   }
 
   // Validate with schema
-  const validatedInput = config.schema.parse(input) as TInput
+  const validatedInput = config.schema.parse(input)
 
   // Create getUserAgent function
   const getUserAgent = useGetUserAgent(client)
