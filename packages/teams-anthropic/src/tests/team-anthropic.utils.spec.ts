@@ -274,6 +274,7 @@ describe('message-transformer', () => {
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
+          inference_geo: null,
         },
       }
 
@@ -313,6 +314,7 @@ describe('message-transformer', () => {
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
+          inference_geo: null,
         },
       }
 
@@ -358,6 +360,7 @@ describe('message-transformer', () => {
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
+          inference_geo: null,
         },
       }
 
@@ -396,6 +399,7 @@ describe('message-transformer', () => {
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
+          inference_geo: null,
         },
       }
 
@@ -423,6 +427,7 @@ describe('message-transformer', () => {
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
           server_tool_use: { web_search_requests: 0 },
           service_tier: null,
+          inference_geo: null,
         },
       }
 
