@@ -1,6 +1,6 @@
 # n8n-nodes-youdotcom
 
-An n8n community node for integrating [You.com APIs](https://you.com/api) into your n8n workflows. Search the web, extract content from URLs, or get AI-powered answers with citations.
+An n8n community node for integrating [You.com APIs](https://you.com/apis) into your n8n workflows. Search the web, extract content from URLs, or get AI-powered answers with citations.
 
 ## Installation
 
@@ -25,7 +25,7 @@ Search the web and news using You.com's search API.
 
 | Parameter        | Required | Description                                             |
 | ---------------- | -------- | ------------------------------------------------------- |
-| Query            | Yes      | The search query to retrieve relevant results           |
+| Query            | Yes      | The search query (supports search operators, see below) |
 | Count            | No       | Maximum number of results per section (1-100)           |
 | Country          | No       | Country code for geographical focus (e.g., US, GB, DE)  |
 | Freshness        | No       | Filter by recency: day, week, month, or year            |
@@ -34,10 +34,22 @@ Search the web and news using You.com's search API.
 | Livecrawl Format | No       | Format for livecrawled content (HTML or Markdown)       |
 | Offset           | No       | Pagination offset (0-9)                                 |
 | Safe Search      | No       | Content moderation: off, moderate, or strict            |
-| Site             | No       | Restrict results to a specific domain                   |
-| File Type        | No       | Filter results by file type (e.g., pdf, doc)            |
-| Exclude Terms    | No       | Terms to exclude (pipe-separated)                       |
-| Exact Terms      | No       | Require exact phrase matches (pipe-separated)           |
+
+**Search operators:**
+
+Include these directly in your query to refine results. See [search operators documentation](https://docs.you.com/search/search-operators) for details.
+
+| Operator   | Example                 | Description                                        |
+| ---------- | ----------------------- | -------------------------------------------------- |
+| `site:`    | `site:github.com`       | Restrict to a specific domain (including subdomains) |
+| `filetype:`| `filetype:pdf`          | Filter by file type                                |
+| `+`        | `+GAAP`                 | Require exact term in results                      |
+| `-`        | `-marketing`            | Exclude exact term from results                    |
+| `AND`      | `Python AND PyTorch`    | Logical AND to combine expressions                 |
+| `OR`       | `Python OR PyTorch`     | Logical OR to combine expressions                  |
+| `NOT`      | `NOT site:example.com`  | Negate an expression                               |
+
+**Example:** `machine learning (Python OR PyTorch) -TensorFlow filetype:pdf` searches for ML content about Python or PyTorch, excluding TensorFlow, in PDF format.
 
 ### Get Contents
 
@@ -108,6 +120,7 @@ bun run check
 
 - [You.com API Documentation](https://docs.you.com/)
 - [Search API Reference](https://docs.you.com/api-reference/search/v1-search)
+- [Search Operators](https://docs.you.com/search/search-operators)
 - [Contents API Reference](https://docs.you.com/api-reference/search/contents)
 - [Express Agent Reference](https://docs.you.com/api-reference/agents/express-agent/express-agent-runs)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)

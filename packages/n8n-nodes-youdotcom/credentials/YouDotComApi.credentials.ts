@@ -21,7 +21,8 @@ export class YouDotComApi implements ICredentialType {
       },
       default: '',
       required: true,
-      description: 'Your You.com API key. Get one at <a href="https://you.com/api" target="_blank">you.com/api</a>',
+      description:
+        'Your You.com API key. Get one at <a href="https://you.com/platform/api-keys" target="_blank">you.com/platform/api-keys</a>',
     },
   ]
 
