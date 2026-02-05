@@ -84,7 +84,7 @@ Get AI-generated answers with web search and citations. Perfect for RAG (Retriev
 
 ## Credentials
 
-1. Visit [you.com/platform](https://you.com/platform) to get an API key
+1. Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get an API key
 2. In n8n, go to **Credentials > New Credential**
 3. Search for "You.com API"
 4. Enter your API key and save
