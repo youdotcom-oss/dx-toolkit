@@ -177,7 +177,6 @@ test.serial('memory test', async () => {
 ```
 src/
 ├── search/register-search-tool.ts     # Uses API utilities
-├── express/register-express-tool.ts   # Uses API utilities
 ├── contents/register-contents-tool.ts # Uses API utilities
 ├── get-mcp-server.ts                  # Server factory
 ├── stdio.ts                           # STDIO transport

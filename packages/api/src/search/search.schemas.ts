@@ -1,7 +1,70 @@
 import * as z from 'zod'
 
+/**
+ * Language codes supported by You.com Search API (BCP 47 format)
+ * Based on OpenAPI spec: https://you.com/specs/openapi_search_v1.yaml
+ */
+export const LanguageSchema = z.enum([
+  'AR',
+  'EU',
+  'BN',
+  'BG',
+  'CA',
+  'ZH-HANS',
+  'ZH-HANT',
+  'HR',
+  'CS',
+  'DA',
+  'NL',
+  'EN',
+  'EN-GB',
+  'ET',
+  'FI',
+  'FR',
+  'GL',
+  'DE',
+  'EL',
+  'GU',
+  'HE',
+  'HI',
+  'HU',
+  'IS',
+  'IT',
+  'JP',
+  'KN',
+  'KO',
+  'LV',
+  'LT',
+  'MS',
+  'ML',
+  'MR',
+  'NB',
+  'PL',
+  'PT-BR',
+  'PT-PT',
+  'PA',
+  'RO',
+  'RU',
+  'SR',
+  'SK',
+  'SL',
+  'ES',
+  'SV',
+  'TA',
+  'TE',
+  'TH',
+  'TR',
+  'UK',
+  'VI',
+])
+
 export const SearchQuerySchema = z.object({
-  query: z.string().min(1, 'Query is required').describe('Search query (supports +, -, site:, filetype:, lang:)'),
+  query: z
+    .string()
+    .min(1, 'Query is required')
+    .describe(
+      'Search query. Supports operators: site:domain.com (domain filter), filetype:pdf (file type), +term (include), -term (exclude), AND/OR/NOT (boolean logic), lang:en (language). Example: "machine learning (Python OR PyTorch) -TensorFlow filetype:pdf"',
+    ),
   count: z.number().int().min(1).max(100).optional().describe('Max results per section'),
   freshness: z.string().optional().describe('day/week/month/year or YYYY-MM-DDtoYYYY-MM-DD'),
   offset: z.number().int().min(0).max(9).optional().describe('Pagination offset'),
@@ -32,6 +95,7 @@ export const SearchQuerySchema = z.object({
       'CN',
       'PL',
       'PT',
+      'PT-BR',
       'PH',
       'RU',
       'SA',
@@ -47,11 +111,6 @@ export const SearchQuerySchema = z.object({
     .optional()
     .describe('Country code'),
   safesearch: z.enum(['off', 'moderate', 'strict']).optional().describe('Filter level'),
-  site: z.string().optional().describe('Specific domain'),
-  fileType: z.string().optional().describe('File type'),
-  language: z.string().optional().describe('ISO 639-1 language code'),
-  excludeTerms: z.string().optional().describe('Terms to exclude (pipe-separated)'),
-  exactTerms: z.string().optional().describe('Exact terms (pipe-separated)'),
   livecrawl: z.enum(['web', 'news', 'all']).optional().describe('Live-crawl sections for full content'),
   livecrawl_formats: z.enum(['html', 'markdown']).optional().describe('Format for crawled content'),
 })

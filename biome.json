@@ -70,6 +70,9 @@
           "suspicious": {
             "noExplicitAny": "warn",
             "noConsole": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
           }
         }
       }

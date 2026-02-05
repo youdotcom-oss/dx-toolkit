@@ -21,20 +21,21 @@ export type ContentsQuery = z.infer<typeof ContentsQuerySchema>
 
 /**
  * Schema for a single content item in the API response
+ * Based on OpenAPI spec: https://you.com/specs/openapi_contents.yaml
  */
 const ContentsItemSchema = z.object({
   url: z.string().describe('URL'),
-  title: z.string().optional().describe('Title'),
-  html: z.string().optional().describe('HTML content'),
-  markdown: z.string().optional().describe('Markdown content'),
+  title: z.string().optional().describe('Title (optional in actual API responses)'),
+  html: z.string().nullable().optional().describe('HTML content'),
+  markdown: z.string().nullable().optional().describe('Markdown content'),
   metadata: z
     .object({
-      jsonld: z.array(z.record(z.string(), z.unknown())).optional().describe('JSON-LD structured data (Schema.org)'),
-      opengraph: z.record(z.string(), z.string()).optional().describe('OpenGraph meta tags'),
-      twitter: z.record(z.string(), z.string()).optional().describe('Twitter Card metadata'),
+      site_name: z.string().nullable().optional().describe('OpenGraph site name'),
+      favicon_url: z.string().describe('Favicon URL'),
     })
+    .nullable()
     .optional()
-    .describe('Structured metadata when available'),
+    .describe('Page metadata (only when metadata format requested)'),
 })
 
 /**

@@ -5,7 +5,6 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 ## Features
 
 - **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
-- **AI-powered Express Agent**: Fast responses with optional real-time web search integration
 - **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
 - **Multiple transport protocols**: STDIO and Streamable HTTP support
 - **Bearer Token Authentication**: Secure API access in HTTP mode
@@ -181,17 +180,12 @@ For setup, follow the MCP installation [guide](https://zed.dev/docs/ai/mcp#as-cu
 
 ## Available tools
 
-This MCP server provides three tools that work seamlessly with your AI agent through natural language:
+This MCP server provides two tools that work seamlessly with your AI agent through natural language:
 
 ### you-search
 Comprehensive web and news search with advanced filtering capabilities. Perfect for finding current information, research articles, documentation, and news stories.
 
 **When to use**: When you need to search the web for information, filter by specific sites/file types, or get the latest news on a topic.
-
-### you-express
-Fast AI-powered agent that provides synthesized answers with optional real-time web search. Ideal for straightforward questions that benefit from AI interpretation.
-
-**When to use**: When you want a direct answer to a question, with optional web search for up-to-date context and citations.
 
 ### you-contents
 Extract full page content from URLs in markdown, HTML, or structured metadata formats. Useful for documentation analysis, content processing, SEO data extraction, and batch URL processing.
@@ -213,12 +207,6 @@ Here are common scenarios showing when and how to use each tool with natural lan
 - "Search for TypeScript documentation about generics"
 - "Get the latest news about renewable energy from the past week"
 - "Find PDF files about machine learning algorithms"
-
-**Use you-express when:**
-- "What are the key differences between REST and GraphQL?"
-- "Explain how quantum entanglement works"
-- "What happened in the tech industry today?" (with web search enabled)
-- "Summarize the main features of the latest Python release"
 
 ### Content extraction & analysis
 

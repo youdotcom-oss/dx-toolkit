@@ -4,7 +4,7 @@
  *
  * Commands:
  *   search <query>              - Search the web with You.com
- *   express <input>             - Get AI answers with web context
+ *   deep-search <query>         - Perform deep research with comprehensive answers
  *   contents <url> [url...]     - Extract content from URLs
  *
  * Options:
@@ -14,10 +14,17 @@
  *   --help, -h                  - Show help
  */
 import { parseArgs } from 'node:util'
+import type * as z from 'zod'
 import packageJson from '../package.json' with { type: 'json' }
-import { contentsCommand } from './commands/contents.ts'
-import { expressCommand } from './commands/express.ts'
-import { searchCommand } from './commands/search.ts'
+import { ContentsQuerySchema } from './contents/contents.schemas.ts'
+import { fetchContents } from './contents/contents.utils.ts'
+import { DeepSearchQuerySchema } from './deep-search/deep-search.schemas.ts'
+import { callDeepSearch } from './deep-search/deep-search.utils.ts'
+import { SearchQuerySchema } from './search/search.schemas.ts'
+import { fetchSearchResults } from './search/search.utils.ts'
+import type { GetUserAgent } from './shared/api.types.ts'
+import { type CommandConfig, runCommand } from './shared/command-runner.ts'
+import { buildContentsRequest, buildDeepSearchRequest, buildSearchRequest } from './shared/dry-run-utils.ts'
 import { generateErrorReportLink } from './shared/generate-error-report-link.ts'
 import { useGetUserAgent } from './shared/use-get-user-agents.ts'
 
@@ -35,7 +42,7 @@ Usage: ydc <command> --json <json> [options]
 
 Commands:
   search                      Search the web with You.com
-  express                     Get AI answers with web context
+  deep-search                 Perform deep research with comprehensive answers
   contents                    Extract content from URLs
 
 Global Options:
@@ -43,6 +50,7 @@ Global Options:
   --api-key <key>             You.com API key (overrides YDC_API_KEY)
   --client <name>             Client name for tracking and debugging
   --schema                    Output JSON schema for what can be passed to --json
+  --dry-run                   Show request details without making API call
   --help, -h                  Show this help
 
 Environment Variables:
@@ -55,9 +63,10 @@ Output Format:
 
 Examples:
   ydc search --json '{"query":"AI developments"}' --client Openclaw
-  ydc express --json '{"input":"What happened today?","tools":[{"type":"web_search"}]}' --client MyAgent
+  ydc deep-search --json '{"query":"What are the latest breakthroughs in AI?","search_effort":"high"}' --client MyAgent
   ydc contents --json '{"urls":["https://example.com"],"formats":["markdown"]}'
   ydc search --schema  # Get JSON schema for search --json input
+  ydc search --json '{"query":"AI"}' --dry-run  # Inspect request without API call
   ydc search --json '{"query":"AI"}' | jq '.data.results.web[0].title'
 
 More info: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api
@@ -65,22 +74,84 @@ More info: https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api
   process.exit(command ? 0 : 2)
 }
 
+// Command configuration map
+const commands = {
+  search: {
+    schema: SearchQuerySchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof SearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => fetchSearchResults({ searchQuery: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof SearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildSearchRequest({ searchQuery: input, YDC_API_KEY, getUserAgent }),
+  },
+  'deep-search': {
+    schema: DeepSearchQuerySchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof DeepSearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => callDeepSearch({ deepSearchQuery: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof DeepSearchQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildDeepSearchRequest({ deepSearchQuery: input, YDC_API_KEY, getUserAgent }),
+  },
+  contents: {
+    schema: ContentsQuerySchema,
+    handler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ContentsQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => fetchContents({ contentsQuery: input, YDC_API_KEY, getUserAgent }),
+    dryRunHandler: ({
+      input,
+      YDC_API_KEY,
+      getUserAgent,
+    }: {
+      input: z.infer<typeof ContentsQuerySchema>
+      YDC_API_KEY: string
+      getUserAgent: GetUserAgent
+    }) => buildContentsRequest({ contentsQuery: input, YDC_API_KEY, getUserAgent }),
+  },
+}
+
+// Validate command
+if (!(command in commands)) {
+  console.error(`Unknown command: ${command}`)
+  console.error(`Run 'ydc --help' for usage`)
+  process.exit(2)
+}
+
+// Execute command
 try {
-  switch (command) {
-    case 'search':
-      await searchCommand(args)
-      break
-    case 'express':
-      await expressCommand(args)
-      break
-    case 'contents':
-      await contentsCommand(args)
-      break
-    default:
-      console.error(`Unknown command: ${command}`)
-      console.error(`Run 'ydc --help' for usage`)
-      process.exit(2)
-  }
+  // Type assertion is safe because we validated command exists above
+  await runCommand(args, commands[command as keyof typeof commands] as CommandConfig<unknown, unknown>)
   process.exit(0)
 } catch (error) {
   console.error(error)

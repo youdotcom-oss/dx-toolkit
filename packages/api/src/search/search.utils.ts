@@ -5,7 +5,7 @@ import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
 
 export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
-  searchQuery: { query, site, fileType, language, exactTerms, excludeTerms, ...rest },
+  searchQuery,
   getUserAgent,
 }: {
   searchQuery: SearchQuery
@@ -16,33 +16,11 @@ export const fetchSearchResults = async ({
 
   const searchParams = new URLSearchParams()
 
-  // Build Query Param
-  const searchQuery = [query]
-  site && searchQuery.push(`site:${site}`)
-  fileType && searchQuery.push(`filetype:${fileType}`)
-  language && searchQuery.push(`lang:${language}`)
-  if (exactTerms && excludeTerms) {
-    throw new Error('Cannot specify both exactTerms and excludeTerms - please use only one')
-  }
-  exactTerms &&
-    searchQuery.push(
-      exactTerms
-        .split('|')
-        .map((term) => `+${term}`)
-        .join(' AND '),
-    )
-  excludeTerms &&
-    searchQuery.push(
-      excludeTerms
-        .split('|')
-        .map((term) => `-${term}`)
-        .join(' AND '),
-    )
-  searchParams.append('query', searchQuery.join(' '))
-
-  // Append additional advanced Params
-  for (const [name, value] of Object.entries(rest)) {
-    if (value) searchParams.append(name, `${value}`)
+  // Append all query parameters
+  for (const [name, value] of Object.entries(searchQuery)) {
+    if (value !== undefined && value !== null) {
+      searchParams.append(name, `${value}`)
+    }
   }
 
   url.search = searchParams.toString()

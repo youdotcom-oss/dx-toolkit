@@ -5,4 +5,4 @@ import type { GetUserAgent } from './api.types.ts'
 export const useGetUserAgent =
   (client = ''): GetUserAgent =>
   () =>
-    `CLI/ ${packageJson.version} (You.com;${client})`
+    `CLI/${packageJson.version}(You.com;${client})`

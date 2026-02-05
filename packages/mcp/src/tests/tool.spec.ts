@@ -212,13 +212,12 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles site parameter',
+    'handles site: operator in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'react components',
-          site: 'github.com',
+          query: 'react components site:github.com',
         },
       })
 
@@ -229,13 +228,12 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles fileType parameter',
+    'handles filetype: operator in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'documentation',
-          fileType: 'pdf',
+          query: 'documentation filetype:pdf',
         },
       })
 
@@ -246,13 +244,12 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles language parameter',
+    'handles lang: operator in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'tutorial',
-          language: 'es',
+          query: 'tutorial lang:es',
         },
       })
 
@@ -263,13 +260,12 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles exactTerms parameter',
+    'handles + operator for required terms in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'programming',
-          exactTerms: 'javascript|typescript',
+          query: 'programming +javascript +typescript',
         },
       })
 
@@ -280,13 +276,12 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles excludeTerms parameter',
+    'handles - operator for excluded terms in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'tutorial',
-          excludeTerms: 'beginner|basic',
+          query: 'tutorial -beginner -basic',
         },
       })
 
@@ -297,54 +292,17 @@ describe('registerSearchTool', () => {
   )
 
   test(
-    'handles multi-word phrases with parentheses in exactTerms',
+    'handles complex search with multiple operators in query',
     async () => {
       const result = await client.callTool({
         name: 'you-search',
         arguments: {
-          query: 'programming',
-          exactTerms: '(machine learning)|typescript',
-        },
-      })
-
-      const content = result.content as { type: string; text: string }[]
-      expect(content[0]?.text).toContain('programming')
-    },
-    { retry: 2 },
-  )
-
-  test(
-    'handles multi-word phrases with parentheses in excludeTerms',
-    async () => {
-      const result = await client.callTool({
-        name: 'you-search',
-        arguments: {
-          query: 'programming',
-          excludeTerms: '(social media)|ads',
-        },
-      })
-
-      const content = result.content as { type: string; text: string }[]
-      expect(content[0]?.text).toContain('programming')
-    },
-    { retry: 2 },
-  )
-
-  test(
-    'handles complex search with multiple parameters',
-    async () => {
-      const result = await client.callTool({
-        name: 'you-search',
-        arguments: {
-          query: 'machine learning tutorial',
+          query: 'machine learning tutorial site:github.com filetype:md lang:en',
           count: 5,
           offset: 1,
           freshness: 'month',
           country: 'US',
           safesearch: 'moderate',
-          site: 'github.com',
-          fileType: 'md',
-          language: 'en',
         },
       })
 
@@ -427,25 +385,6 @@ describe('registerSearchTool', () => {
       expect(typeof resultCounts.news).toBe('number')
       expect(typeof resultCounts.total).toBe('number')
       expect(resultCounts.total).toBe(resultCounts.web + resultCounts.news)
-    },
-    { retry: 2 },
-  )
-
-  test(
-    'returns error when both exactTerms and excludeTerms are provided',
-    async () => {
-      const result = await client.callTool({
-        name: 'you-search',
-        arguments: {
-          query: 'programming',
-          exactTerms: 'javascript',
-          excludeTerms: 'beginner',
-        },
-      })
-
-      expect(result.isError).toBe(true)
-      const content = result.content as { type: string; text: string }[]
-      expect(content[0]?.text).toContain('Cannot specify both exactTerms and excludeTerms - please use only one')
     },
     { retry: 2 },
   )

@@ -1,6 +1,6 @@
 /**
- * Generic search result type that works for both Search and Express APIs
- * Used by both search.utils.ts and express.utils.ts
+ * Generic search result type for Search API results
+ * Used by search.utils.ts
  */
 type GenericSearchResult = {
   url: string
@@ -13,7 +13,7 @@ type GenericSearchResult = {
 
 /**
  * Format array of search results into display text
- * Used by both search and express agent formatting
+ * Used by search result formatting
  * @param results - Array of search results to format
  */
 export const formatSearchResultsText = (results: GenericSearchResult[]): string => {
@@ -38,7 +38,7 @@ export const formatSearchResultsText = (results: GenericSearchResult[]): string 
       if (result.snippets && result.snippets.length > 0) {
         parts.push(`Snippets:\n- ${result.snippets.join('\n- ')}`)
       }
-      // Handle single snippet (from Express API)
+      // Handle single snippet
       else if (result.snippet) {
         parts.push(`Snippet: ${result.snippet}`)
       }
