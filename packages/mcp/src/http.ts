@@ -52,6 +52,20 @@ const handleMcpRequest = async (c: Context) => {
   return response
 }
 
+const return405MethodNotAllowed = (c: Context) => {
+  c.status(405)
+  c.header('Allow', 'POST')
+  c.header('Content-Type', 'application/json')
+  return c.json({
+    jsonrpc: '2.0',
+    error: {
+      code: -32000,
+      message: 'Method Not Allowed: Use POST to send MCP requests',
+    },
+    id: null,
+  })
+}
+
 const app = new Hono()
 app.use(trimTrailingSlash())
 
@@ -64,7 +78,14 @@ app.get('/mcp-health', async (c) => {
   })
 })
 
-app.all('/mcp', handleMcpRequest)
-app.all('/mcp/', handleMcpRequest)
+// POST handler for MCP requests (per MCP Streamable HTTP spec)
+app.post('/mcp', handleMcpRequest)
+app.post('/mcp/', handleMcpRequest)
+
+// Fallback for other methods - returns 405 per MCP spec
+// Spec: "The server MUST either return Content-Type: text/event-stream
+// or else return HTTP 405 Method Not Allowed"
+app.all('/mcp', return405MethodNotAllowed)
+app.all('/mcp/', return405MethodNotAllowed)
 
 export default app
