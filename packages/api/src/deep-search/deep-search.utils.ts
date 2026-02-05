@@ -14,17 +14,21 @@ import { type DeepSearchQuery, DeepSearchResponseSchema } from './deep-search.sc
  */
 export const callDeepSearch = async ({
   deepSearchQuery,
-  YDC_API_KEY,
+  YDC_API_KEY = process.env.YDC_API_KEY,
   getUserAgent,
 }: {
   deepSearchQuery: DeepSearchQuery
-  YDC_API_KEY: string
+  YDC_API_KEY?: string
   getUserAgent: GetUserAgent
 }) => {
+  if (!YDC_API_KEY) {
+    throw new Error('YDC_API_KEY is required for Deep Search API')
+  }
+
   const response = await fetch(DEEP_SEARCH_API_URL, {
     method: 'POST',
     headers: new Headers({
-      'X-API-Key': YDC_API_KEY || '',
+      'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
     }),
