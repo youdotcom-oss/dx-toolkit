@@ -62,7 +62,7 @@ Output Format:
   Invalid args: Error message on stderr (exit 2)
 
 Examples:
-  ydc search --json '{"query":"AI developments"}' --client Openclaw
+  ydc search --json '{"query":"AI developments"}' --client ClaudeCode
   ydc deep-search --json '{"query":"What are the latest breakthroughs in AI?","search_effort":"high"}' --client MyAgent
   ydc contents --json '{"urls":["https://example.com"],"formats":["markdown"]}'
   ydc search --schema  # Get JSON schema for search --json input

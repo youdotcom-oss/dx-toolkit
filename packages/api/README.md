@@ -19,11 +19,11 @@ Fast, lightweight API client and CLI tools for web search, AI answers, and conte
 
 ```bash
 # Use with bunx (no install needed) - Schema-driven JSON input
-bunx @youdotcom-oss/api search --json '{"query":"AI developments"}' --client Openclaw
+bunx @youdotcom-oss/api search --json '{"query":"AI developments"}' --client ClaudeCode
 
 # Or install globally to use 'ydc' command
 bun i -g @youdotcom-oss/api
-ydc search --json '{"query":"AI developments"}' --client Openclaw
+ydc search --json '{"query":"AI developments"}' --client ClaudeCode
 
 # Get comprehensive research with citations
 bunx @youdotcom-oss/api deep-search --json '{
@@ -137,14 +137,14 @@ ydc search --json '{"query":"..."}' [options]
 
 Examples:
   # Basic search
-  ydc search --json '{"query":"machine learning"}' --client Openclaw
+  ydc search --json '{"query":"machine learning"}' --client ClaudeCode
 
   # Search with livecrawl (KEY FEATURE)
   ydc search --json '{
     "query":"documentation",
     "livecrawl":"web",
     "livecrawl_formats":"markdown"
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Advanced filters
   ydc search --json '{
@@ -153,10 +153,10 @@ Examples:
     "fileType":"pdf",
     "freshness":"month",
     "count":10
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Parse with jq
-  api search --json '{"query":"AI"}' --client Openclaw | \
+  api search --json '{"query":"AI"}' --client ClaudeCode | \
     jq -r '.results.web[] | .title'
 
   # Extract livecrawl content
@@ -164,7 +164,7 @@ Examples:
     "query":"docs",
     "livecrawl":"web",
     "livecrawl_formats":"markdown"
-  }' --client Openclaw | \
+  }' --client ClaudeCode | \
     jq -r '.results.web[0].contents.markdown'
 ```
 
@@ -190,18 +190,18 @@ ydc deep-search --json '{"query":"..."}' [options]
 
 Examples:
   # Comprehensive research with medium effort
-  api deep-search --json '{"query":"What is quantum computing?"}' --client Openclaw
+  api deep-search --json '{"query":"What is quantum computing?"}' --client ClaudeCode
 
   # High-effort deep research (up to 5 minutes)
   api deep-search --json '{
     "query":"Latest breakthroughs in AI agents",
     "search_effort":"high"
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Parse answer and sources
   api deep-search --json '{
     "query":"AI trends 2026"
-  }' --client Openclaw | \
+  }' --client ClaudeCode | \
     jq -r '.answer, "\nSources:", (.results[]? | "- \(.title): \(.url)")'
 ```
 
@@ -219,25 +219,25 @@ Examples:
   api contents --json '{
     "urls":["https://example.com"],
     "formats":["markdown"]
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Multiple formats
   api contents --json '{
     "urls":["https://example.com"],
     "formats":["markdown","html","metadata"]
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Multiple URLs
   api contents --json '{
     "urls":["https://a.com","https://b.com"],
     "formats":["markdown"]
-  }' --client Openclaw
+  }' --client ClaudeCode
 
   # Save to file
   api contents --json '{
     "urls":["https://example.com"],
     "formats":["markdown"]
-  }' --client Openclaw | \
+  }' --client ClaudeCode | \
     jq -r '.[0].markdown' > output.md
 
   # With timeout
@@ -245,7 +245,7 @@ Examples:
     "urls":["https://example.com"],
     "formats":["markdown","metadata"],
     "crawl_timeout":30
-  }' --client Openclaw
+  }' --client ClaudeCode
 ```
 
 **Available contents parameters** (use `--schema` to see full schema):
@@ -363,7 +363,7 @@ console.log(response[0].metadata); // Structured metadata
 set -e
 
 # Capture result, check exit code
-if ! result=$(api search --json '{"query":"AI developments"}' --client Openclaw); then
+if ! result=$(api search --json '{"query":"AI developments"}' --client ClaudeCode); then
   echo "Search failed with code $?"
   exit 1
 fi
@@ -377,7 +377,7 @@ echo "$result" | jq .
 ```bash
 #!/usr/bin/env bash
 for i in {1..3}; do
-  if api search --json '{"query":"AI"}' --client Openclaw; then
+  if api search --json '{"query":"AI"}' --client ClaudeCode; then
     exit 0
   fi
   [ $i -lt 3 ] && sleep 5
@@ -390,9 +390,9 @@ exit 1
 
 ```bash
 #!/usr/bin/env bash
-ydc search --json '{"query":"AI"}' --client Openclaw &
-ydc search --json '{"query":"ML"}' --client Openclaw &
-ydc search --json '{"query":"LLM"}' --client Openclaw &
+ydc search --json '{"query":"AI"}' --client ClaudeCode &
+ydc search --json '{"query":"ML"}' --client ClaudeCode &
+ydc search --json '{"query":"LLM"}' --client ClaudeCode &
 wait
 ```
 
@@ -408,18 +408,18 @@ search=$(api search --json '{
   "count":5,
   "livecrawl":"web",
   "livecrawl_formats":"markdown"
-}' --client Openclaw)
+}' --client ClaudeCode)
 
 # Get comprehensive research with citations
 answer=$(api deep-search --json '{
   "query":"Summarize AI developments in 2026",
   "search_effort":"high"
-}' --client Openclaw)
+}' --client ClaudeCode)
 
 # Extract top result URL and fetch content
 url=$(echo "$search" | jq -r '.results.web[0].url')
 ydc contents --json "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
-  --client Openclaw | jq -r '.[0].markdown' > output.md
+  --client ClaudeCode | jq -r '.[0].markdown' > output.md
 ```
 
 ### Schema-Driven Agent
@@ -441,7 +441,7 @@ query=$(jq -n '{
 }')
 
 # Execute search
-ydc search --json "$query" --client Openclaw
+ydc search --json "$query" --client ClaudeCode
 ```
 
 ## Agent Skills Integration
@@ -462,10 +462,10 @@ The [youdotcom-cli skill](https://github.com/youdotcom-oss/agent-skills/tree/mai
 ### Compatible Agents
 
 Works with any bash-capable agent supporting Agent Skills:
-- **OpenClaw** - Open source bash agent
 - **Claude Code** - Anthropic's coding tool
-- **Codex** - OpenAI's CLI agent
 - **Cursor** - AI-powered code editor
+- **Droid** - Factory.ai agent
+- **Codex** - OpenAI's CLI agent
 - **Roo Code** - VS Code extension
 - And more...
 

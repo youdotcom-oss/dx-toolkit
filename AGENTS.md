@@ -630,7 +630,7 @@ Core You.com API client with bundled CLI for bash-based AI agents.
 
 **Usage**:
 - Programmatic: `import { fetchSearchResults } from '@youdotcom-oss/api'`
-- CLI: `bunx @youdotcom-oss/api search "query" --client Openclaw`
+- CLI: `bunx @youdotcom-oss/api search "query" --client ClaudeCode`
 
 **Key Features**:
 - Livecrawl: Search AND extract content in one API call
@@ -638,7 +638,7 @@ Core You.com API client with bundled CLI for bash-based AI agents.
 - Client tracking via --client flag or YDC_CLIENT env
 - Exit codes for error handling (0=success, 1=API error, 2=invalid args)
 
-**For bash agent integration**: See [openclaw-youdotcom skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/openclaw-youdotcom)
+**For bash agent integration**: See [youdotcom-cli skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli)
 
 **Development patterns**: No dedicated patterns file - simple API package following core.md rules
 
