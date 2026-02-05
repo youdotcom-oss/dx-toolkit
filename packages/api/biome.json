@@ -12,6 +12,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/**/*.spec.ts", "src/**/*.test.ts", "src/**/tests/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
     }
   ]
 }

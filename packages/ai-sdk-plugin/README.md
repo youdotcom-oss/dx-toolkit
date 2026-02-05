@@ -42,7 +42,7 @@ Import the tools and add them to your AI SDK configuration:
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
-import { youSearch, youExpress, youContents } from '@youdotcom-oss/ai-sdk-plugin';
+import { youSearch, youContents } from '@youdotcom-oss/ai-sdk-plugin';
 
 // Create your AI model provider
 const anthropic = createAnthropic({
@@ -53,7 +53,6 @@ const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
   tools: {
     search: youSearch(),
-    agent: youExpress(),
     extract: youContents(),
   },
   maxSteps: 5,
@@ -208,15 +207,6 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 - Searching for current information or news
 - Finding specific content with filters (dates, sites, file types)
 - Research queries requiring multiple results
-
-### youExpress()
-
-Fast AI-powered agent that provides synthesized answers with optional real-time web search. Ideal for straightforward questions that benefit from AI interpretation.
-
-**When your AI will use this:**
-- Direct questions needing quick answers
-- Queries benefiting from AI synthesis
-- Requests for explanations or summaries with web context
 
 ### youContents()
 

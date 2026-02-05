@@ -47,30 +47,12 @@ export const formatContentsResponse = (
     if (formats.includes('metadata') && item.metadata) {
       textParts.push('\n### Metadata\n')
 
-      if (item.metadata.jsonld && item.metadata.jsonld.length > 0) {
-        textParts.push('\n**JSON-LD:**\n')
-        const jsonldStr = JSON.stringify(item.metadata.jsonld, null, 2)
-        if (jsonldStr.length > 2000) {
-          textParts.push(jsonldStr.substring(0, 2000))
-          textParts.push('\n...(truncated for display, see structuredContent for full data)')
-        } else {
-          textParts.push(jsonldStr)
-        }
-        textParts.push('\n')
+      if (item.metadata.site_name) {
+        textParts.push(`**Site Name:** ${item.metadata.site_name}\n`)
       }
 
-      if (item.metadata.opengraph) {
-        textParts.push('\n**OpenGraph:**\n')
-        for (const [key, value] of Object.entries(item.metadata.opengraph)) {
-          textParts.push(`- ${key}: ${value}\n`)
-        }
-      }
-
-      if (item.metadata.twitter) {
-        textParts.push('\n**Twitter:**\n')
-        for (const [key, value] of Object.entries(item.metadata.twitter)) {
-          textParts.push(`- ${key}: ${value}\n`)
-        }
+      if (item.metadata.favicon_url) {
+        textParts.push(`**Favicon:** ${item.metadata.favicon_url}\n`)
       }
     }
 
@@ -79,10 +61,10 @@ export const formatContentsResponse = (
     // Add to structured content
     items.push({
       url: item.url,
-      title: item.title,
-      markdown: item.markdown,
-      html: item.html,
-      metadata: item.metadata,
+      title: item.title ?? undefined,
+      markdown: item.markdown ?? undefined,
+      html: item.html ?? undefined,
+      metadata: item.metadata ?? undefined,
     })
   }
 

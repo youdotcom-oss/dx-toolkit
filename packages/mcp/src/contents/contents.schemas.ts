@@ -16,12 +16,12 @@ export const ContentsStructuredContentSchema = z.object({
         html: z.string().optional().describe('HTML content'),
         metadata: z
           .object({
-            jsonld: z.array(z.record(z.string(), z.unknown())).optional(),
-            opengraph: z.record(z.string(), z.string()).optional(),
-            twitter: z.record(z.string(), z.string()).optional(),
+            favicon_url: z.string().describe('Favicon URL'),
+            site_name: z.string().optional().nullable().describe('Site name'),
           })
           .optional()
-          .describe('Structured metadata'),
+          .nullable()
+          .describe('Page metadata'),
       }),
     )
     .describe('Extracted items'),

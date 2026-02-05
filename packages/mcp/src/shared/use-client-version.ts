@@ -3,7 +3,7 @@ import packageJson from '../../package.json' with { type: 'json' }
 
 /**
  * Creates User-Agent string for API requests
- * Used by search and express agent API calls
+ * Used by search and contents API calls
  */
 const setUserAgent = (client: string) => `MCP/${packageJson.version} (You.com; ${client})`
 

@@ -15,9 +15,7 @@ describe('fetchSearchResults', () => {
       expect(result).toHaveProperty('results')
       expect(result).toHaveProperty('metadata')
       expect(result.results).toHaveProperty('web')
-      // expect(result.results).toHaveProperty('news');
       expect(Array.isArray(result.results.web)).toBe(true)
-      // expect(Array.isArray(result.results.news)).toBe(true);
 
       // Assert required metadata fields
       expect(typeof result.metadata?.query).toBe('string')
@@ -57,7 +55,6 @@ describe('fetchSearchResults', () => {
       })
 
       // Test that web results have required properties
-      // biome-ignore lint/style/noNonNullAssertion: Test
       const webResult = result.results.web![0]
 
       expect(webResult).toHaveProperty('url')
@@ -65,13 +62,6 @@ describe('fetchSearchResults', () => {
       expect(webResult).toHaveProperty('description')
       expect(webResult).toHaveProperty('snippets')
       expect(Array.isArray(webResult?.snippets)).toBe(true)
-
-      // Test that news results have required properties
-      // const newsResult = result.results.news![0];
-      // expect(newsResult).toHaveProperty('url');
-      // expect(newsResult).toHaveProperty('title');
-      // expect(newsResult).toHaveProperty('description');
-      // expect(newsResult).toHaveProperty('page_age');
     },
     { retry: 2 },
   )

@@ -168,7 +168,6 @@ const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
 | Tool | API Utility | Schema |
 |------|-------------|--------|
 | `youSearch()` | `fetchSearchResults()` | `SearchQuerySchema` |
-| `youExpress()` | `callExpressAgent()` | `ExpressAgentInputSchema` |
 | `youContents()` | `fetchContents()` | `ContentsQuerySchema` |
 
 ## Testing
