@@ -20,7 +20,7 @@
       "name": "@youdotcom-oss/ai-sdk-plugin",
       "version": "1.0.3",
       "dependencies": {
-        "@youdotcom-oss/api": "0.1.1",
+        "@youdotcom-oss/api": "0.2.0",
       },
       "devDependencies": {
         "@ai-sdk/anthropic": "^3.0.35",
@@ -47,7 +47,7 @@
       "dependencies": {
         "@hono/mcp": "^0.2.3",
         "@modelcontextprotocol/sdk": "^1.25.3",
-        "@youdotcom-oss/api": "0.1.1",
+        "@youdotcom-oss/api": "0.2.0",
         "hono": "^4.11.7",
         "zod": "^4.3.6",
       },
@@ -1346,10 +1346,6 @@
 
     "@typescript-eslint/eslint-plugin/ignore": ["ignore@7.0.5", "", {}, "sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg=="],
 
-    "@youdotcom-oss/ai-sdk-plugin/@youdotcom-oss/api": ["@youdotcom-oss/api@0.1.1", "", { "dependencies": { "zod": "^4.3.6" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-HBxpExIn/fJQi2MvTdMYtSPHRsrJU1eZu1NysPq4Gpn3IN78R7YbHnxUDDZqPoD/NEVu1tOR8bixO8N8kWdL4g=="],
-
-    "@youdotcom-oss/mcp/@youdotcom-oss/api": ["@youdotcom-oss/api@0.1.1", "", { "dependencies": { "zod": "^4.3.6" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-HBxpExIn/fJQi2MvTdMYtSPHRsrJU1eZu1NysPq4Gpn3IN78R7YbHnxUDDZqPoD/NEVu1tOR8bixO8N8kWdL4g=="],
-
     "caller-callsite/callsites": ["callsites@2.0.0", "", {}, "sha512-ksWePWBloaWPxJYQ8TL0JHvtci6G5QTKwQ95RcWAa/lzoAKuAOflGdAK92hpHXjkwb8zLxoLNUoNYZgVsaJzvQ=="],
 
     "cli-truncate/string-width": ["string-width@8.1.1", "", { "dependencies": { "get-east-asian-width": "^1.3.0", "strip-ansi": "^7.1.0" } }, "sha512-KpqHIdDL9KwYk22wEOg/VIqYbrnLeSApsKT/bSj6Ez7pn3CftUiLAv2Lccpq1ALcpLV9UX1Ppn92npZWu2w/aw=="],
@@ -1379,8 +1375,6 @@
     "form-data/mime-types": ["mime-types@2.1.35", "", { "dependencies": { "mime-db": "1.52.0" } }, "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw=="],
 
     "glob/minimatch": ["minimatch@10.1.2", "", { "dependencies": { "@isaacs/brace-expansion": "^5.0.1" } }, "sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw=="],
-
-    "globby/fast-glob": ["fast-glob@3.3.3", "", { "dependencies": { "@nodelib/fs.stat": "^2.0.2", "@nodelib/fs.walk": "^1.2.3", "glob-parent": "^5.1.2", "merge2": "^1.3.0", "micromatch": "^4.0.8" } }, "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg=="],
 
     "import-fresh/resolve-from": ["resolve-from@3.0.0", "", {}, "sha512-GnlH6vxLymXJNMBo7XP1fJIzBFbdYt49CuTwmB/6N53t+kMPRMFKz783LlQ4tv28XoQfMWinAJX6WCGf2IlaIw=="],
 
