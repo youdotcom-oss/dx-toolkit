@@ -83,12 +83,12 @@ jobs:
           ### OpenAPI Specifications
           - Search API: https://you.com/specs/openapi_search_v1.yaml
           - Contents API: https://you.com/specs/openapi_contents.yaml
-          - Express/Unified Agents API: https://you.com/specs/openapi_unified_agents.yaml
+          - Deep-Search API: https://docs.you.com/api-reference/deep-search/v1-deep_search.md
 
           ### Schema Files to Check
           - \`packages/api/src/search/search.schemas.ts\`
           - \`packages/api/src/contents/contents.schemas.ts\`
-          - \`packages/api/src/express/express.schemas.ts\`
+          - \`packages/api/src/deep-search/deep-search.schemas.ts\`
 
           ### Action Required
           1. Review the OpenAPI specs linked above
