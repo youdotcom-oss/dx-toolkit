@@ -1,7 +1,7 @@
 /**
  * Checks if a response object contains an error field and throws if found
  * Handles API responses that return 200 status but contain error messages
- * Used by both search and express agent utilities
+ * Used by search, deep-search, and contents utilities
  */
 export const checkResponseForErrors = (responseData: unknown) => {
   if (typeof responseData === 'object' && responseData !== null && 'error' in responseData) {

@@ -25,10 +25,10 @@ bunx @youdotcom-oss/api search --json '{"query":"AI developments"}' --client Ope
 bun i -g @youdotcom-oss/api
 ydc search --json '{"query":"AI developments"}' --client Openclaw
 
-# Get AI answer with citations
-bunx @youdotcom-oss/api express --json '{
-  "input":"What happened in AI this week?",
-  "tools":[{"type":"web_search"}]
+# Get comprehensive research with citations
+bunx @youdotcom-oss/api deep-search --json '{
+  "query":"What happened in AI this week?",
+  "search_effort":"high"
 }' --client MyAgent
 
 # Extract web content
@@ -100,7 +100,7 @@ All commands require the `--json` flag with a JSON string containing the query p
 
 ```bash
 ydc search --json '{"query":"..."}'
-ydc express --json '{"input":"..."}'
+ydc deep-search --json '{"query":"...","search_effort":"medium"}'
 ydc contents --json '{"urls":["..."]}'
 ```
 
@@ -110,6 +110,7 @@ ydc contents --json '{"urls":["..."]}'
 - `--api-key <key>` - You.com API key (overrides YDC_API_KEY)
 - `--client <name>` - Client name for tracking (overrides YDC_CLIENT)
 - `--schema` - Output JSON schema for what can be passed to --json
+- `--dry-run` - Show request details without making API call
 - `--help, -h` - Show help
 
 ### Schema Discovery
@@ -120,8 +121,8 @@ Use `--schema` to discover what parameters each command accepts:
 # Get schema for search command
 ydc search --schema
 
-# Get schema for express command
-ydc express --schema
+# Get schema for deep-search command
+ydc deep-search --schema
 
 # Get schema for contents command
 ydc contents --schema
@@ -182,32 +183,31 @@ Examples:
 - `livecrawl` - Live-crawl sections: web/news/all
 - `livecrawl_formats` - html/markdown
 
-### Express Command
+### Deep-Search Command
 
 ```bash
-ydc express --json '{"input":"..."}' [options]
+ydc deep-search --json '{"query":"..."}' [options]
 
 Examples:
-  # Fast answer
-  api express --json '{"input":"What is quantum computing?"}' --client Openclaw
+  # Comprehensive research with medium effort
+  api deep-search --json '{"query":"What is quantum computing?"}' --client Openclaw
 
-  # Answer with web search
-  api express --json '{
-    "input":"Latest AI news",
-    "tools":[{"type":"web_search"}]
+  # High-effort deep research (up to 5 minutes)
+  api deep-search --json '{
+    "query":"Latest breakthroughs in AI agents",
+    "search_effort":"high"
   }' --client Openclaw
 
   # Parse answer and sources
-  api express --json '{
-    "input":"AI trends",
-    "tools":[{"type":"web_search"}]
+  api deep-search --json '{
+    "query":"AI trends 2026"
   }' --client Openclaw | \
-    jq -r '.answer, "\nSources:", (.results.web[]? | "- \(.title)")'
+    jq -r '.answer, "\nSources:", (.results[]? | "- \(.title): \(.url)")'
 ```
 
-**Available express parameters** (use `--schema` to see full schema):
-- `input` (required) - Question or prompt for AI
-- `tools` - Array of tools: `[{"type":"web_search"}]`
+**Available deep-search parameters** (use `--schema` to see full schema):
+- `query` (required) - Research question requiring in-depth investigation
+- `search_effort` - Computation budget: `low` (<30s), `medium` (<60s, default), `high` (<300s)
 
 ### Contents Command
 
@@ -317,22 +317,22 @@ console.log(response.results.news); // News results
 console.log(response.metadata); // Query metadata
 ```
 
-### Express
+### Deep-Search
 
 ```typescript
-import { callExpressAgent, ExpressAgentInputSchema } from '@youdotcom-oss/api';
+import { callDeepSearch, DeepSearchQuerySchema } from '@youdotcom-oss/api';
 
-const response = await callExpressAgent({
-  agentInput: {
-    input: 'What happened in AI this week?',
-    tools: [{ type: 'web_search' }],
+const response = await callDeepSearch({
+  deepSearchQuery: {
+    query: 'What happened in AI this week?',
+    search_effort: 'high', // low | medium | high
   },
   YDC_API_KEY: process.env.YDC_API_KEY,
   getUserAgent,
 });
 
-console.log(response.answer); // AI answer
-console.log(response.results?.web); // Optional search results
+console.log(response.answer); // Comprehensive answer with inline citations
+console.log(response.results); // Array of sources with URLs, titles, and snippets
 ```
 
 ### Contents
@@ -410,10 +410,10 @@ search=$(api search --json '{
   "livecrawl_formats":"markdown"
 }' --client Openclaw)
 
-# Get AI answer with web search
-answer=$(api express --json '{
-  "input":"Summarize AI developments",
-  "tools":[{"type":"web_search"}]
+# Get comprehensive research with citations
+answer=$(api deep-search --json '{
+  "query":"Summarize AI developments in 2026",
+  "search_effort":"high"
 }' --client Openclaw)
 
 # Extract top result URL and fetch content
@@ -486,8 +486,8 @@ All functions are fully typed with TypeScript. Import types alongside functions:
 import type {
   SearchQuery,
   SearchResponse,
-  ExpressAgentInput,
-  ExpressAgentMcpResponse,
+  DeepSearchQuery,
+  DeepSearchResponse,
   ContentsQuery,
   ContentsApiResponse,
 } from '@youdotcom-oss/api';
