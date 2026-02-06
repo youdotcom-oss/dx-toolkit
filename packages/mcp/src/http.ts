@@ -14,28 +14,52 @@ const extractBearerToken = (authHeader: string | null): string | null => {
   return authHeader.slice(7)
 }
 
+const extractClientIP = (c: Context): string | undefined => {
+  const forwardedFor = c.req.header('X-Forwarded-For')
+  if (forwardedFor) {
+    // Take first IP in chain (original client)
+    return forwardedFor.split(',')[0]?.trim()
+  }
+
+  const realIP = c.req.header('X-Real-IP')
+  if (realIP) {
+    return realIP
+  }
+
+  // Fallback to CF-Connecting-IP (Cloudflare)
+  const cfIP = c.req.header('CF-Connecting-IP')
+  if (cfIP) {
+    return cfIP
+  }
+
+  return undefined
+}
+
 const handleMcpRequest = async (c: Context) => {
   const authHeader = c.req.header('Authorization')
 
-  if (!authHeader) {
-    c.status(401)
-    c.header('Content-Type', 'text/plain')
-    return c.text('Unauthorized: Authorization header required')
+  let YDC_API_KEY: string | undefined
+
+  if (authHeader) {
+    const token = extractBearerToken(authHeader)
+
+    if (!token) {
+      c.status(401)
+      c.header('Content-Type', 'text/plain')
+      return c.text('Unauthorized: Invalid Bearer token format')
+    }
+
+    YDC_API_KEY = token
   }
 
-  const YDC_API_KEY = extractBearerToken(authHeader)
-
-  if (!YDC_API_KEY) {
-    c.status(401)
-    c.header('Content-Type', 'text/plain')
-    return c.text('Unauthorized: Bearer token required')
-  }
   const mcp = getMCpServer()
   const getUserAgent = useGetClientVersion(mcp)
+  const clientIP = extractClientIP(c)
 
   registerSearchTool({
     mcp,
     YDC_API_KEY,
+    clientIP,
     getUserAgent,
   })
   registerContentsTool({ mcp, YDC_API_KEY, getUserAgent })

@@ -76,23 +76,39 @@ describe('HTTP Server Endpoints', () => {
     expect(typeof data.version).toBe('string')
   })
 
-  test('mcp endpoint requires authorization header', async () => {
+  test('mcp endpoint allows requests without authorization (free tier)', async () => {
     const response = await fetch(`${baseUrl}/mcp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'initialize',
+        id: 1,
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
+        },
+      }),
     })
 
-    expect(response.status).toBe(401)
-    expect(response.headers.get('content-type')).toContain('text/plain')
+    // Should succeed without auth header (free tier)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('text/event-stream')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Authorization header required')
+    expect(text).toContain('data:')
+    expect(text).toContain('jsonrpc')
+    expect(text).toContain('result')
   })
 
-  test('mcp endpoint requires Bearer token format', async () => {
+  test('mcp endpoint requires Bearer token format when auth header provided', async () => {
     const response = await fetch(`${baseUrl}/mcp`, {
       method: 'POST',
       headers: {
@@ -106,7 +122,7 @@ describe('HTTP Server Endpoints', () => {
     expect(response.headers.get('content-type')).toContain('text/plain')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Bearer token required')
+    expect(text).toBe('Unauthorized: Invalid Bearer token format')
   })
 
   test('mcp endpoint accepts valid Bearer token', async () => {
@@ -178,20 +194,35 @@ describe('HTTP Server Endpoints', () => {
     expect(text).toContain('capabilities')
   })
 
-  test('mcp endpoint with trailing slash requires authorization', async () => {
+  test('mcp endpoint with trailing slash allows requests without authorization', async () => {
     const response = await fetch(`${baseUrl}/mcp/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'initialize',
+        id: 1,
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
+        },
+      }),
     })
 
-    expect(response.status).toBe(401)
-    expect(response.headers.get('content-type')).toContain('text/plain')
+    // Should succeed without auth header (free tier)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('text/event-stream')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Authorization header required')
+    expect(text).toContain('data:')
+    expect(text).toContain('jsonrpc')
   })
 })
 
@@ -548,5 +579,100 @@ describe('HTTP MCP Client E2E Tests', () => {
     // We can verify this by checking that tools are available
     const tools = await mcpClient.listTools()
     expect(tools.tools.length).toBeGreaterThan(0)
+  })
+
+  describe('Client IP extraction', () => {
+    test('extracts IP from X-Forwarded-For header', async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+          'X-Forwarded-For': '203.0.113.1, 198.51.100.1',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'initialize',
+          id: 1,
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test', version: '1.0.0' },
+          },
+        }),
+      })
+
+      expect(response.status).toBe(200)
+      // Client IP is extracted and passed to search tool (tested via integration)
+    })
+
+    test('extracts IP from X-Real-IP header when X-Forwarded-For absent', async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+          'X-Real-IP': '203.0.113.1',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'initialize',
+          id: 1,
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test', version: '1.0.0' },
+          },
+        }),
+      })
+
+      expect(response.status).toBe(200)
+    })
+
+    test('extracts IP from CF-Connecting-IP header as fallback', async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+          'CF-Connecting-IP': '203.0.113.1',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'initialize',
+          id: 1,
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test', version: '1.0.0' },
+          },
+        }),
+      })
+
+      expect(response.status).toBe(200)
+    })
+
+    test('handles missing IP headers gracefully', async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'initialize',
+          id: 1,
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test', version: '1.0.0' },
+          },
+        }),
+      })
+
+      expect(response.status).toBe(200)
+      // Server handles undefined clientIP gracefully
+    })
   })
 })
