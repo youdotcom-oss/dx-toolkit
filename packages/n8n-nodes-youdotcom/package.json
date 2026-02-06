@@ -35,7 +35,7 @@
     "rag",
     "grounding"
   ],
-  "type": "module",
+  "type": "commonjs",
   "files": [
     "dist/**"
   ],
@@ -45,7 +45,7 @@
   "scripts": {
     "build": "bun run build:js && bun run build:assets",
     "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/ && cp nodes/YouDotCom/youdotcom.svg dist/credentials/",
-    "build:js": "bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node --external n8n-workflow && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node --external n8n-workflow",
+    "build:js": "bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node --format cjs --external n8n-workflow && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node --format cjs --external n8n-workflow",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
