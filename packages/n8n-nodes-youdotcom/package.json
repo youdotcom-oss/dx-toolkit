@@ -18,6 +18,7 @@
   "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n-nodes-youdotcom#readme",
   "author": {
     "name": "You.com",
+    "email": "tyler@you.com",
     "url": "https://you.com"
   },
   "keywords": [
