@@ -3,32 +3,13 @@ import type { GetUserAgent } from '../shared/api.types.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
 
-/**
- * Fetches search results from You.com API
- *
- * @remarks
- * Supports both authenticated (with API key) and unauthenticated (free tier) requests.
- * Free tier requests are rate limited.
- *
- * @param searchQuery - Search parameters (query, count, etc.)
- * @param YDC_API_KEY - API key for authenticated requests (optional)
- * @param clientIP - Client IP address for rate limiting (optional)
- * @param getUserAgent - Function to get User-Agent string
- * @returns Parsed search results
- *
- * @throws Error on API failures, rate limits (429), auth failures (403), or free tier limits (402)
- *
- * @public
- */
 export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
   searchQuery,
-  clientIP,
   getUserAgent,
 }: {
   searchQuery: SearchQuery
   YDC_API_KEY?: string
-  clientIP?: string
   getUserAgent: GetUserAgent
 }) => {
   const url = new URL(SEARCH_API_URL)
@@ -44,21 +25,12 @@ export const fetchSearchResults = async ({
 
   url.search = searchParams.toString()
 
-  const headers = new Headers({
-    'User-Agent': getUserAgent(),
-  })
-
-  if (YDC_API_KEY) {
-    headers.set('X-API-Key', YDC_API_KEY)
-  }
-
-  if (clientIP) {
-    headers.set('X-Client-IP', clientIP)
-  }
-
   const options = {
     method: 'GET',
-    headers,
+    headers: new Headers({
+      'X-API-Key': YDC_API_KEY || '',
+      'User-Agent': getUserAgent(),
+    }),
   }
 
   const response = await fetch(url, options)

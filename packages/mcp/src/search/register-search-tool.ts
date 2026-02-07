@@ -7,12 +7,10 @@ import { formatSearchResults } from './search.utils.ts'
 export const registerSearchTool = ({
   mcp,
   YDC_API_KEY,
-  clientIP,
   getUserAgent,
 }: {
   mcp: McpServer
   YDC_API_KEY?: string
-  clientIP?: string
   getUserAgent: () => string
 }) => {
   mcp.registerTool(
@@ -29,7 +27,6 @@ export const registerSearchTool = ({
         const response = await fetchSearchResults({
           searchQuery,
           YDC_API_KEY,
-          clientIP,
           getUserAgent,
         })
 
