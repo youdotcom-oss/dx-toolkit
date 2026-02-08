@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/n8n-nodes-youdotcom",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "n8n community node for You.com APIs - Search, Contents extraction, and Express AI agent",
   "license": "MIT",
   "engines": {
@@ -18,6 +18,7 @@
   "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/n8n-nodes-youdotcom#readme",
   "author": {
     "name": "You.com",
+    "email": "tyler@you.com",
     "url": "https://you.com"
   },
   "keywords": [
@@ -45,7 +46,7 @@
   "scripts": {
     "build": "bun run build:js && bun run build:assets",
     "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/ && cp nodes/YouDotCom/youdotcom.svg dist/credentials/",
-    "build:js": "bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node --format cjs --external n8n-workflow && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node --format cjs --external n8n-workflow",
+    "build:js": "bun build ./nodes/YouDotCom/YouDotCom.node.ts --outfile ./dist/nodes/YouDotCom/YouDotCom.node.js --target=node --format cjs --external n8n-workflow --external zod && bun build ./credentials/YouDotComApi.credentials.ts --outfile ./dist/credentials/YouDotComApi.credentials.js --target=node --format cjs --external n8n-workflow --external zod",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
@@ -63,12 +64,14 @@
       "dist/nodes/YouDotCom/YouDotCom.node.js"
     ]
   },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
   "peerDependencies": {
     "n8n-workflow": "^2.6.0"
   },
   "devDependencies": {
     "@n8n/node-cli": "^0.19.0",
-    "n8n-workflow": "^2.6.0",
-    "zod": "^4.3.6"
+    "n8n-workflow": "^2.6.0"
   }
 }
