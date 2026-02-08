@@ -27,7 +27,7 @@ const USER_AGENT = `n8n-nodes-youdotcom/${PACKAGE_VERSION} (https://github.com/y
  * You.com node for n8n - Search, Contents, and Express (AI Agent) operations.
  *
  * NOTE: n8n framework requires class-based nodes that implement INodeType.
- * This is an exception to the project's arrow function convention (see .plaited/rules/core.md).
+ * This is an exception to the project's arrow function convention (see .agents/rules/core.md).
  */
 export class YouDotCom implements INodeType {
   description: INodeTypeDescription = {
