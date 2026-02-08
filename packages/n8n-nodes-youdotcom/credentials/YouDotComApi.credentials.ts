@@ -4,7 +4,7 @@ import type { IAuthenticateGeneric, ICredentialTestRequest, ICredentialType, INo
  * You.com API credentials for n8n.
  *
  * NOTE: n8n framework requires class-based credentials that implement ICredentialType.
- * This is an exception to the project's arrow function convention (see .plaited/rules/core.md).
+ * This is an exception to the project's arrow function convention (see .agents/rules/core.md).
  */
 export class YouDotComApi implements ICredentialType {
   name = 'youDotComApi'

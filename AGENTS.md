@@ -12,9 +12,9 @@ Open-source toolkit enabling developers to integrate You.com's AI capabilities i
 
 ## Rules and Skills Organization
 
-This monorepo uses both rules (`.plaited/rules/`) and skills (`.claude/skills/`) for efficient knowledge organization:
+This monorepo uses both rules (`.agents/rules/`) and skills (`.claude/skills/`) for efficient knowledge organization:
 
-**Rules** (`.plaited/rules/`) - Universal patterns:
+**Rules** (`.agents/rules/`) - Universal patterns:
 | File | Coverage |
 |------|----------|
 | core.md | Type conventions, arrow functions, object params, private fields |
@@ -24,8 +24,6 @@ This monorepo uses both rules (`.plaited/rules/`) and skills (`.claude/skills/`)
 | workflow.md | Git workflow, branching, commits, GitHub CLI |
 | accuracy.md | Verification standards, uncertainty handling, LSP usage |
 | documentation.md | TSDoc standards, template, public API docs |
-| performance-testing.md | Monitoring, measurements, thresholds, regression handling |
-| workflows.md | Package creation, testing, publishing |
 
 **Skills** (`.claude/skills/`) - Package-specific patterns:
 | Skill | Coverage |
@@ -45,9 +43,9 @@ This monorepo uses both rules (`.plaited/rules/`) and skills (`.claude/skills/`)
 - **Maintainability**: Consistent pattern across the monorepo
 
 Throughout this guide, you'll see references like:
-> **For universal code patterns**, see `.plaited/rules/core.md`
+> **For universal code patterns**, see `.agents/rules/core.md`
 
-These indicate that detailed information is available in the referenced rule file. Note that `.claude/rules/` is a symlink to `.plaited/rules/` for compatibility with Claude Code.
+These indicate that detailed information is available in the referenced rule file. Note that `.claude/rules/` is a symlink to `.agents/rules/` for compatibility with Claude Code.
 
 ---
 
@@ -57,24 +55,23 @@ These indicate that detailed information is available in the referenced rule fil
 graph TD
     Root[dx-toolkit/]
     
-    Root --> Plaited[.plaited/]
+    Root --> Agents[.agents/]
     Root --> Claude[.claude/]
     Root --> Packages[packages/]
     Root --> GitHub[.github/]
     Root --> Scripts[scripts/]
     Root --> Docs[docs/]
     Root --> Config[package.json, bun.lock, AGENTS.md]
-    
-    Plaited --> PlaitedRules[rules/ - Universal patterns]
-    Plaited --> PlaitedSkills[skills/ - Development skills]
-    
-    Claude --> ClaudeRules[rules → ../.plaited/rules]
+
+    Agents --> AgentsRules[rules/ - Universal patterns]
+    Agents --> AgentsSkills[skills/ - Development skills]
+
+    Claude --> ClaudeRules[rules → ../.agents/rules]
     Claude --> ClaudeSkills[skills/]
     ClaudeSkills --> DocSkill[documentation/]
     ClaudeSkills --> McpSkill[mcp-patterns/]
     ClaudeSkills --> AiSkill[ai-sdk-patterns/]
     ClaudeSkills --> TeamsSkill[teams-anthropic-patterns/]
-    ClaudeSkills --> SymSkill[code-documentation@plaited_... → symlink]
     
     Packages --> Mcp[mcp/ - MCP Server]
     Packages --> Api[api/ - API Client]
@@ -94,14 +91,14 @@ graph TD
     Docs --> PerfDoc[PERFORMANCE.md]
     
     style Root fill:#e1f5ff
-    style Plaited fill:#fff3cd
+    style Agents fill:#fff3cd
     style Claude fill:#fff3cd
     style Packages fill:#d4edda
     style GitHub fill:#f8d7da
 ```
 
 **Key directories:**
-- `.plaited/rules/` - Universal patterns (code, git, testing, workflows)
+- `.agents/rules/` - Universal patterns (code, git, testing, workflows)
 - `.claude/skills/` - Package-specific patterns (documentation, mcp-patterns, ai-sdk-patterns, teams-anthropic-patterns)
 - `packages/` - NPM packages (mcp, api, ai-sdk-plugin, teams-anthropic)
 - `.github/workflows/` - CI/CD workflows (_publish-package.yml, ci.yml, code-review.yml)
@@ -387,7 +384,7 @@ Packages depending on other workspace packages should use the **bundled pattern*
 
 ## Code Patterns
 
-> **For universal code patterns**, see `.plaited/rules/` (especially `core.md`, `bun.md`, `testing.md`, `modules.md`)
+> **For universal code patterns**, see `.agents/rules/` (especially `core.md`, `bun.md`, `testing.md`, `modules.md`)
 
 ## Git Workflow
 
@@ -584,7 +581,7 @@ Read and follow the instructions in `.claude/commands/create-package.md`
 
 ### Post-Creation Workflow
 
-> **For complete post-creation workflow**, see `.plaited/rules/workflows.md`
+> **For complete post-creation workflow**, see `.agents/rules/workflow.md`
 
 ### Working on Packages
 
@@ -653,7 +650,7 @@ See `.claude/skills/` for other package-specific development patterns:
 
 ## Performance Testing & Monitoring
 
-> **For performance testing details**, see `.plaited/rules/performance-testing.md` and [docs/PERFORMANCE.md](./docs/PERFORMANCE.md)
+> **For performance testing details**, see [docs/PERFORMANCE.md](./docs/PERFORMANCE.md)
 
 ## Troubleshooting
 
