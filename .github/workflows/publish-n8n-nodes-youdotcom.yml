@@ -3,11 +3,16 @@ name: "Package: publish @youdotcom-oss/n8n-nodes-youdotcom"
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "New version tag (e.g., 0.1.0)"
+      bump:
+        description: "Version bump type"
         required: true
-      next:
-        description: "Next prerelease number (optional)"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: "Prerelease number (optional, creates x.y.z-next.N)"
         required: false
 
 permissions:
@@ -22,5 +27,5 @@ jobs:
       PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
     with:
       npm_package_name: "@youdotcom-oss/n8n-nodes-youdotcom"
-      version: ${{ github.event.inputs.version }}
-      next: ${{ github.event.inputs.next }}
+      bump: ${{ github.event.inputs.bump }}
+      prerelease: ${{ github.event.inputs.prerelease }}

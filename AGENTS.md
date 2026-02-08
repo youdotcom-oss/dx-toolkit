@@ -467,22 +467,23 @@ This monorepo follows standard Git tagging conventions with "v" prefix for relea
 - **npm package**: `{version}` (no "v" prefix, e.g., `1.3.4`)
 
 **When triggering the publish workflow:**
-- Enter version WITHOUT "v" prefix: `1.3.4` (not `v1.3.4`)
-- The workflow automatically adds "v" for Git tags
-- Validation checks prevent accidental "v" prefix in input
+- Select a bump type (`patch`, `minor`, or `major`) from the dropdown
+- The workflow reads the current version from `package.json` and computes the next version
+- Optionally provide a prerelease number (e.g., `1` creates `x.y.z-next.1`)
+- Non-main branches automatically produce prerelease versions
 
 **Example:**
 ```bash
-# Correct workflow input
-Version: 1.3.4
+# Current package.json version: 1.3.4
+# Workflow input: bump=minor
 
 # Results in:
-# - Git tag: v1.3.4
-# - package.json: "version": "1.3.4"
-# - npm package: @youdotcom-oss/mcp@1.3.4
+# - Git tag: mcp@v1.4.0
+# - package.json: "version": "1.4.0"
+# - npm package: @youdotcom-oss/mcp@1.4.0
 ```
 
-This convention follows industry standards used by Node.js  and most major projects.
+This convention follows industry standards used by Node.js and most major projects.
 
 ## Monorepo Architecture
 
@@ -492,13 +493,14 @@ This convention follows industry standards used by Node.js  and most major proje
 - Triggered: Manual via `workflow_dispatch`
 - Note: This workflow includes remote deployment steps specific to the MCP package. Other packages use simpler publish workflows without deployment.
 - Actions:
-  1. Updates package version in packages/mcp/package.json
-  2. Scans all workspace packages for dependencies on @youdotcom-oss/mcp
-  3. Updates dependent packages with exact version (e.g., "1.4.0", no ^ or ~)
-  4. Commits all version updates together
-  5. Creates GitHub release
-  6. Publishes to npm
-  7. Triggers remote repository via `repository_dispatch` (for production deployments)
+  1. Computes next version from bump type (patch/minor/major) and current package.json
+  2. Updates package version in packages/mcp/package.json
+  3. Scans all workspace packages for dependencies on @youdotcom-oss/mcp
+  4. Updates dependent packages with exact version (e.g., "1.4.0", no ^ or ~)
+  5. Commits all version updates together
+  6. Creates GitHub release
+  7. Publishes to npm
+  8. Triggers remote repository via `repository_dispatch` (for production deployments)
 - Dependency Updates: Automatically updates workspace dependencies
 - Deployment Architecture:
   - **update-remote-version** job: Sends `update-mcp-version` event to deployment repository
@@ -742,13 +744,14 @@ bun run build    # Build all packages
 All packages in this monorepo are published to npm via GitHub Actions workflows.
 
 **Standard Workflow** (most packages):
-1. Updates version in `packages/{package}/package.json`
-2. Scans all workspace packages for dependencies on the published package
-3. Updates dependent packages with exact version (e.g., "1.4.0", no `^` or `~`)
-4. Commits all version updates together
-5. Creates GitHub release with tag `v{version}`
-6. Publishes to npm using NPM Trusted Publishing (OIDC)
-7. No manual npm tokens required
+1. Computes next version from bump type (patch/minor/major) and current `package.json`
+2. Updates version in `packages/{package}/package.json`
+3. Scans all workspace packages for dependencies on the published package
+4. Updates dependent packages with exact version (e.g., "1.4.0", no `^` or `~`)
+5. Commits all version updates together
+6. Creates GitHub release with tag `{package}@v{version}`
+7. Publishes to npm using NPM Trusted Publishing (OIDC)
+8. No manual npm tokens required
 
 **Package-Specific Workflows**:
 - Each package has its own workflow: `.github/workflows/publish-{package}.yml`
@@ -762,9 +765,9 @@ All packages in this monorepo are published to npm via GitHub Actions workflows.
 
 **Triggering a Release**:
 1. Go to: Actions → Publish {package} Release → Run workflow
-2. Enter version WITHOUT "v" prefix: `1.3.4`
-3. Optional: Enter `next` value for prereleases (e.g., `1` creates `1.3.4-next.1`)
-4. The workflow automatically adds "v" for Git tags
+2. Select bump type: `patch`, `minor`, or `major`
+3. Optional: Enter `prerelease` number (e.g., `1` creates `x.y.z-next.1`)
+4. The workflow reads the current version from `package.json` and computes the next version
 
 **Cross-Package Dependencies**:
 - Always use exact versions (no `^` or `~` prefixes)
