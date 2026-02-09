@@ -4,6 +4,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["credentials/**/*", "nodes/**/*"],
-  "exclude": ["**/*.spec.ts", "nodes/YouDotCom/tests/**/*", "dist/**/*"]
+  "include": ["src/**/*", "scripts/*", "build.ts"],
+  "exclude": ["**/*.spec.ts", "**/tests/**/*", "dist/**/*"]
 }
