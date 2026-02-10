@@ -58,16 +58,15 @@
     },
     "packages/n8n-nodes-youdotcom": {
       "name": "@youdotcom-oss/n8n-nodes-youdotcom",
-      "version": "0.2.3",
-      "dependencies": {
-        "zod": "^4.3.6",
-      },
+      "version": "0.2.4",
       "devDependencies": {
         "@n8n/node-cli": "^0.19.0",
         "n8n-workflow": "^2.6.0",
+        "zod": "^4.3.6",
       },
       "peerDependencies": {
         "n8n-workflow": "^2.6.0",
+        "zod": "^3.25.67",
       },
     },
     "packages/teams-anthropic": {
@@ -1268,8 +1267,6 @@
     "@babel/code-frame/picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "@clack/core/picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
-
-    "@clack/prompts/picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "@commitlint/format/picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
