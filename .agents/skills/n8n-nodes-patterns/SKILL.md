@@ -244,31 +244,46 @@ headers: { 'User-Agent': USER_AGENT }
 
 ```
 packages/n8n-nodes-youdotcom/
-├── src/
-│   └── main.ts                  # Package exports
+├── credentials/
+│   └── YouDotComApi.credentials.ts  # ICredentialType
 ├── nodes/
 │   └── YouDotCom/
 │       ├── YouDotCom.node.ts    # INodeType implementation
-│       ├── YouDotCom.node.json  # Node metadata
+│       ├── YouDotCom.node.json  # Node codex metadata
 │       ├── YouDotCom.schemas.ts # Zod validation schemas
-│       └── youdotcom.svg        # Node icon
-├── credentials/
-│   └── YouDotComApi.credentials.ts  # ICredentialType
-├── tests/
-│   └── *.spec.ts                # Unit tests
-└── dist/                        # Built output
+│       ├── youdotcom.svg        # Node icon
+│       └── tests/
+│           └── node.test.ts     # Unit tests
+├── build.ts                     # Bun build script
+├── eslint.config.mjs            # Required by n8n-node lint
+└── dist/                        # Built output (CJS)
 ```
+
+**Important:** Source files must live at the package root (`credentials/`, `nodes/`), not under `src/`. n8n's `no-credential-reuse` ESLint rule resolves source paths by stripping `dist/` from compiled output — a `src/` directory breaks this resolution.
 
 ## Build Configuration
 
-**Bundle JS and generate types separately:**
+**Programmatic build script with `build.ts`:**
+
+```typescript
+// build.ts - entry points resolve from package root
+const creds = Bun.resolveSync('./credentials/YouDotComApi.credentials.ts', import.meta.dir)
+const node = Bun.resolveSync('./nodes/YouDotCom/YouDotCom.node.ts', import.meta.dir)
+
+await Bun.build({
+  entrypoints: [creds, node],
+  outdir: `${import.meta.dir}/dist`,
+  target: 'node',
+  format: 'cjs',
+  external: ['n8n-workflow', 'zod'],  // provided by n8n at runtime
+})
+```
 
 ```json
 {
   "scripts": {
-    "build": "bun run build:js && bun run build:types && bun run build:assets",
-    "build:js": "bun build ./src/main.ts --outfile ./dist/main.js --target=node",
-    "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/"
+    "build": "bun build.ts && bun run build:assets",
+    "build:assets": "cp nodes/YouDotCom/youdotcom.svg dist/nodes/YouDotCom/ && cp nodes/YouDotCom/YouDotCom.node.json dist/nodes/YouDotCom/ && cp nodes/YouDotCom/youdotcom.svg dist/credentials/"
   }
 }
 ```
