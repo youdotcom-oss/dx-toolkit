@@ -76,23 +76,39 @@ describe('HTTP Server Endpoints', () => {
     expect(typeof data.version).toBe('string')
   })
 
-  test('mcp endpoint requires authorization header', async () => {
+  test('mcp endpoint allows requests without authorization (free tier)', async () => {
     const response = await fetch(`${baseUrl}/mcp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'initialize',
+        id: 1,
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
+        },
+      }),
     })
 
-    expect(response.status).toBe(401)
-    expect(response.headers.get('content-type')).toContain('text/plain')
+    // Should succeed without auth header (free tier)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('text/event-stream')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Authorization header required')
+    expect(text).toContain('data:')
+    expect(text).toContain('jsonrpc')
+    expect(text).toContain('result')
   })
 
-  test('mcp endpoint requires Bearer token format', async () => {
+  test('mcp endpoint requires Bearer token format when auth header provided', async () => {
     const response = await fetch(`${baseUrl}/mcp`, {
       method: 'POST',
       headers: {
@@ -106,7 +122,7 @@ describe('HTTP Server Endpoints', () => {
     expect(response.headers.get('content-type')).toContain('text/plain')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Bearer token required')
+    expect(text).toBe('Unauthorized: Invalid Bearer token format')
   })
 
   test('mcp endpoint accepts valid Bearer token', async () => {
@@ -178,20 +194,35 @@ describe('HTTP Server Endpoints', () => {
     expect(text).toContain('capabilities')
   })
 
-  test('mcp endpoint with trailing slash requires authorization', async () => {
+  test('mcp endpoint with trailing slash allows requests without authorization', async () => {
     const response = await fetch(`${baseUrl}/mcp/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'initialize',
+        id: 1,
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
+        },
+      }),
     })
 
-    expect(response.status).toBe(401)
-    expect(response.headers.get('content-type')).toContain('text/plain')
+    // Should succeed without auth header (free tier)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('text/event-stream')
 
     const text = await response.text()
-    expect(text).toBe('Unauthorized: Authorization header required')
+    expect(text).toContain('data:')
+    expect(text).toContain('jsonrpc')
   })
 })
 

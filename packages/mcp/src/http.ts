@@ -17,19 +17,20 @@ const extractBearerToken = (authHeader: string | null): string | null => {
 const handleMcpRequest = async (c: Context) => {
   const authHeader = c.req.header('Authorization')
 
-  if (!authHeader) {
-    c.status(401)
-    c.header('Content-Type', 'text/plain')
-    return c.text('Unauthorized: Authorization header required')
+  let YDC_API_KEY: string | undefined
+
+  if (authHeader) {
+    const token = extractBearerToken(authHeader)
+
+    if (!token) {
+      c.status(401)
+      c.header('Content-Type', 'text/plain')
+      return c.text('Unauthorized: Invalid Bearer token format')
+    }
+
+    YDC_API_KEY = token
   }
 
-  const YDC_API_KEY = extractBearerToken(authHeader)
-
-  if (!YDC_API_KEY) {
-    c.status(401)
-    c.header('Content-Type', 'text/plain')
-    return c.text('Unauthorized: Bearer token required')
-  }
   const mcp = getMCpServer()
   const getUserAgent = useGetClientVersion(mcp)
 

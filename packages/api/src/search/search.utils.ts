@@ -42,6 +42,27 @@ export const fetchSearchResults = async ({
       throw new Error('Rate limited by You.com API. Please try again later.')
     } else if (errorCode === 403) {
       throw new Error('Forbidden. Please check your You.com API key.')
+    } else if (errorCode === 402) {
+      let errorMessage = 'Free tier limit exceeded. Please upgrade to continue.'
+      let upgradeUrl = 'https://you.com/platform'
+
+      try {
+        const errorBody = (await response.json()) as any
+        if (errorBody?.message) {
+          errorMessage = errorBody.message
+        }
+        if (errorBody?.upgrade_url) {
+          upgradeUrl = errorBody.upgrade_url
+        }
+        if (errorBody?.reset_at) {
+          const resetDate = new Date(errorBody.reset_at).toLocaleDateString()
+          errorMessage += ` Limit resets on ${resetDate}.`
+        }
+      } catch {
+        // If parsing fails, use default message
+      }
+
+      throw new Error(`${errorMessage} Upgrade at: ${upgradeUrl}`)
     }
 
     throw new Error(`Failed to perform search. Error code: ${errorCode}`)
