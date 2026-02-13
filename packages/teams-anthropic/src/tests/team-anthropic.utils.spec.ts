@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import type Anthropic from '@anthropic-ai/sdk'
 import type { FunctionMessage, Message, ModelMessage, UserMessage } from '@microsoft/teams.ai'
 
@@ -8,7 +8,6 @@ import {
   getAllModels,
   getModelDisplayName,
   getModelFamily,
-  getYouMcpConfig,
   isValidModel,
   transformFromAnthropicMessage,
   transformToAnthropicMessages,
@@ -612,86 +611,5 @@ describe('anthropic-model.enum', () => {
       const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5)
       expect(family).toBe('opus')
     })
-  })
-})
-
-describe('getYouMcpConfig', () => {
-  const originalEnv = process.env.YDC_API_KEY
-
-  afterEach(() => {
-    // Restore original environment variable
-    if (originalEnv) {
-      process.env.YDC_API_KEY = originalEnv
-    } else {
-      delete process.env.YDC_API_KEY
-    }
-  })
-
-  test('should return valid MCP client configuration', () => {
-    const config = getYouMcpConfig({ apiKey: 'test-key-123' })
-
-    expect(config).toBeDefined()
-    expect(config.url).toBeDefined()
-    expect(config.url).toBe('https://api.you.com/mcp')
-    expect(config.params).toBeDefined()
-    expect(config.params.headers).toBeDefined()
-  })
-
-  test('should include proper authentication header', () => {
-    const testKey = 'test-key-456'
-    const config = getYouMcpConfig({ apiKey: testKey })
-
-    expect(config.params.headers.Authorization).toBe(`Bearer ${testKey}`)
-  })
-
-  test('should include User-Agent with package version', () => {
-    const config = getYouMcpConfig({ apiKey: 'test-key' })
-
-    expect(config.params.headers['User-Agent']).toBeDefined()
-    expect(config.params.headers['User-Agent']).toMatch(/^TEAMS-MCP-CLIENT\//)
-    expect(config.params.headers['User-Agent']).toContain('You.com')
-    expect(config.params.headers['User-Agent']).toContain('microsoft-teams')
-  })
-
-  test('should use custom API key when provided', () => {
-    const customKey = 'custom-api-key-789'
-    const config = getYouMcpConfig({ apiKey: customKey })
-
-    expect(config.params.headers.Authorization).toBe(`Bearer ${customKey}`)
-  })
-
-  test('should fall back to YDC_API_KEY environment variable', () => {
-    const envKey = 'env-api-key-101112'
-    process.env.YDC_API_KEY = envKey
-
-    const config = getYouMcpConfig()
-
-    expect(config.params.headers.Authorization).toBe(`Bearer ${envKey}`)
-  })
-
-  test('should prefer explicit API key over environment variable', () => {
-    const explicitKey = 'explicit-key'
-    const envKey = 'env-key'
-    process.env.YDC_API_KEY = envKey
-
-    const config = getYouMcpConfig({ apiKey: explicitKey })
-
-    expect(config.params.headers.Authorization).toBe(`Bearer ${explicitKey}`)
-  })
-
-  test('should throw error when no API key provided and YDC_API_KEY not set', () => {
-    delete process.env.YDC_API_KEY
-
-    expect(() => {
-      getYouMcpConfig()
-    }).toThrow(/You.com API key is required/)
-  })
-
-  test('should throw error with helpful message', () => {
-    delete process.env.YDC_API_KEY
-
-    expect(() => {
-      getYouMcpConfig()
-    }).toThrow(/YDC_API_KEY environment variable/)
   })
 })
