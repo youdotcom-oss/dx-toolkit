@@ -190,9 +190,10 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
 
         // Add tool_use blocks
         for (const fnCall of message.function_calls) {
+          const toolUseId = fnCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2)}`
           content.push({
             type: 'tool_use',
-            id: fnCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            id: toolUseId,
             name: fnCall.name,
             input: fnCall.arguments as Record<string, unknown>,
           } as Anthropic.ToolUseBlock)
@@ -215,14 +216,13 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
     // Function messages (function results)
     if (isFunctionMessage(message)) {
       // Function messages represent results from tool executions
-      // The 'name' property isn't available on FunctionMessage type
-      // We'll use the content directly with a generated tool_use_id
+      // Use the function_id from the message to match the original tool_use_id
       anthropicMessages.push({
         role: 'user',
         content: [
           {
             type: 'tool_result',
-            tool_use_id: `fn_${Date.now()}`, // Generate a tool_use_id
+            tool_use_id: message.function_id, // Use actual function_id from message
             content: message.content || '',
           } as Anthropic.ToolResultBlockParam,
         ],
