@@ -17,8 +17,8 @@ Build AI applications that can:
 **For AI SDK Integration**: Use the [ydc-ai-sdk-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-ai-sdk-integration) skill to quickly integrate You.com tools with your Vercel AI SDK applications.
 
 ```bash
-# Install skills CLI and add integration skills
-npx skills add youdotcom-oss/agent-skills
+# Install the AI SDK integration skill
+npx skills add youdotcom-oss/agent-skills --skill ydc-ai-sdk-integration
 ```
 
 Once installed, ask your AI agent: **"Integrate Vercel AI SDK with You.com tools"**

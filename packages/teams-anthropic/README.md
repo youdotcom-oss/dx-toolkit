@@ -19,8 +19,8 @@ Anthropic SDK integration for Microsoft Teams.ai - Use Claude models (Opus, Sonn
 **For Teams Anthropic Integration**: Use the [teams-anthropic-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/teams-anthropic-integration) skill to quickly set up Teams apps with You.com MCP server integration.
 
 ```bash
-# Install skills CLI and add integration skills
-npx skills add youdotcom-oss/agent-skills
+# Install the Teams Anthropic integration skill
+npx skills add youdotcom-oss/agent-skills --skill teams-anthropic-integration
 ```
 
 Once installed, ask your AI agent: **"Add Anthropic Claude to my Teams app"** or **"Create a Teams app with You.com MCP and Anthropic"**
