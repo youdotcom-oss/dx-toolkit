@@ -8,25 +8,10 @@ import type { AnthropicModel } from './teams-anthropic.utils.ts'
  * @remarks
  * All options are readonly to prevent accidental mutation.
  * API key defaults to ANTHROPIC_API_KEY environment variable if not provided.
- *
- * @example
- * ```typescript
- * const options: AnthropicChatModelOptions = {
- *   model: AnthropicModel.CLAUDE_SONNET_4_5,
- *   apiKey: process.env.ANTHROPIC_API_KEY,
- *   timeout: 60_000,
- *   requestOptions: {
- *     max_tokens: 4096,
- *     temperature: 0.7,
- *   },
- * };
- * ```
  */
 export type AnthropicChatModelOptions = {
   /**
    * The Claude model to use (type-safe enum)
-   *
-   * @example AnthropicModel.CLAUDE_SONNET_4_5
    */
   readonly model: AnthropicModel
 
@@ -35,8 +20,6 @@ export type AnthropicChatModelOptions = {
    *
    * @remarks
    * Defaults to ANTHROPIC_API_KEY environment variable if not provided
-   *
-   * @example process.env.ANTHROPIC_API_KEY
    */
   readonly apiKey?: string
 
@@ -52,8 +35,6 @@ export type AnthropicChatModelOptions = {
 
   /**
    * Custom headers to include in API requests
-   *
-   * @example { 'X-Custom-Header': 'value' }
    */
   readonly headers?: Record<string, string>
 
@@ -70,15 +51,6 @@ export type AnthropicChatModelOptions = {
    * @remarks
    * These options are merged with per-request options in send()
    * Fields managed by send() (model, messages, system, stream, tools) are omitted
-   *
-   * @example
-   * ```typescript
-   * requestOptions: {
-   *   max_tokens: 4096,
-   *   temperature: 0.7,
-   *   top_p: 0.9,
-   * }
-   * ```
    */
   readonly requestOptions?: AnthropicRequestOptions
 
@@ -104,19 +76,6 @@ export type AnthropicChatModelOptions = {
  *
  * This allows users to set other parameters like max_tokens, temperature, etc.
  * without conflicting with the IChatModel interface.
- *
- * @example
- * ```typescript
- * const requestOptions: AnthropicRequestOptions = {
- *   max_tokens: 4096,
- *   temperature: 0.7,
- *   top_k: 40,
- *   top_p: 0.9,
- *   metadata: {
- *     user_id: 'user-123',
- *   },
- * };
- * ```
  */
 export type AnthropicRequestOptions = Omit<
   Anthropic.MessageCreateParams,

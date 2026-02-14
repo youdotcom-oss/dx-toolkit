@@ -53,23 +53,6 @@ const isFunctionWithParameters = (
  * - Function/tool calling with auto-execution
  * - Multi-part content (text + images)
  * - Configurable request options (temperature, max_tokens, etc.)
- *
- * @example
- * ```typescript
- * const model = new AnthropicChatModel({
- *   model: AnthropicModel.CLAUDE_SONNET_4_5,
- *   apiKey: process.env.ANTHROPIC_API_KEY,
- *   requestOptions: {
- *     max_tokens: 4096,
- *     temperature: 0.7,
- *   },
- * });
- *
- * const response = await model.send(
- *   { role: 'user', content: 'Hello!' },
- *   { system: { role: 'system', content: 'You are a helpful assistant.' } }
- * );
- * ```
  */
 export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
   #anthropic: Anthropic

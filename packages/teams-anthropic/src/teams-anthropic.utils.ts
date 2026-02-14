@@ -27,14 +27,6 @@ const isSystemMessage = (message: Message): message is SystemMessage => message.
  * @remarks
  * Enum values match Anthropic's exact model identifiers for API calls.
  * Use these constants instead of string literals for type safety.
- *
- * @example
- * ```typescript
- * const model = new AnthropicChatModel({
- *   model: AnthropicModel.CLAUDE_SONNET_4_5,
- *   apiKey: process.env.ANTHROPIC_API_KEY,
- * });
- * ```
  */
 export enum AnthropicModel {
   // Latest generation (4.x series)
@@ -71,12 +63,6 @@ const MODEL_DISPLAY_NAMES: Record<AnthropicModel, string> = {
  *
  * @param model - The AnthropicModel enum value
  * @returns Display name for the model (e.g., "Claude Sonnet 4.5")
- *
- * @example
- * ```typescript
- * const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_5);
- * console.log(displayName); // "Claude Sonnet 4.5"
- * ```
  */
 export const getModelDisplayName = (model: AnthropicModel): string => {
   return MODEL_DISPLAY_NAMES[model]
@@ -87,12 +73,6 @@ export const getModelDisplayName = (model: AnthropicModel): string => {
  *
  * @param value - The string to check
  * @returns True if the value is a valid model identifier
- *
- * @example
- * ```typescript
- * isValidModel('claude-sonnet-4-5-20250929'); // true
- * isValidModel('invalid-model'); // false
- * ```
  */
 export const isValidModel = (value: string): value is AnthropicModel => {
   return Object.values(AnthropicModel).includes(value as AnthropicModel)
@@ -102,12 +82,6 @@ export const isValidModel = (value: string): value is AnthropicModel => {
  * Get all available model identifiers
  *
  * @returns Array of all AnthropicModel enum values
- *
- * @example
- * ```typescript
- * const models = getAllModels();
- * console.log(models); // ['claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', ...]
- * ```
  */
 export const getAllModels = (): AnthropicModel[] => {
   return Object.values(AnthropicModel)
@@ -118,12 +92,6 @@ export const getAllModels = (): AnthropicModel[] => {
  *
  * @param model - The AnthropicModel enum value
  * @returns Model family name
- *
- * @example
- * ```typescript
- * getModelFamily(AnthropicModel.CLAUDE_SONNET_4_5); // 'sonnet'
- * getModelFamily(AnthropicModel.CLAUDE_OPUS_3_5); // 'opus'
- * ```
  */
 export const getModelFamily = (model: AnthropicModel): 'opus' | 'sonnet' | 'haiku' => {
   const modelStr = model.toLowerCase()
@@ -246,15 +214,6 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
  *
  * @param messages - Array of Teams.ai messages
  * @returns System message content, or undefined if no system message found
- *
- * @example
- * ```typescript
- * const systemPrompt = extractSystemMessage(messages);
- * const apiParams = {
- *   system: systemPrompt,
- *   messages: transformToAnthropicMessages(messages),
- * };
- * ```
  */
 export const extractSystemMessage = (messages: Message[]): string | undefined => {
   for (const message of messages) {
@@ -279,12 +238,6 @@ export const extractSystemMessage = (messages: Message[]): string | undefined =>
  *
  * @param response - Anthropic message response
  * @returns Teams.ai ModelMessage
- *
- * @example
- * ```typescript
- * const anthropicResponse = await client.messages.create({ ... });
- * const modelMessage = transformFromAnthropicMessage(anthropicResponse);
- * ```
  */
 export const transformFromAnthropicMessage = (response: Anthropic.Message): ModelMessage => {
   const modelMessage: ModelMessage = {
