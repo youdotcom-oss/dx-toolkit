@@ -1,6 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { FunctionMessage, Message, ModelMessage, SystemMessage, UserMessage } from '@microsoft/teams.ai'
-import packageJson from '../package.json' with { type: 'json' }
 
 /**
  * Type guard to check if a message is a UserMessage
@@ -28,14 +27,6 @@ const isSystemMessage = (message: Message): message is SystemMessage => message.
  * @remarks
  * Enum values match Anthropic's exact model identifiers for API calls.
  * Use these constants instead of string literals for type safety.
- *
- * @example
- * ```typescript
- * const model = new AnthropicChatModel({
- *   model: AnthropicModel.CLAUDE_SONNET_4_5,
- *   apiKey: process.env.ANTHROPIC_API_KEY,
- * });
- * ```
  */
 export enum AnthropicModel {
   // Latest generation (4.x series)
@@ -72,12 +63,6 @@ const MODEL_DISPLAY_NAMES: Record<AnthropicModel, string> = {
  *
  * @param model - The AnthropicModel enum value
  * @returns Display name for the model (e.g., "Claude Sonnet 4.5")
- *
- * @example
- * ```typescript
- * const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_5);
- * console.log(displayName); // "Claude Sonnet 4.5"
- * ```
  */
 export const getModelDisplayName = (model: AnthropicModel): string => {
   return MODEL_DISPLAY_NAMES[model]
@@ -88,12 +73,6 @@ export const getModelDisplayName = (model: AnthropicModel): string => {
  *
  * @param value - The string to check
  * @returns True if the value is a valid model identifier
- *
- * @example
- * ```typescript
- * isValidModel('claude-sonnet-4-5-20250929'); // true
- * isValidModel('invalid-model'); // false
- * ```
  */
 export const isValidModel = (value: string): value is AnthropicModel => {
   return Object.values(AnthropicModel).includes(value as AnthropicModel)
@@ -103,12 +82,6 @@ export const isValidModel = (value: string): value is AnthropicModel => {
  * Get all available model identifiers
  *
  * @returns Array of all AnthropicModel enum values
- *
- * @example
- * ```typescript
- * const models = getAllModels();
- * console.log(models); // ['claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', ...]
- * ```
  */
 export const getAllModels = (): AnthropicModel[] => {
   return Object.values(AnthropicModel)
@@ -119,12 +92,6 @@ export const getAllModels = (): AnthropicModel[] => {
  *
  * @param model - The AnthropicModel enum value
  * @returns Model family name
- *
- * @example
- * ```typescript
- * getModelFamily(AnthropicModel.CLAUDE_SONNET_4_5); // 'sonnet'
- * getModelFamily(AnthropicModel.CLAUDE_OPUS_3_5); // 'opus'
- * ```
  */
 export const getModelFamily = (model: AnthropicModel): 'opus' | 'sonnet' | 'haiku' => {
   const modelStr = model.toLowerCase()
@@ -190,9 +157,10 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
 
         // Add tool_use blocks
         for (const fnCall of message.function_calls) {
+          const toolUseId = fnCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2)}`
           content.push({
             type: 'tool_use',
-            id: fnCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            id: toolUseId,
             name: fnCall.name,
             input: fnCall.arguments as Record<string, unknown>,
           } as Anthropic.ToolUseBlock)
@@ -215,14 +183,13 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
     // Function messages (function results)
     if (isFunctionMessage(message)) {
       // Function messages represent results from tool executions
-      // The 'name' property isn't available on FunctionMessage type
-      // We'll use the content directly with a generated tool_use_id
+      // Use the function_id from the message to match the original tool_use_id
       anthropicMessages.push({
         role: 'user',
         content: [
           {
             type: 'tool_result',
-            tool_use_id: `fn_${Date.now()}`, // Generate a tool_use_id
+            tool_use_id: message.function_id, // Use actual function_id from message
             content: message.content || '',
           } as Anthropic.ToolResultBlockParam,
         ],
@@ -247,15 +214,6 @@ export const transformToAnthropicMessages = (messages: Message[]): Anthropic.Mes
  *
  * @param messages - Array of Teams.ai messages
  * @returns System message content, or undefined if no system message found
- *
- * @example
- * ```typescript
- * const systemPrompt = extractSystemMessage(messages);
- * const apiParams = {
- *   system: systemPrompt,
- *   messages: transformToAnthropicMessages(messages),
- * };
- * ```
  */
 export const extractSystemMessage = (messages: Message[]): string | undefined => {
   for (const message of messages) {
@@ -280,12 +238,6 @@ export const extractSystemMessage = (messages: Message[]): string | undefined =>
  *
  * @param response - Anthropic message response
  * @returns Teams.ai ModelMessage
- *
- * @example
- * ```typescript
- * const anthropicResponse = await client.messages.create({ ... });
- * const modelMessage = transformFromAnthropicMessage(anthropicResponse);
- * ```
  */
 export const transformFromAnthropicMessage = (response: Anthropic.Message): ModelMessage => {
   const modelMessage: ModelMessage = {
@@ -322,66 +274,4 @@ export const transformFromAnthropicMessage = (response: Anthropic.Message): Mode
   }
 
   return modelMessage
-}
-
-/**
- * Configuration options for You.com MCP server
- */
-export interface YouMcpServerConfigOptions {
-  /**
-   * You.com API key for authentication
-   * Falls back to YDC_API_KEY environment variable if not provided
-   */
-  apiKey?: string
-}
-
-/**
- * Get configuration for You.com MCP server
- *
- * @remarks
- * This utility generates the MCP client configuration for connecting to
- * You.com's hosted MCP server with proper authentication and telemetry.
- *
- * The API key can be provided explicitly or will fall back to the
- * YDC_API_KEY environment variable.
- *
- * The User-Agent automatically includes the package version for telemetry.
- *
- * @param options - Configuration options
- * @returns MCP server configuration object
- * @throws Error if no API key is provided and YDC_API_KEY env var is not set
- *
- * @example
- * ```typescript
- * // Using environment variable
- * const config = getYouMcpConfig();
- *
- * // Using explicit API key
- * const config = getYouMcpConfig({
- *   apiKey: 'your-api-key-here',
- * });
- *
- * // Use in ChatPrompt
- * const prompt = new ChatPrompt(
- *   { instructions, model },
- *   [new McpClientPlugin({ logger })]
- * ).usePlugin('mcpClient', config);
- * ```
- */
-export const getYouMcpConfig = (options: YouMcpServerConfigOptions = {}) => {
-  const apiKey = options.apiKey || process.env.YDC_API_KEY
-
-  if (!apiKey) {
-    throw new Error('You.com API key is required. Provide it via apiKey option or YDC_API_KEY environment variable.')
-  }
-
-  return {
-    url: 'https://api.you.com/mcp',
-    params: {
-      headers: {
-        'User-Agent': `TEAMS-MCP-CLIENT/${packageJson.version} (You.com; microsoft-teams)`,
-        Authorization: `Bearer ${apiKey}`,
-      },
-    },
-  }
 }

@@ -12,6 +12,21 @@ Build AI applications that can:
 - **Type-safe** - Full TypeScript support with Zod schema validation
 - **Production-ready** - Built on You.com's enterprise search API
 
+## AI Agent Skills
+
+**For AI SDK Integration**: Use the [ydc-ai-sdk-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-ai-sdk-integration) skill to quickly integrate You.com tools with your Vercel AI SDK applications.
+
+```bash
+# Install the AI SDK integration skill
+npx skills add youdotcom-oss/agent-skills --skill ydc-ai-sdk-integration
+```
+
+Once installed, ask your AI agent: **"Integrate Vercel AI SDK with You.com tools"**
+
+**Supported AI agents**: Claude Code, Cursor, Windsurf, Cody, Continue, and more.
+
+See [Skill Documentation](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-ai-sdk-integration) for complete integration guide.
+
 ## Getting started
 
 Get up and running in 4 quick steps:
@@ -41,7 +56,7 @@ Import the tools and add them to your AI SDK configuration:
 
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 import { youSearch, youContents } from '@youdotcom-oss/ai-sdk-plugin';
 
 // Create your AI model provider
@@ -55,7 +70,7 @@ const result = await generateText({
     search: youSearch(),
     extract: youContents(),
   },
-  maxSteps: 5,
+  stopWhen: stepCountIs(5),  // Required for tool result processing
   prompt: 'Search for the latest developments in quantum computing',
 });
 
@@ -153,6 +168,8 @@ export type YouToolsConfig = {
 This plugin works with any AI SDK compatible model provider:
 
 ```typescript
+import { generateText, stepCountIs } from 'ai';
+
 // Anthropic Claude
 import { createAnthropic } from '@ai-sdk/anthropic';
 
@@ -163,6 +180,7 @@ const anthropic = createAnthropic({
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
   tools: { search: youSearch() },
+  stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
 
@@ -176,6 +194,7 @@ const openai = createOpenAI({
 const result = await generateText({
   model: openai('gpt-4'),
   tools: { search: youSearch() },
+  stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
 
@@ -189,6 +208,7 @@ const google = createGoogleGenerativeAI({
 const result = await generateText({
   model: google('gemini-2.0-flash-exp'),
   tools: { search: youSearch() },
+  stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
 ```
@@ -219,7 +239,7 @@ Extract full page content from URLs in markdown or HTML format. Useful for docum
 
 ---
 
-**Note**: Your AI automatically selects the right tool based on the user's request. Simply set `maxSteps` to allow multiple tool calls, and your AI handles the orchestration.
+**Note**: Your AI automatically selects the right tool based on the user's request. Use `stopWhen: stepCountIs(n)` to enable multi-step tool execution, and your AI handles the orchestration.
 
 ## Examples
 
@@ -273,10 +293,11 @@ const search = youSearch({ apiKey: 'your-api-key-here' });
 
 ### Problem: AI isn't using the tools
 
-**Solution**: Make sure you're setting `maxSteps` to allow multiple tool calls:
+**Solution**: Make sure you're using `stopWhen` to enable multi-step tool execution:
 
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { generateText, stepCountIs } from 'ai';
 
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -285,10 +306,38 @@ const anthropic = createAnthropic({
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
   tools: { search: youSearch() },
-  maxSteps: 5,  // Required: allows AI to use tools
+  stopWhen: stepCountIs(3),  // Required: enables tool result processing
   prompt: 'Search for recent AI news',
 });
 ```
+
+### Problem: Tools execute but response is empty
+
+**Symptoms**: You see tool calls in `result.steps` but `result.text` is empty or minimal.
+
+**Solution**: Replace `maxSteps` with `stopWhen: stepCountIs(n)`:
+
+```typescript
+import { generateText, stepCountIs } from 'ai';
+
+// ❌ WRONG - tools execute but results aren't integrated
+const result = await generateText({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+  tools: { search: youSearch() },
+  maxSteps: 5,  // Don't use this!
+  prompt: 'Search for AI news',
+});
+
+// ✅ CORRECT - tool results properly integrated
+const result = await generateText({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+  tools: { search: youSearch() },
+  stopWhen: stepCountIs(3),  // Use this instead
+  prompt: 'Search for AI news',
+});
+```
+
+**Why this happens**: `maxSteps` doesn't properly integrate tool results into the response generation. The `stopWhen` pattern ensures the AI processes tool outputs before stopping.
 
 ### Problem: Getting 401 authentication errors
 

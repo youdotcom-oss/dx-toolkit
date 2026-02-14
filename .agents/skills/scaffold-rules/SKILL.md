@@ -34,9 +34,8 @@ bunx @plaited/development-skills scaffold-rules
 ```
 
 This will:
-1. Copy rules to `.agents/rules/` (canonical location)
-2. Create symlinks in `.claude/rules` and `.cursor/rules` (if those directories exist)
-3. Fallback: append links to `AGENTS.md` if no agent directories found
+1. Write rules into `AGENTS.md` (creates if missing, updates between markers if present)
+2. Add `@AGENTS.md` reference to `CLAUDE.md` if it exists without one
 
 ### Step 3: Report to User
 
@@ -51,25 +50,32 @@ Tell the user what was created based on the `actions` output.
 
 ## How It Works
 
-```
-.agents/rules/          ← Canonical location (files copied here)
-    ├── testing.md
-    ├── bun.md
-    └── ...
+Rules are written directly into `AGENTS.md` between markers:
 
-.claude/rules -> ../.agents/rules   ← Symlink (if .claude/ exists)
-.cursor/rules -> ../.agents/rules   ← Symlink (if .cursor/ exists)
+```
+<!-- PLAITED-RULES-START -->
+
+## Rules
+
+(rule content inlined here)
+
+<!-- PLAITED-RULES-END -->
 ```
 
-| Project has... | Copy | Symlinks | AGENTS.md |
-|----------------|------|----------|-----------|
-| `.agents/` only | ✓ | None | No |
-| `.claude/` only | ✓ | `.claude/rules` | No |
-| `.cursor/` only | ✓ | `.cursor/rules` | No |
-| `.agents/` + `.claude/` | ✓ | `.claude/rules` | No |
-| `.agents/` + `.cursor/` | ✓ | `.cursor/rules` | No |
-| `.agents/` + `.claude/` + `.cursor/` | ✓ | Both | No |
-| None of the above | ✓ | None | ✓ Append links |
+- **No AGENTS.md**: Creates one with rules section
+- **AGENTS.md without markers**: Appends rules section with markers
+- **AGENTS.md with markers**: Replaces content between markers (preserves user content outside)
+- **CLAUDE.md exists**: Adds `@AGENTS.md` reference if not already present
+
+## Troubleshooting
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| Rules duplicated in AGENTS.md | Markers were manually deleted | Remove duplicate section, re-run `scaffold-rules` |
+| Update didn't apply | Only one marker present (start or end) | Ensure both `<!-- PLAITED-RULES-START -->` and `<!-- PLAITED-RULES-END -->` exist, or delete both to get a fresh append |
+| `@AGENTS.md` not added to CLAUDE.md | CLAUDE.md doesn't exist | Create CLAUDE.md first, then re-run |
+
+**Do not** manually edit content between the `PLAITED-RULES-START` and `PLAITED-RULES-END` markers — it will be overwritten on next run.
 
 ## Related Skills
 

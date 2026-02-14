@@ -53,23 +53,6 @@ const isFunctionWithParameters = (
  * - Function/tool calling with auto-execution
  * - Multi-part content (text + images)
  * - Configurable request options (temperature, max_tokens, etc.)
- *
- * @example
- * ```typescript
- * const model = new AnthropicChatModel({
- *   model: AnthropicModel.CLAUDE_SONNET_4_5,
- *   apiKey: process.env.ANTHROPIC_API_KEY,
- *   requestOptions: {
- *     max_tokens: 4096,
- *     temperature: 0.7,
- *   },
- * });
- *
- * const response = await model.send(
- *   { role: 'user', content: 'Hello!' },
- *   { system: { role: 'system', content: 'You are a helpful assistant.' } }
- * );
- * ```
  */
 export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
   #anthropic: Anthropic
@@ -132,7 +115,10 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
       const memory = options?.messages || new LocalMemory()
 
       // Add input message to memory
-      await memory.push(input)
+      // Skip pushing model messages with function_calls - they're already in memory from the previous API response
+      if (!isInputModelMessage(input)) {
+        await memory.push(input)
+      }
 
       // Handle function execution if input is a model message with function calls
       if (isInputModelMessage(input)) {
@@ -154,7 +140,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
                 }
 
                 // Recursively call send() with function result
-                return await this.send(message, options)
+                return await this.send(message, { ...options, messages: memory })
               } catch (error: unknown) {
                 const fnErrorMsg = error instanceof Error ? error.message : String(error)
                 this.#log.log('error', `Function execution failed: ${fnErrorMsg}`)
@@ -166,7 +152,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
                   content: `Error: ${fnErrorMsg}`,
                 }
 
-                return await this.send(message, options)
+                return await this.send(message, { ...options, messages: memory })
               }
             }
           }
@@ -279,7 +265,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
 
         // If function calls present and auto-execution enabled, execute them
         if (modelMessage.function_calls && options.autoFunctionCalling !== false && options.functions) {
-          return await this.send(modelMessage, options)
+          return await this.send(modelMessage, { ...options, messages: memory })
         }
 
         return modelMessage
@@ -298,7 +284,7 @@ export class AnthropicChatModel implements IChatModel<AnthropicRequestOptions> {
 
       // If function calls present and auto-execution enabled, execute them
       if (modelMessage.function_calls && options?.autoFunctionCalling !== false && options?.functions) {
-        return await this.send(modelMessage, options)
+        return await this.send(modelMessage, { ...options, messages: memory })
       }
 
       return modelMessage

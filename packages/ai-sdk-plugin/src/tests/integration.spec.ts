@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import type { ContentsApiResponse, SearchResponse } from '@youdotcom-oss/api'
 import { generateText, stepCountIs, streamText } from 'ai'
 import { youContents, youSearch } from '../main.ts'
 
@@ -43,6 +44,24 @@ const expectRealString = (value: unknown, minLength = 1, fieldName = 'field') =>
   expect((value as string).trim(), `${fieldName} should not be whitespace only`).not.toBe('')
 }
 
+/**
+ * Type for AI SDK step content items with discriminated union
+ */
+type StepContentItem =
+  | {
+      type: 'tool-call'
+      toolName: string
+      args: unknown
+    }
+  | {
+      type: 'tool-result'
+      output: unknown
+    }
+  | {
+      type: string
+      [key: string]: unknown
+    }
+
 describe('AI SDK Plugin Integration Tests', () => {
   const apiKey = process.env.YDC_API_KEY
   let originalSiteUrl: string | undefined
@@ -79,14 +98,18 @@ describe('AI SDK Plugin Integration Tests', () => {
         )
 
         // Validate wrapper returns raw API response
-        const result = getExecuteResult(executeResult) as any
+        const result = getExecuteResult(executeResult) as SearchResponse
         expect(result.results).toBeDefined()
         expect(result.results.web).toBeDefined()
-        expect(Array.isArray(result.results.web)).toBe(true)
-        expect(result.results.web.length).toBeGreaterThan(0)
 
-        const firstResult = result.results.web[0]
-        expect(firstResult).toBeDefined()
+        const webResults = result.results.web
+        if (!webResults) throw new Error('Web results undefined')
+
+        expect(Array.isArray(webResults)).toBe(true)
+        expect(webResults.length).toBeGreaterThan(0)
+
+        const firstResult = webResults[0]
+        if (!firstResult) throw new Error('First result undefined')
 
         // Validate URL is real and well-formed
         expectRealString(firstResult.url, 10, 'url')
@@ -118,12 +141,12 @@ describe('AI SDK Plugin Integration Tests', () => {
         )
 
         // Validate wrapper returns raw API response
-        const result = getExecuteResult(executeResult) as any
+        const result = getExecuteResult(executeResult) as ContentsApiResponse
         expect(Array.isArray(result)).toBe(true)
         expect(result.length).toBeGreaterThan(0)
 
         const firstItem = result[0]
-        expect(firstItem).toBeDefined()
+        if (!firstItem) throw new Error('First item undefined')
 
         // Validate URL matches request
         expect(firstItem.url).toBe('https://documentation.you.com/developer-resources/mcp-server')
@@ -131,12 +154,15 @@ describe('AI SDK Plugin Integration Tests', () => {
         // Validate markdown has substantial content
         expectRealString(firstItem.markdown, 100, 'markdown')
 
+        const markdown = firstItem.markdown
+        if (!markdown) throw new Error('Markdown undefined')
+
         // Verify content structure (real markdown content)
-        expect(firstItem.markdown).toMatch(/[a-zA-Z]{3,}/) // Contains actual words
-        expect(firstItem.markdown.split('\n').length).toBeGreaterThan(5) // Multiple lines
+        expect(markdown).toMatch(/[a-zA-Z]{3,}/) // Contains actual words
+        expect(markdown.split('\n').length).toBeGreaterThan(5) // Multiple lines
 
         // Verify content relevance to known MCP server documentation
-        const markdownLower = firstItem.markdown.toLowerCase()
+        const markdownLower = markdown.toLowerCase()
         expect(markdownLower).toMatch(/mcp|model context protocol|server|tool/)
       },
       { timeout: 30_000, retry: 2 },
@@ -185,19 +211,27 @@ describe('AI SDK Plugin Integration Tests', () => {
         expect(result.toolResults.length).toBeGreaterThan(0)
 
         // Extract tool result from steps
-        const toolResult = result.steps?.[0]?.content?.find((c: any) => c.type === 'tool-result') as any
+        const contentItems = result.steps?.[0]?.content as StepContentItem[] | undefined
+        const toolResult = contentItems?.find((c) => c.type === 'tool-result')
         expect(toolResult).toBeDefined()
-        expect(toolResult?.output).toBeDefined()
+        expect(toolResult?.type).toBe('tool-result')
 
         // Validate raw API response structure
-        const output = toolResult?.output as any
+        const output = toolResult && 'output' in toolResult ? (toolResult.output as SearchResponse) : undefined
+        expect(output).toBeDefined()
+        if (!output) throw new Error('Output undefined')
+
         expect(output.results).toBeDefined()
         expect(output.results.web).toBeDefined()
-        expect(Array.isArray(output.results.web)).toBe(true)
-        expect(output.results.web.length).toBeGreaterThan(0)
 
-        const firstResult = output.results.web[0]
-        expect(firstResult).toBeDefined()
+        const webResults = output.results.web
+        if (!webResults) throw new Error('Web results undefined')
+
+        expect(Array.isArray(webResults)).toBe(true)
+        expect(webResults.length).toBeGreaterThan(0)
+
+        const firstResult = webResults[0]
+        if (!firstResult) throw new Error('First result undefined')
 
         // Validate URL is real and well-formed
         expectRealString(firstResult.url, 10, 'url')
@@ -232,14 +266,19 @@ describe('AI SDK Plugin Integration Tests', () => {
         expect(result.steps.length).toBeGreaterThanOrEqual(1)
 
         // Collect all tool calls across all steps
-        const allToolCalls: any[] = []
+        const allToolCalls: StepContentItem[] = []
         for (const step of result.steps) {
-          const toolCallContent = step?.content?.filter((item: any) => item.type === 'tool-call') ?? []
+          const contentItems = (step?.content as StepContentItem[] | undefined) ?? []
+          const toolCallContent = contentItems.filter((item) => item.type === 'tool-call')
           allToolCalls.push(...toolCallContent)
         }
 
         // Get unique tool names
-        const toolNames = new Set(allToolCalls.map((item: any) => item.toolName))
+        const toolNames = new Set(
+          allToolCalls
+            .filter((item): item is Extract<StepContentItem, { type: 'tool-call' }> => item.type === 'tool-call')
+            .map((item) => item.toolName),
+        )
 
         // Validate at least one tool was used
         expect(toolNames.size).toBeGreaterThanOrEqual(1)
