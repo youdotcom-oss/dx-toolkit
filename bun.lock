@@ -21,7 +21,7 @@
       "name": "@youdotcom-oss/ai-sdk-plugin",
       "version": "2.0.3",
       "dependencies": {
-        "@youdotcom-oss/api": "0.3.0",
+        "@youdotcom-oss/api": "0.3.1",
       },
       "devDependencies": {
         "@ai-sdk/anthropic": "^3.0.42",
@@ -48,7 +48,7 @@
       "dependencies": {
         "@hono/mcp": "^0.2.3",
         "@modelcontextprotocol/sdk": "^1.25.3",
-        "@youdotcom-oss/api": "0.3.0",
+        "@youdotcom-oss/api": "0.3.1",
         "hono": "^4.11.7",
         "zod": "^4.3.6",
       },
@@ -986,10 +986,6 @@
     "@radix-ui/react-select/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
 
     "@radix-ui/react-tooltip/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
-
-    "@youdotcom-oss/ai-sdk-plugin/@youdotcom-oss/api": ["@youdotcom-oss/api@0.3.0", "", { "dependencies": { "zod": "^4.3.6" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-eLg8zFFe0UaOLdxjQVjVyr8peSVVO9XlQbR9XkmF+RHWQQnWWQFPf9YE3LepJ0sad9ZvNApXAH3c67TKuu9gzA=="],
-
-    "@youdotcom-oss/mcp/@youdotcom-oss/api": ["@youdotcom-oss/api@0.3.0", "", { "dependencies": { "zod": "^4.3.6" }, "bin": { "ydc": "bin/cli.js" } }, "sha512-eLg8zFFe0UaOLdxjQVjVyr8peSVVO9XlQbR9XkmF+RHWQQnWWQFPf9YE3LepJ0sad9ZvNApXAH3c67TKuu9gzA=="],
 
     "caller-callsite/callsites": ["callsites@2.0.0", "", {}, "sha512-ksWePWBloaWPxJYQ8TL0JHvtci6G5QTKwQ95RcWAa/lzoAKuAOflGdAK92hpHXjkwb8zLxoLNUoNYZgVsaJzvQ=="],
 
