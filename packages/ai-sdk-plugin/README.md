@@ -12,6 +12,21 @@ Build AI applications that can:
 - **Type-safe** - Full TypeScript support with Zod schema validation
 - **Production-ready** - Built on You.com's enterprise search API
 
+## AI Agent Skills
+
+**For AI SDK Integration**: Use the [ydc-ai-sdk-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-ai-sdk-integration) skill to quickly integrate You.com tools with your Vercel AI SDK applications.
+
+```bash
+# Install skills CLI and add integration skills
+npx skills add youdotcom-oss/agent-skills
+```
+
+Once installed, ask your AI agent: **"Integrate Vercel AI SDK with You.com tools"**
+
+**Supported AI agents**: Claude Code, Cursor, Windsurf, Cody, Continue, and more.
+
+See [Skill Documentation](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-ai-sdk-integration) for complete integration guide.
+
 ## Getting started
 
 Get up and running in 4 quick steps:
