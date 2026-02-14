@@ -58,7 +58,7 @@
     },
     "packages/teams-anthropic": {
       "name": "@youdotcom-oss/teams-anthropic",
-      "version": "1.0.2",
+      "version": "1.1.0",
       "dependencies": {
         "@anthropic-ai/sdk": "^0.74.0",
         "@microsoft/teams.ai": "^2.0.5",
