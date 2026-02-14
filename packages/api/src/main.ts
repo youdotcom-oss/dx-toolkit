@@ -16,8 +16,9 @@ export * from './deep-search/deep-search.utils.ts'
 // Search
 export * from './search/search.schemas.ts'
 export * from './search/search.utils.ts'
-// Shared
 export * from './shared/api.constants.ts'
 export * from './shared/api.types.ts'
+// Shared
+export * from './shared/api-error.schemas.ts'
 export * from './shared/dry-run-utils.ts'
 export * from './shared/generate-error-report-link.ts'
