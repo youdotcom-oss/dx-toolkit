@@ -41,17 +41,13 @@ Import the tools and add them to your AI SDK configuration:
 
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText, type StepResult } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 import { youSearch, youContents } from '@youdotcom-oss/ai-sdk-plugin';
 
 // Create your AI model provider
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
-
-// Helper function for multi-step execution control
-const stepCountIs = (n: number) => (stepResult: StepResult<any>) =>
-  stepResult.stepNumber >= n;
 
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
@@ -157,11 +153,7 @@ export type YouToolsConfig = {
 This plugin works with any AI SDK compatible model provider:
 
 ```typescript
-import { generateText, type StepResult } from 'ai';
-
-// Helper function for multi-step execution control
-const stepCountIs = (n: number) => (stepResult: StepResult<any>) =>
-  stepResult.stepNumber >= n;
+import { generateText, stepCountIs } from 'ai';
 
 // Anthropic Claude
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -290,15 +282,11 @@ const search = youSearch({ apiKey: 'your-api-key-here' });
 
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText, type StepResult } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
-
-// Helper function for multi-step execution control
-const stepCountIs = (n: number) => (stepResult: StepResult<any>) =>
-  stepResult.stepNumber >= n;
 
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
@@ -315,7 +303,7 @@ const result = await generateText({
 **Solution**: Replace `maxSteps` with `stopWhen: stepCountIs(n)`:
 
 ```typescript
-import { generateText, type StepResult } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 
 // ❌ WRONG - tools execute but results aren't integrated
 const result = await generateText({
@@ -326,9 +314,6 @@ const result = await generateText({
 });
 
 // ✅ CORRECT - tool results properly integrated
-const stepCountIs = (n: number) => (stepResult: StepResult<any>) =>
-  stepResult.stepNumber >= n;
-
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
   tools: { search: youSearch() },
