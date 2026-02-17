@@ -1,0 +1,79 @@
+{
+  "name": "@youdotcom-oss/langchain",
+  "version": "1.0.0",
+  "description": "LangChain.js tools for You.com web search, deep search, and content extraction",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/langchain"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/langchain#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "ai",
+    "langchain",
+    "langchain-tools",
+    "you",
+    "search",
+    "deep-search",
+    "web-search",
+    "content-extraction",
+    "ai-agents"
+  ],
+  "type": "module",
+  "main": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @langchain/core",
+    "build:types": "tsc --project tsconfig.build.json  --declaration --emitDeclarationOnly --noEmit false",
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "biome check --write && bun run format:package",
+    "example": "bun examples/basic-search.ts",
+    "example:content": "bun examples/content-extraction.ts",
+    "example:deep-search": "bun examples/deep-search.ts",
+    "example:multi": "bun examples/multi-tool-agent.ts",
+    "example:search": "bun examples/basic-search.ts",
+    "format:package": "format-package --write",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:coverage:watch": "bun test --coverage --watch",
+    "test:watch": "bun test --watch"
+  },
+  "types": "./dist/main.d.ts",
+  "dependencies": {
+    "@youdotcom-oss/api": "0.3.0"
+  },
+  "peerDependencies": {
+    "@langchain/core": ">=0.3.58"
+  },
+  "devDependencies": {
+    "@langchain/anthropic": "^1.0.0",
+    "@langchain/core": "^1.1.24",
+    "@langchain/langgraph": "^1.1.4",
+    "langchain": "^1.2.24"
+  }
+}
