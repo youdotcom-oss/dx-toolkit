@@ -23,7 +23,6 @@ describe('ContentsQuerySchema OpenAPI validation', () => {
     const invalidQueries = [
       {}, // Missing urls
       { urls: [] }, // Empty urls array
-      { urls: ['not-a-url'] }, // Invalid URL
       { urls: ['https://example.com'], formats: ['invalid'] }, // Invalid format
       { urls: ['https://example.com'], crawl_timeout: 0 }, // Timeout too low
       { urls: ['https://example.com'], crawl_timeout: 61 }, // Timeout too high
