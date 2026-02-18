@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { createAgent, initChatModel } from 'langchain'
-import { youContents, youDeepSearch, youSearch } from '../main.ts'
+import { youContents, youSearch } from '../main.ts'
 
 /**
  * Integration tests for LangChain Plugin
@@ -71,34 +71,6 @@ describe('LangChain Plugin Integration Tests', () => {
         expectRealString(firstResult.description, 20, 'description')
       },
       { timeout: 30_000, retry: 2 },
-    )
-
-    test(
-      'youDeepSearch - basic tool invocation',
-      async () => {
-        const deepSearchTool = youDeepSearch({ apiKey })
-        const raw = await deepSearchTool.invoke({
-          query: 'What are the key differences between TypeScript and JavaScript?',
-          search_effort: 'low',
-        })
-
-        expect(typeof raw).toBe('string')
-        const result = JSON.parse(raw)
-
-        // Validate answer
-        expect(result.answer).toBeDefined()
-        expectRealString(result.answer, 50, 'answer')
-
-        // Validate sources
-        expect(result.results).toBeDefined()
-        expect(Array.isArray(result.results)).toBe(true)
-        expect(result.results.length).toBeGreaterThan(0)
-
-        const firstSource = result.results[0]
-        expectRealString(firstSource.url, 10, 'source url')
-        expectRealString(firstSource.title, 5, 'source title')
-      },
-      { timeout: 60_000, retry: 2 },
     )
 
     test(

@@ -1,17 +1,4 @@
 {
   "root": false,
-  "extends": "//",
-  "overrides": [
-    {
-      "includes": ["templates/**/*.ts", "src/tests/**/*.spec.ts", "examples/**/*.ts", "scripts/**/*.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": "off",
-            "noExplicitAny": "off"
-          }
-        }
-      }
-    }
-  ]
+  "extends": "//"
 }

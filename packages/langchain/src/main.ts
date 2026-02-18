@@ -2,9 +2,6 @@ import { DynamicStructuredTool } from '@langchain/core/tools'
 import {
   type ContentsQuery,
   ContentsQuerySchema,
-  callDeepSearch,
-  type DeepSearchQuery,
-  DeepSearchQuerySchema,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
@@ -34,15 +31,6 @@ export type YouToolsConfig = {
  * can be set at construction and will be used unless overridden at invoke time.
  */
 export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
-
-/**
- * Configuration for the youDeepSearch tool
- *
- * Extends YouToolsConfig with optional DeepSearchQuery fields as defaults.
- * Any field from DeepSearchQuery (e.g. search_effort) can be set at construction
- * and will be used unless overridden by the agent at invoke time.
- */
-export type YouDeepSearchConfig = YouToolsConfig & Partial<DeepSearchQuery>
 
 /**
  * Configuration for the youContents tool
@@ -89,42 +77,6 @@ export const youSearch = (config: YouSearchConfig = {}) => {
 
       const response = await fetchSearchResults({
         searchQuery: { ...defaults, ...params },
-        YDC_API_KEY: apiKey,
-        getUserAgent,
-      })
-
-      return JSON.stringify(response)
-    },
-  })
-}
-
-/**
- * You.com deep search tool for LangChain
- *
- * Perform in-depth research on complex queries requiring multi-step reasoning.
- * Returns a comprehensive answer with inline citations and source URLs.
- *
- * @param config - Configuration options
- * @returns A DynamicStructuredTool for use with LangChain agents
- *
- * @public
- */
-export const youDeepSearch = (config: YouDeepSearchConfig = {}) => {
-  const { apiKey: configApiKey, ...defaults } = config
-  const apiKey = configApiKey ?? process.env.YDC_API_KEY
-
-  return new DynamicStructuredTool({
-    name: 'you_deep_search',
-    description:
-      'Perform deep research on complex queries using You.com. Returns a comprehensive answer with inline citations and source URLs. Use this for research questions requiring in-depth investigation and multi-step reasoning.',
-    schema: DeepSearchQuerySchema,
-    func: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
-      }
-
-      const response = await callDeepSearch({
-        deepSearchQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

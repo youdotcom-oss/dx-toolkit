@@ -1,7 +1,7 @@
 {
   "name": "@youdotcom-oss/langchain",
-  "version": "1.0.0",
-  "description": "LangChain.js tools for You.com web search, deep search, and content extraction",
+  "version": "0.0.1",
+  "description": "LangChain.js tools for You.com web search and content extraction",
   "license": "MIT",
   "engines": {
     "node": ">=18",
@@ -23,7 +23,6 @@
     "langchain-tools",
     "you",
     "search",
-    "deep-search",
     "web-search",
     "content-extraction",
     "ai-agents"
@@ -51,11 +50,6 @@
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
     "check:write": "biome check --write && bun run format:package",
-    "example": "bun examples/basic-search.ts",
-    "example:content": "bun examples/content-extraction.ts",
-    "example:deep-search": "bun examples/deep-search.ts",
-    "example:multi": "bun examples/multi-tool-agent.ts",
-    "example:search": "bun examples/basic-search.ts",
     "format:package": "format-package --write",
     "prepublishOnly": "bun run build",
     "test": "bun test",
@@ -65,7 +59,7 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/api": "0.3.0"
+    "@youdotcom-oss/api": "0.3.3"
   },
   "peerDependencies": {
     "@langchain/core": ">=0.3.58"
