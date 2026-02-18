@@ -1,11 +1,14 @@
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import {
+  type ContentsQuery,
   ContentsQuerySchema,
   callDeepSearch,
+  type DeepSearchQuery,
   DeepSearchQuerySchema,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
+  type SearchQuery,
   SearchQuerySchema,
 } from '@youdotcom-oss/api'
 import packageJson from '../package.json' with { type: 'json' }
@@ -24,12 +27,35 @@ export type YouToolsConfig = {
 }
 
 /**
- * Configuration for the youContents tool
+ * Configuration for the youSearch tool
+ *
+ * Extends YouToolsConfig with optional SearchQuery fields as defaults.
+ * Any field from SearchQuery (e.g. count, freshness, country, safesearch, livecrawl)
+ * can be set at construction and will be used unless overridden at invoke time.
  */
-export type YouContentsConfig = YouToolsConfig & {
-  /** Maximum character length for markdown/html content per URL. Defaults to 50,000. Set to 0 to disable truncation. */
-  maxContentLength?: number
-}
+export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
+
+/**
+ * Configuration for the youDeepSearch tool
+ *
+ * Extends YouToolsConfig with optional DeepSearchQuery fields as defaults.
+ * Any field from DeepSearchQuery (e.g. search_effort) can be set at construction
+ * and will be used unless overridden by the agent at invoke time.
+ */
+export type YouDeepSearchConfig = YouToolsConfig & Partial<DeepSearchQuery>
+
+/**
+ * Configuration for the youContents tool
+ *
+ * Extends YouToolsConfig with optional ContentsQuery fields as defaults.
+ * Any field from ContentsQuery (e.g. formats, crawl_timeout) can be set at construction
+ * and will be used unless overridden at invoke time.
+ */
+export type YouContentsConfig = YouToolsConfig &
+  Partial<ContentsQuery> & {
+    /** Maximum character length for markdown/html content per URL. Defaults to 150,000. Set to 0 to disable truncation. */
+    maxContentLength?: number
+  }
 
 /**
  * Creates a User-Agent string for API requests
@@ -47,8 +73,9 @@ const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version
  *
  * @public
  */
-export const youSearch = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
+export const youSearch = (config: YouSearchConfig = {}) => {
+  const { apiKey: configApiKey, ...defaults } = config
+  const apiKey = configApiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
     name: 'you_search',
@@ -61,12 +88,12 @@ export const youSearch = (config: YouToolsConfig = {}) => {
       }
 
       const response = await fetchSearchResults({
-        searchQuery: params,
+        searchQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
         getUserAgent,
       })
 
-      return response
+      return JSON.stringify(response)
     },
   })
 }
@@ -82,8 +109,9 @@ export const youSearch = (config: YouToolsConfig = {}) => {
  *
  * @public
  */
-export const youDeepSearch = (config: YouToolsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
+export const youDeepSearch = (config: YouDeepSearchConfig = {}) => {
+  const { apiKey: configApiKey, ...defaults } = config
+  const apiKey = configApiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
     name: 'you_deep_search',
@@ -96,12 +124,12 @@ export const youDeepSearch = (config: YouToolsConfig = {}) => {
       }
 
       const response = await callDeepSearch({
-        deepSearchQuery: params,
+        deepSearchQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
         getUserAgent,
       })
 
-      return response
+      return JSON.stringify(response)
     },
   })
 }
@@ -118,13 +146,14 @@ export const youDeepSearch = (config: YouToolsConfig = {}) => {
  * @public
  */
 export const youContents = (config: YouContentsConfig = {}) => {
-  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
-  const maxLen = config.maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH
+  const { apiKey: configApiKey, maxContentLength, ...defaults } = config
+  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+  const maxLen = maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH
 
   return new DynamicStructuredTool({
     name: 'you_contents',
     description:
-      'Extract page content from web URLs using You.com. Returns page content in markdown or HTML format. Use this when you need to read and process web pages. Note: very large pages may be truncated.',
+      'Extract page content from web URLs using You.com. Returns an array of objects, each with: url (string), title (string), markdown (string, the page content in markdown), html (string, optional), and metadata (object, optional). Read the markdown field to get the page content. Use this when you need to read and process web pages. Note: very large pages may be truncated.',
     schema: ContentsQuerySchema,
     func: async (params) => {
       if (!apiKey) {
@@ -132,18 +161,20 @@ export const youContents = (config: YouContentsConfig = {}) => {
       }
 
       const response = await fetchContents({
-        contentsQuery: params,
+        contentsQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
         getUserAgent,
       })
 
-      if (maxLen <= 0) return response
+      if (maxLen <= 0) return JSON.stringify(response)
 
-      return response.map((item) => ({
+      const truncated = response.map((item) => ({
         ...item,
         markdown: item.markdown ? truncateContent(item.markdown, maxLen) : item.markdown,
         html: item.html ? truncateContent(item.html, maxLen) : item.html,
       }))
+
+      return JSON.stringify(truncated)
     },
   })
 }

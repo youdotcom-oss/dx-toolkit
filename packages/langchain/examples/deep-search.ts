@@ -28,7 +28,7 @@ if (!apiKey) {
 // youDeepSearch performs in-depth research on complex queries
 // Returns comprehensive answers with inline citations and source URLs
 // See our docs at https://docs.you.com/api-reference/deep-search/v1-deep_search for details
-const deepSearchTool = youDeepSearch({ apiKey })
+const deepSearchTool = youDeepSearch({ apiKey, search_effort: 'low' })
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -72,5 +72,7 @@ console.log('Research Results:')
 console.log(result.structuredResponse)
 
 // Direct tool invocation (alternative usage without agent)
-// const rawResults = await deepSearchTool.invoke({ query: 'WebAssembly vs JavaScript', search_effort: 'low' })
-// console.log(rawResults)
+console.log('\nRunning direct tool invocation with search_effort: low...\n')
+const rawResults = await deepSearchTool.invoke({ query: 'WebAssembly vs JavaScript', search_effort: 'low' })
+console.log('Direct Results:')
+console.log(rawResults)

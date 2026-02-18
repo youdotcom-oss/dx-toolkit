@@ -27,7 +27,7 @@ if (!apiKey) {
 
 // youSearch performs web searches and returns titles, URLs, and snippets
 // See our docs at https://docs.you.com/api-reference/search/v1-search for details
-const searchTool = youSearch({ apiKey })
+const searchTool = youSearch({ apiKey, count: 1, country: 'US' })
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -64,5 +64,5 @@ console.log('Search Results Summary:')
 console.log(result.structuredResponse)
 
 // Direct tool invocation (alternative usage without agent)
-// const rawResults = await searchTool.invoke({ query: 'AI news', count: 5 })
+// const rawResults = await searchTool.invoke({ query: 'What are the latest developments in AI?', count: 1, country: 'US', livecrawl: "news" })
 // console.log(rawResults)

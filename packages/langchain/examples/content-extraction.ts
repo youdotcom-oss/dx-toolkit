@@ -42,7 +42,7 @@ Summarize the content and present it clearly.`
 const responseFormat = z.object({
   page_title: z.string().describe('The title or main heading of the page'),
   content_summary: z.string().describe('A summary of the page content'),
-  // main_sections: z.array(z.string()).describe('The main sections or topics covered on the page'),
+  main_sections: z.array(z.string()).describe('The main sections or topics covered on the page'),
   source_url: z.string().describe('The URL of the page that was fetched'),
 })
 
@@ -61,8 +61,7 @@ const result = await contentsAgent.invoke({
   messages: [
     {
       role: 'user',
-      content: 'Get the content from https://www.nbcnews.com and summarize a few headlines.',
-      // 'Get the content from https://documentation.you.com/developer-resources/mcp-server and summarize the page.',
+      content: 'Get the content from https://www.cnn.com and summarize the page.',
     },
   ],
 })
@@ -72,4 +71,3 @@ console.log(result.structuredResponse)
 
 // Direct tool invocation (alternative usage without agent)
 // const rawContent = await contentsTool.invoke({ urls: ['https://cnn.com'], formats: ['markdown'] })
-// console.log(rawContent)
