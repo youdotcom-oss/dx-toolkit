@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "2.0.4",
+  "version": "2.0.6",
   "description": "You.com API Model Context Protocol Server - For programmatic API access, use @youdotcom-oss/api",
   "license": "MIT",
   "engines": {
@@ -56,13 +56,13 @@
   },
   "mcpName": "io.github.youdotcom-oss/mcp",
   "dependencies": {
-    "@youdotcom-oss/api": "0.3.0",
+    "@youdotcom-oss/api": "0.3.2",
     "zod": "^4.3.6",
     "@hono/mcp": "^0.2.3",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "hono": "^4.11.7"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "0.19.0"
+    "@modelcontextprotocol/inspector": "0.20.0"
   }
 }

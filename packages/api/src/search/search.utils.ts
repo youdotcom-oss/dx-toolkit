@@ -1,5 +1,6 @@
 import { SEARCH_API_URL } from '../shared/api.constants.ts'
 import type { GetUserAgent } from '../shared/api.types.ts'
+import { ApiErrorResponseSchema } from '../shared/api-error.schemas.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
 
@@ -47,16 +48,20 @@ export const fetchSearchResults = async ({
       let upgradeUrl = 'https://you.com/platform'
 
       try {
-        const errorBody = (await response.json()) as any
-        if (errorBody?.message) {
-          errorMessage = errorBody.message
-        }
-        if (errorBody?.upgrade_url) {
-          upgradeUrl = errorBody.upgrade_url
-        }
-        if (errorBody?.reset_at) {
-          const resetDate = new Date(errorBody.reset_at).toLocaleDateString()
-          errorMessage += ` Limit resets on ${resetDate}.`
+        const json = await response.json()
+        const parseResult = ApiErrorResponseSchema.safeParse(json)
+        if (parseResult.success) {
+          const errorBody = parseResult.data
+          if (errorBody.message) {
+            errorMessage = errorBody.message
+          }
+          if (errorBody.upgrade_url) {
+            upgradeUrl = errorBody.upgrade_url
+          }
+          if (errorBody.reset_at) {
+            const resetDate = new Date(errorBody.reset_at).toLocaleDateString()
+            errorMessage += ` Limit resets on ${resetDate}.`
+          }
         }
       } catch {
         // If parsing fails, use default message

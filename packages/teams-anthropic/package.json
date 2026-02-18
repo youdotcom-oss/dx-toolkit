@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/teams-anthropic",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Anthropic SDK integration for Microsoft Teams.ai - enables Claude models (Opus, Sonnet, Haiku) in Teams applications",
   "license": "MIT",
   "engines": {
@@ -58,11 +58,11 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.73.0"
+    "@anthropic-ai/sdk": "^0.74.0",
+    "@microsoft/teams.ai": "^2.0.5",
+    "@microsoft/teams.common": "^2.0.5"
   },
   "devDependencies": {
-    "@microsoft/teams.ai": "^2.0.5",
-    "@microsoft/teams.common": "^2.0.5",
     "@types/bun": "latest",
     "typescript": "^5.9.3"
   }
