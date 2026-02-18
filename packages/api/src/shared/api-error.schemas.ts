@@ -7,7 +7,22 @@ import { z } from 'zod'
  */
 export const ApiErrorResponseSchema = z.object({
   message: z.string().optional(),
-  upgrade_url: z.string().url().optional(),
+  // Use .refine() instead of .url() to ensure JSON schema includes "type": "string"
+  // This is required for OpenAI function calling schema validation
+  upgrade_url: z
+    .string()
+    .refine(
+      (val) => {
+        try {
+          new URL(val)
+          return true
+        } catch {
+          return false
+        }
+      },
+      { message: 'Invalid URL format' },
+    )
+    .optional(),
   reset_at: z.string().optional(),
 })
 
