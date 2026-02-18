@@ -6,7 +6,19 @@ import * as z from 'zod'
  */
 export const ContentsQuerySchema = z.object({
   urls: z
-    .array(z.string())
+    .array(
+      z.string().refine(
+        (val) => {
+          try {
+            new URL(val);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { message: 'Invalid URL format' }
+      )
+    )
     .min(1)
     .describe('Array of webpage URLs to extract content from (e.g., ["https://example.com"])'),
   formats: z
