@@ -11,12 +11,6 @@ import {
 import packageJson from '../package.json' with { type: 'json' }
 
 /**
- * Default maximum character length for content returned by youContents.
- * Prevents exceeding LLM context window limits when extracted pages are very large.
- */
-const DEFAULT_MAX_CONTENT_LENGTH = 150_000
-
-/**
  * Configuration for You.com LangChain tools
  */
 export type YouToolsConfig = {
@@ -39,11 +33,7 @@ export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
  * Any field from ContentsQuery (e.g. formats, crawl_timeout) can be set at construction
  * and will be used unless overridden at invoke time.
  */
-export type YouContentsConfig = YouToolsConfig &
-  Partial<ContentsQuery> & {
-    /** Maximum character length for markdown/html content per URL. Defaults to 150,000. Set to 0 to disable truncation. */
-    maxContentLength?: number
-  }
+export type YouContentsConfig = YouToolsConfig & Partial<ContentsQuery>
 
 /**
  * Creates a User-Agent string for API requests
@@ -98,9 +88,8 @@ export const youSearch = (config: YouSearchConfig = {}) => {
  * @public
  */
 export const youContents = (config: YouContentsConfig = {}) => {
-  const { apiKey: configApiKey, maxContentLength, ...defaults } = config
+  const { apiKey: configApiKey, ...defaults } = config
   const apiKey = configApiKey ?? process.env.YDC_API_KEY
-  const maxLen = maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH
 
   return new DynamicStructuredTool({
     name: 'you_contents',
@@ -118,20 +107,7 @@ export const youContents = (config: YouContentsConfig = {}) => {
         getUserAgent,
       })
 
-      if (maxLen <= 0) return JSON.stringify(response)
-
-      const truncated = response.map((item) => ({
-        ...item,
-        markdown: item.markdown ? truncateContent(item.markdown, maxLen) : item.markdown,
-        html: item.html ? truncateContent(item.html, maxLen) : item.html,
-      }))
-
-      return JSON.stringify(truncated)
+      return JSON.stringify(response)
     },
   })
-}
-
-const truncateContent = (content: string, maxLength: number): string => {
-  if (content.length <= maxLength) return content
-  return `${content.slice(0, maxLength)}\n\n[Content truncated at ${maxLength.toLocaleString()} characters]`
 }
