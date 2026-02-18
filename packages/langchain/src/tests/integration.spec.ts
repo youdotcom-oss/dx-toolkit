@@ -1,14 +1,12 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { ChatAnthropic } from '@langchain/anthropic'
-import { HumanMessage } from '@langchain/core/messages'
-import { createReactAgent } from '@langchain/langgraph/prebuilt'
+import { createAgent, initChatModel } from 'langchain'
 import { youContents, youDeepSearch, youSearch } from '../main.ts'
 
 /**
  * Integration tests for LangChain Plugin
  *
  * Test Strategy:
- * - Smoke tests: Verify each tool wrapper executes and returns valid responses
+ * - Smoke tests: Verify each tool wrapper executes and returns valid JSON strings
  * - Error handling: Wrapper-specific validation (API key checks)
  * - LangChain integration: Agent-based tests with tool binding
  *
@@ -48,10 +46,13 @@ describe('LangChain Plugin Integration Tests', () => {
       'youSearch - basic tool invocation',
       async () => {
         const searchTool = youSearch({ apiKey })
-        const result = (await searchTool.invoke({
+        const raw = await searchTool.invoke({
           query: 'TypeScript best practices',
           count: 3,
-        })) as any
+        })
+
+        expect(typeof raw).toBe('string')
+        const result = JSON.parse(raw)
 
         expect(result.results).toBeDefined()
         expect(result.results.web).toBeDefined()
@@ -76,10 +77,13 @@ describe('LangChain Plugin Integration Tests', () => {
       'youDeepSearch - basic tool invocation',
       async () => {
         const deepSearchTool = youDeepSearch({ apiKey })
-        const result = (await deepSearchTool.invoke({
+        const raw = await deepSearchTool.invoke({
           query: 'What are the key differences between TypeScript and JavaScript?',
           search_effort: 'low',
-        })) as any
+        })
+
+        expect(typeof raw).toBe('string')
+        const result = JSON.parse(raw)
 
         // Validate answer
         expect(result.answer).toBeDefined()
@@ -101,10 +105,13 @@ describe('LangChain Plugin Integration Tests', () => {
       'youContents - basic tool invocation',
       async () => {
         const contentsTool = youContents({ apiKey })
-        const result = (await contentsTool.invoke({
+        const raw = await contentsTool.invoke({
           urls: ['https://documentation.you.com/developer-resources/mcp-server'],
           formats: ['markdown'],
-        })) as any
+        })
+
+        expect(typeof raw).toBe('string')
+        const result = JSON.parse(raw)
 
         expect(Array.isArray(result)).toBe(true)
         expect(result.length).toBeGreaterThan(0)
@@ -124,36 +131,31 @@ describe('LangChain Plugin Integration Tests', () => {
     test('missing API key throws error during invocation', async () => {
       const searchTool = youSearch({ apiKey: '' })
 
-      await expect(async () => {
-        await searchTool.invoke({ query: 'test' })
-      }).toThrow(/YDC_API_KEY is required/)
+      expect(() => searchTool.invoke({ query: 'test' })).toThrow(/YDC_API_KEY is required/)
     })
 
     test('invalid API key format is handled with clear error', async () => {
       const searchTool = youSearch({ apiKey: 'invalid-key-format' })
 
-      await expect(async () => {
-        await searchTool.invoke({ query: 'test' })
-      }).toThrow()
+      expect(() => searchTool.invoke({ query: 'test' })).toThrow()
     })
   })
 
   describe('LangChain Agent Integration', () => {
     test(
-      'single tool with react agent',
+      'single tool with agent',
       async () => {
-        const model = new ChatAnthropic({
-          model: 'claude-sonnet-4-5-20250929',
+        const model = await initChatModel('claude-haiku-4-5', {
           temperature: 0,
         })
 
-        const agent = createReactAgent({
-          llm: model,
+        const agent = createAgent({
+          model,
           tools: [youSearch({ apiKey })],
         })
 
         const result = await agent.invoke({
-          messages: [new HumanMessage('Search for the latest developments in AI agents')],
+          messages: [{ role: 'user', content: 'Search for the latest developments in AI agents' }],
         })
 
         // Validate agent produced messages
@@ -173,21 +175,23 @@ describe('LangChain Plugin Integration Tests', () => {
     )
 
     test(
-      'multiple tools with react agent',
+      'multiple tools with agent',
       async () => {
-        const model = new ChatAnthropic({
-          model: 'claude-sonnet-4-5-20250929',
+        const model = await initChatModel('claude-haiku-4-5', {
           temperature: 0,
         })
 
-        const agent = createReactAgent({
-          llm: model,
+        const agent = createAgent({
+          model,
           tools: [youSearch({ apiKey }), youContents({ apiKey })],
         })
 
         const result = await agent.invoke({
           messages: [
-            new HumanMessage('Search for WebAssembly tutorials, then extract the content from the first result URL'),
+            {
+              role: 'user',
+              content: 'Search for WebAssembly tutorials, then extract the content from the first result URL',
+            },
           ],
         })
 
