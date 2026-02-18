@@ -24,6 +24,7 @@ describe('ContentsQuerySchema OpenAPI validation', () => {
       {}, // Missing urls
       { urls: [] }, // Empty urls array
       { urls: ['not-a-url'] }, // Invalid URL
+      { urls: [''] }, // Empty URL string
       { urls: ['https://example.com'], formats: ['invalid'] }, // Invalid format
       { urls: ['https://example.com'], crawl_timeout: 0 }, // Timeout too low
       { urls: ['https://example.com'], crawl_timeout: 61 }, // Timeout too high
