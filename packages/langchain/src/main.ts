@@ -80,9 +80,8 @@ export const youSearch = (config: YouSearchConfig = {}) => {
  * You.com content extraction tool for LangChain
  *
  * Extract full page content from URLs in markdown or HTML format.
- * Content is truncated by default to prevent exceeding LLM context window limits.
  *
- * @param config - Configuration options including maxContentLength
+ * @param config - Configuration options
  * @returns A DynamicStructuredTool for use with LangChain agents
  *
  * @public
@@ -94,7 +93,7 @@ export const youContents = (config: YouContentsConfig = {}) => {
   return new DynamicStructuredTool({
     name: 'you_contents',
     description:
-      'Extract page content from web URLs using You.com. Returns an array of objects, each with: url (string), title (string), markdown (string, the page content in markdown), html (string, optional), and metadata (object, optional). Read the markdown field to get the page content. Use this when you need to read and process web pages. Note: very large pages may be truncated.',
+      'Extract page content from web URLs using You.com. Returns an array of objects, each with: url (string), title (string), markdown (string, the page content in markdown), html (string, optional), and metadata (object, optional). Read the markdown field to get the page content. Use this when you need to read and process web pages.',
     schema: ContentsQuerySchema,
     func: async (params) => {
       if (!apiKey) {

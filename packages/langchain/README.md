@@ -26,13 +26,13 @@ Choose your package manager:
 
 ```bash
 # NPM
-npm install @youdotcom-oss/langchain @langchain/core
+npm install @youdotcom-oss/langchain @langchain/core langchain
 
 # Bun
-bun add @youdotcom-oss/langchain @langchain/core
+bun add @youdotcom-oss/langchain @langchain/core langchain
 
 # Yarn
-yarn add @youdotcom-oss/langchain @langchain/core
+yarn add @youdotcom-oss/langchain @langchain/core langchain
 ```
 
 ### 3. Add tools to your agent
@@ -273,7 +273,7 @@ Get a new API key at [you.com/platform/api-keys](https://you.com/platform/api-ke
 
 Interested in contributing? We'd love your help!
 
-**Development setup**: See [AGENTS.md](./AGENTS.md) for development guide and [root AGENTS.md](../../AGENTS.md) for monorepo conventions.
+**Development setup**: See [root AGENTS.md](../../AGENTS.md) for monorepo conventions.
 
 **Quick contribution steps:**
 1. Fork the repository

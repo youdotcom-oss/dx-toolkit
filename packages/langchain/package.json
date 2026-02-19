@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "bun run build:bundle && bun run build:types",
-    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @langchain/core",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @langchain/core --external langchain",
     "build:types": "tsc --project tsconfig.build.json  --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
@@ -62,7 +62,8 @@
     "@youdotcom-oss/api": "0.3.3"
   },
   "peerDependencies": {
-    "@langchain/core": ">=0.3.58"
+    "@langchain/core": ">=0.3.58",
+    "langchain": ">=1.0.0"
   },
   "devDependencies": {
     "@langchain/anthropic": "^1.0.0",
