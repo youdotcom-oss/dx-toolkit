@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
+import type { BaseMessage } from '@langchain/core/messages'
 import { createAgent, initChatModel } from 'langchain'
 import { youContents, youSearch } from '../main.ts'
 
@@ -28,6 +29,20 @@ const expectRealString = (value: unknown, minLength = 1, fieldName = 'field') =>
   expect((value as string).length, `${fieldName} should have content`).toBeGreaterThan(minLength)
   expect((value as string).trim(), `${fieldName} should not be whitespace only`).not.toBe('')
 }
+
+describe('Error Handling', () => {
+  test('missing API key throws error during invocation', async () => {
+    const searchTool = youSearch({ apiKey: '' })
+
+    await expect(searchTool.invoke({ query: 'test' })).rejects.toThrow(/YDC_API_KEY is required/)
+  })
+
+  test('invalid API key format is handled with clear error', async () => {
+    const searchTool = youSearch({ apiKey: 'invalid-key-format' })
+
+    await expect(searchTool.invoke({ query: 'test' })).rejects.toThrow()
+  })
+})
 
 describe('LangChain Plugin Integration Tests', () => {
   const apiKey = process.env.YDC_API_KEY
@@ -99,20 +114,6 @@ describe('LangChain Plugin Integration Tests', () => {
     )
   })
 
-  describe('Error Handling', () => {
-    test('missing API key throws error during invocation', async () => {
-      const searchTool = youSearch({ apiKey: '' })
-
-      expect(() => searchTool.invoke({ query: 'test' })).toThrow(/YDC_API_KEY is required/)
-    })
-
-    test('invalid API key format is handled with clear error', async () => {
-      const searchTool = youSearch({ apiKey: 'invalid-key-format' })
-
-      expect(() => searchTool.invoke({ query: 'test' })).toThrow()
-    })
-  })
-
   describe('LangChain Agent Integration', () => {
     test(
       'single tool with agent',
@@ -135,7 +136,7 @@ describe('LangChain Plugin Integration Tests', () => {
         expect(result.messages.length).toBeGreaterThan(1)
 
         // Find tool messages in the response
-        const toolMessages = result.messages.filter((m: any) => m._getType() === 'tool')
+        const toolMessages = result.messages.filter((m: BaseMessage) => m._getType() === 'tool')
         expect(toolMessages.length).toBeGreaterThan(0)
 
         // Validate tool output exists
@@ -172,11 +173,11 @@ describe('LangChain Plugin Integration Tests', () => {
         expect(result.messages.length).toBeGreaterThan(1)
 
         // Find tool messages
-        const toolMessages = result.messages.filter((m: any) => m._getType() === 'tool')
+        const toolMessages = result.messages.filter((m: BaseMessage) => m._getType() === 'tool')
         expect(toolMessages.length).toBeGreaterThanOrEqual(1)
 
         // Get final AI response
-        const aiMessages = result.messages.filter((m: any) => m._getType() === 'ai')
+        const aiMessages = result.messages.filter((m: BaseMessage) => m._getType() === 'ai')
         const lastAiMessage = aiMessages[aiMessages.length - 1]
         expect(lastAiMessage).toBeDefined()
         expect(typeof lastAiMessage!.content).toBe('string')
