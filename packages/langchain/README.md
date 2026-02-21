@@ -12,6 +12,17 @@ Build LangChain agents that can:
 - **Type-safe** - Full TypeScript support with Zod schema validation
 - **Production-ready** - Built on You.com's enterprise search API
 
+## AI Agent Skills
+
+**For LangChain.js Integration**: Use the [ydc-langchain-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-langchain-integration) skill to quickly integrate You.com tools with your LangChain.js applications.
+
+```bash
+# Install the LangChain.js integration skill
+npx skills add youdotcom-oss/agent-skills --skill ydc-langchain-integration
+```
+
+Once installed, ask your AI agent: **"Integrate LangChain.js with You.com tools"**
+
 ## Getting started
 
 Get up and running in 4 quick steps:
