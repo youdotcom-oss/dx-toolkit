@@ -62,12 +62,12 @@
     "@youdotcom-oss/api": "0.3.3"
   },
   "peerDependencies": {
-    "@langchain/core": ">=0.3.58",
+    "@langchain/core": ">=1.1.26",
     "langchain": ">=1.0.0"
   },
   "devDependencies": {
     "@langchain/anthropic": "^1.0.0",
-    "@langchain/core": "^1.1.24",
+    "@langchain/core": "^1.1.26",
     "@langchain/langgraph": "^1.1.4",
     "langchain": "^1.2.24"
   }
