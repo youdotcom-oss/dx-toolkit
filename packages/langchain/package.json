@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/langchain",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "LangChain.js tools for You.com web search and content extraction",
   "license": "MIT",
   "engines": {
