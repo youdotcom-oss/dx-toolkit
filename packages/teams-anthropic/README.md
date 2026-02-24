@@ -53,7 +53,7 @@ export ANTHROPIC_API_KEY=your-api-key-here
 import { AnthropicChatModel, AnthropicModel } from '@youdotcom-oss/teams-anthropic';
 
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 });
 
 const response = await model.send(
@@ -91,7 +91,7 @@ const prompt = new ChatPrompt(
   {
     instructions: 'You are a helpful assistant with access to web search and AI capabilities.',
     model: new AnthropicChatModel({
-      model: AnthropicModel.CLAUDE_SONNET_4_5,
+      model: AnthropicModel.CLAUDE_SONNET_4_6,
       apiKey: process.env.ANTHROPIC_API_KEY,
     }),
   },
@@ -131,7 +131,7 @@ Send a message and get a response:
 import { AnthropicChatModel, AnthropicModel } from '@youdotcom-oss/teams-anthropic';
 
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
   requestOptions: {
     max_tokens: 2048,
     temperature: 0.7,
@@ -157,7 +157,7 @@ Get responses token-by-token for a better user experience:
 
 ```typescript
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 });
 
 const response = await model.send(
@@ -179,7 +179,7 @@ Let Claude call functions to get information:
 
 ```typescript
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 });
 
 const response = await model.send(
@@ -212,7 +212,7 @@ import { LocalMemory } from '@microsoft/teams.ai';
 
 const memory = new LocalMemory();
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 });
 
 // First message
@@ -236,11 +236,12 @@ Choose from the latest Claude models using type-safe enums:
 
 | Enum | Model ID | Description |
 |------|----------|-------------|
-| `AnthropicModel.CLAUDE_OPUS_4_5` | `claude-opus-4-5-20251101` | Most capable, best for complex tasks |
-| `AnthropicModel.CLAUDE_SONNET_4_5` | `claude-sonnet-4-5-20250929` | Balanced intelligence and speed |
-| `AnthropicModel.CLAUDE_OPUS_3_5` | `claude-opus-3-5-20240229` | Previous generation Opus |
-| `AnthropicModel.CLAUDE_SONNET_3_5` | `claude-3-5-sonnet-20241022` | Previous generation Sonnet |
-| `AnthropicModel.CLAUDE_HAIKU_3_5` | `claude-3-5-haiku-20241022` | Fast and efficient |
+| `AnthropicModel.CLAUDE_OPUS_4_6` | `claude-opus-4-6` | Most capable, best for complex tasks and agents |
+| `AnthropicModel.CLAUDE_SONNET_4_6` | `claude-sonnet-4-6` | Best combination of speed and intelligence |
+| `AnthropicModel.CLAUDE_HAIKU_4_5` | `claude-haiku-4-5-20251001` | Fastest, near-frontier intelligence |
+| `AnthropicModel.CLAUDE_OPUS_4_5` | `claude-opus-4-5-20251101` | Previous generation Opus |
+| `AnthropicModel.CLAUDE_SONNET_4_6` | `claude-sonnet-4-5-20250929` | Previous generation Sonnet |
+| `AnthropicModel.CLAUDE_3_HAIKU` | `claude-3-haiku-20240307` | Legacy (deprecated, retiring 2026-04-19) |
 
 See all available models with helper functions:
 
@@ -248,8 +249,8 @@ See all available models with helper functions:
 import { getAllModels, getModelDisplayName, getModelFamily } from '@youdotcom-oss/teams-anthropic';
 
 const models = getAllModels();
-const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_5); // "Claude Sonnet 4.5"
-const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_3_5); // "haiku"
+const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_6); // "Claude Sonnet 4.6"
+const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_4_5); // "haiku"
 ```
 
 ## Configuration Options
@@ -262,7 +263,7 @@ Customize the model behavior with configuration options:
 ```typescript
 const model = new AnthropicChatModel({
   // Required: Type-safe model selection
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 
   // Optional: API key (defaults to ANTHROPIC_API_KEY env var)
   apiKey: 'your-api-key',
@@ -341,7 +342,7 @@ export ANTHROPIC_API_KEY=your-api-key-here
 
 # Option 2: Pass directly in code
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
   apiKey: 'your-api-key-here',
 });
 ```
@@ -355,12 +356,12 @@ const model = new AnthropicChatModel({
 ```typescript
 // ✅ Correct
 const model = new AnthropicChatModel({
-  model: AnthropicModel.CLAUDE_SONNET_4_5,
+  model: AnthropicModel.CLAUDE_SONNET_4_6,
 });
 
 // ❌ Wrong
 const model = new AnthropicChatModel({
-  model: 'claude-sonnet-4-5-20250929', // Type error!
+  model: 'claude-sonnet-4-6', // Type error!
 });
 ```
 

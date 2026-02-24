@@ -231,36 +231,27 @@ bun run start:mcp          # Start MCP server in HTTP mode
 
 ### Package-Specific Commands
 
-**From Root** - Two patterns available:
+**Always run from the repo root** using `bun --cwd` — never `cd` into a package directory to run commands.
 
 ```bash
-# Pattern 1: Root shortcuts (defined in root package.json)
+# Root shortcuts (defined in root package.json)
 bun run dev:mcp          # Start MCP server in STDIO mode
 bun run start:mcp        # Start MCP server in HTTP mode
 bun run test:mcp         # Test MCP server only
 
-# Pattern 2: Direct package commands with bun --cwd
-bun --cwd packages/mcp dev      # Start MCP server in dev mode
-bun --cwd packages/mcp start    # Start MCP server in HTTP mode
-bun --cwd packages/mcp test     # Test MCP server
-bun --cwd packages/mcp check    # Run quality checks
-
-# Use bun --cwd for any package:
+# Per-package commands via bun --cwd (preferred)
+bun --cwd packages/mcp dev
+bun --cwd packages/mcp start
+bun --cwd packages/mcp test
+bun --cwd packages/mcp check
 bun --cwd packages/api test
 bun --cwd packages/ai-sdk-plugin build
+bun --cwd packages/teams-anthropic test
 bun --cwd packages/teams-anthropic check
 ```
 
-**From Package Directory**:
-
-```bash
-cd packages/mcp
-bun dev                  # Start in development mode
-bun start                # Start in production mode
-bun test                 # Run tests
-bun run check            # Check code quality
-bun run check:write      # Auto-fix issues
-```
+*Verify:* Never use `cd packages/<name>` before running commands
+*Fix:* Replace `cd packages/foo && bun test` with `bun --cwd packages/foo test`
 
 ## Code Style
 
@@ -585,19 +576,14 @@ Read and follow the instructions in `.claude/commands/create-package.md`
 
 ### Working on Packages
 
+Edit files in `packages/<name>/src/` using the Read/Edit/Write tools, then run commands from the repo root:
+
 ```bash
-# Make changes in a package
-cd packages/mcp
-# ... edit files ...
+# Always run from repo root — never cd into a package
+bun --cwd packages/mcp test
+bun --cwd packages/mcp check
 
-# Test your changes
-bun test
-
-# Check code quality
-bun run check
-
-# Run from root to test all packages
-cd ../..
+# Or run across all packages at once
 bun test
 bun run check
 ```
@@ -605,18 +591,17 @@ bun run check
 ### Code Quality Commands
 
 ```bash
-# Workspace-level (runs for all packages)
-bun run check                    # All checks (biome + types + package)
-bun run check:write              # Auto-fix all issues
-bun run build                    # Build all packages
-bun test                         # Test all packages
+# Workspace-level (from repo root)
+bun run check                              # All checks (biome + types + package)
+bun run check:write                        # Auto-fix all issues
+bun run build                              # Build all packages
+bun test                                   # Test all packages
 
-# Package-level
-cd packages/mcp
-bun run check                    # Check specific package
-bun run check:write              # Fix specific package
-bun run build                    # Build specific package
-bun test                         # Test specific package
+# Package-level (from repo root via --cwd)
+bun --cwd packages/mcp check
+bun --cwd packages/mcp check:write
+bun --cwd packages/mcp build
+bun --cwd packages/mcp test
 ```
 
 ## Package-Specific Documentation
@@ -778,6 +763,10 @@ All packages in this monorepo are published to npm via GitHub Actions workflows.
 - Only `PUBLISH_TOKEN` secret needed (for git operations on protected branches)
 
 For package-specific publishing details (deployment steps, registry updates), see the package's AGENTS.md file.
+
+## Learnings
+
+- 2026-02-23: Never `cd` into a package directory to run commands — always use `bun --cwd packages/<name> <command>` from the repo root. Using `source .env` before running tests is required when integration tests need `ANTHROPIC_API_KEY` or `YDC_API_KEY`.
 
 ## Support
 

@@ -29,18 +29,16 @@ const isSystemMessage = (message: Message): message is SystemMessage => message.
  * Use these constants instead of string literals for type safety.
  */
 export enum AnthropicModel {
-  // Latest generation (4.x series)
+  // Latest generation (4.6 series)
+  CLAUDE_OPUS_4_6 = 'claude-opus-4-6',
+  CLAUDE_SONNET_4_6 = 'claude-sonnet-4-6',
+  CLAUDE_HAIKU_4_5 = 'claude-haiku-4-5-20251001',
+
+  // Previous generation (4.5 series)
   CLAUDE_OPUS_4_5 = 'claude-opus-4-5-20251101',
   CLAUDE_SONNET_4_5 = 'claude-sonnet-4-5-20250929',
 
-  // Previous generation (3.5 series)
-  CLAUDE_OPUS_3_5 = 'claude-opus-3-5-20240229',
-  CLAUDE_SONNET_3_5 = 'claude-3-5-sonnet-20241022',
-  CLAUDE_HAIKU_3_5 = 'claude-3-5-haiku-20241022',
-
-  // Legacy (3.0 series)
-  CLAUDE_3_OPUS = 'claude-3-opus-20240229',
-  CLAUDE_3_SONNET = 'claude-3-sonnet-20240229',
+  // Legacy (3.0 series — Haiku 3 deprecated, retiring 2026-04-19)
   CLAUDE_3_HAIKU = 'claude-3-haiku-20240307',
 }
 
@@ -48,13 +46,11 @@ export enum AnthropicModel {
  * Human-readable display names for Claude models
  */
 const MODEL_DISPLAY_NAMES: Record<AnthropicModel, string> = {
+  [AnthropicModel.CLAUDE_OPUS_4_6]: 'Claude Opus 4.6',
+  [AnthropicModel.CLAUDE_SONNET_4_6]: 'Claude Sonnet 4.6',
+  [AnthropicModel.CLAUDE_HAIKU_4_5]: 'Claude Haiku 4.5',
   [AnthropicModel.CLAUDE_OPUS_4_5]: 'Claude Opus 4.5',
   [AnthropicModel.CLAUDE_SONNET_4_5]: 'Claude Sonnet 4.5',
-  [AnthropicModel.CLAUDE_OPUS_3_5]: 'Claude Opus 3.5',
-  [AnthropicModel.CLAUDE_SONNET_3_5]: 'Claude Sonnet 3.5',
-  [AnthropicModel.CLAUDE_HAIKU_3_5]: 'Claude Haiku 3.5',
-  [AnthropicModel.CLAUDE_3_OPUS]: 'Claude 3 Opus',
-  [AnthropicModel.CLAUDE_3_SONNET]: 'Claude 3 Sonnet',
   [AnthropicModel.CLAUDE_3_HAIKU]: 'Claude 3 Haiku',
 }
 

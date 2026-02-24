@@ -1,0 +1,301 @@
+# LangChain.js Tools for You.com
+
+Give your LangChain agents **real-time access to the web** with structured tools. Search current content and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search and content extraction directly into your LangChain agents** with zero server setup.
+
+## Features
+
+Build LangChain agents that can:
+- **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
+- **Extract any webpage** - Pull full content in markdown or HTML format
+- **Structured tool inputs** - Full Zod schema validation via `DynamicStructuredTool`
+- **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
+- **Type-safe** - Full TypeScript support with Zod schema validation
+- **Production-ready** - Built on You.com's enterprise search API
+
+## AI Agent Skills
+
+**For LangChain.js Integration**: Use the [ydc-langchain-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-langchain-integration) skill to quickly integrate You.com tools with your LangChain.js applications.
+
+```bash
+# Install the LangChain.js integration skill
+npx skills add youdotcom-oss/agent-skills --skill ydc-langchain-integration
+```
+
+Once installed, ask your AI agent: **"Integrate LangChain.js with You.com tools"**
+
+## Getting started
+
+Get up and running in 4 quick steps:
+
+### 1. Get your API key
+
+Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your You.com API key. Keep this key secure - you'll need it for configuration.
+
+### 2. Install the package
+
+Choose your package manager:
+
+```bash
+# NPM
+npm install @youdotcom-oss/langchain langchain
+
+# Bun
+bun add @youdotcom-oss/langchain langchain
+
+# Yarn
+yarn add @youdotcom-oss/langchain langchain
+```
+
+### 3. Add tools to your agent
+
+Import the tools and add them to your LangChain agent:
+
+```typescript
+import { getEnvironmentVariable } from '@langchain/core/utils/env';
+import { createAgent, initChatModel } from 'langchain';
+import * as z from 'zod';
+import { youSearch } from '@youdotcom-oss/langchain';
+
+// Fetch the You.com API key as an environment variable
+// Get a free API key with credits at https://you.com/platform
+const apiKey = getEnvironmentVariable('YDC_API_KEY') ?? '';
+
+// youSearch performs web searches and returns titles, URLs, and snippets
+// See our docs at https://docs.you.com/api-reference/search/v1-search for details
+const searchTool = youSearch({ apiKey });
+
+// Create a chat model
+const model = await initChatModel('claude-haiku-4-5', {
+  temperature: 0,
+});
+
+// Define the agent's behavior
+const systemPrompt = `You are a helpful assistant that summarizes search results.
+Be concise and informative. Always cite your sources.`;
+
+// Structured response format using Zod schema
+const responseFormat = z.object({
+  summary: z.string().describe('A concise summary of the search results'),
+  key_points: z.array(z.string()).describe('Key points from the search results'),
+  urls: z.array(z.string()).describe('The source URLs from the search results'),
+});
+
+// Create an agent that combines the model with the search tool
+const searchAgent = createAgent({
+  model,
+  tools: [searchTool],
+  systemPrompt,
+  responseFormat,
+});
+
+const result = await searchAgent.invoke({
+  messages: [{ role: 'user', content: 'What are the latest developments in AI?' }],
+});
+
+console.log(result.structuredResponse);
+```
+
+Set your API keys as environment variables:
+
+```bash
+export YDC_API_KEY=your-api-key-here
+export ANTHROPIC_API_KEY=your-anthropic-api-key-here
+```
+
+### 4. Test your setup
+
+Ask your agent something that needs real-time information:
+
+- "What are the latest developments in quantum computing?"
+- "Research the pros and cons of WebAssembly vs JavaScript"
+- "Extract and analyze the content from https://anthropic.com"
+
+Your agent will automatically choose the right tool and return up-to-date, accurate answers.
+
+## What you can build
+
+Your LangChain agents can now handle requests like these:
+
+### Research & information
+
+**Current events:**
+- "What's trending in AI research this week?"
+- "Find the latest news about climate policy from the past month"
+
+**Technical documentation:**
+- "Search for TypeScript best practices on the official docs"
+- "Find examples of using WebAssembly in production"
+
+### Content analysis & extraction
+
+**Documentation analysis:**
+- "Extract and summarize the main points from https://docs.example.com"
+- "Get the pricing information from https://competitor.com/pricing"
+
+**Multi-page research:**
+- "Extract content from these 3 blog posts and compare their approaches"
+- "Pull the documentation from these URLs and create a summary"
+
+## Configuration
+
+The tools work out of the box with environment variables:
+
+```bash
+export YDC_API_KEY=your-api-key-here
+```
+
+<details>
+<summary>Advanced configuration options</summary>
+
+### Passing API key directly
+
+You can configure tools individually instead of using environment variables:
+
+```typescript
+import { youSearch } from '@youdotcom-oss/langchain';
+
+const searchTool = youSearch({
+  apiKey: 'your-api-key-here', // Override YDC_API_KEY environment variable
+});
+```
+
+### Configuration type
+
+```typescript
+export type YouToolsConfig = {
+  apiKey?: string;  // You.com API key (defaults to YDC_API_KEY env var)
+};
+```
+
+### Using different model providers
+
+These tools work with any LangChain-compatible model via `initChatModel`:
+
+```typescript
+import { createAgent, initChatModel } from 'langchain';
+import { youSearch } from '@youdotcom-oss/langchain';
+
+// Anthropic Claude
+const agent = createAgent({
+  model: await initChatModel('claude-haiku-4-5'),
+  tools: [youSearch()],
+  systemPrompt: 'You are a helpful assistant.',
+});
+
+// OpenAI
+const agent = createAgent({
+  model: await initChatModel('gpt-4'),
+  tools: [youSearch()],
+  systemPrompt: 'You are a helpful assistant.',
+});
+```
+
+### Direct tool invocation
+
+You can also invoke tools directly without an agent:
+
+```typescript
+import { youSearch } from '@youdotcom-oss/langchain';
+
+const searchTool = youSearch();
+const result = await searchTool.invoke({ query: 'AI news', count: 5 });
+console.log(result); // Search results
+```
+
+</details>
+
+## Available tools
+
+This package provides two tools that your LangChain agents can use automatically:
+
+### youSearch()
+
+Comprehensive web and news search with advanced filtering capabilities. Perfect for finding current information, research articles, documentation, and news stories.
+
+**When your agent will use this:**
+- Searching for current information or news
+- Finding specific content with filters (dates, sites, file types)
+- Research queries requiring multiple results
+
+### youContents()
+
+Extract full page content from URLs in markdown or HTML format. Useful for documentation analysis, content processing, and batch URL extraction.
+
+**When your agent will use this:**
+- Extracting content from specific URLs
+- Processing multiple pages in batch
+- Analyzing webpage content for further processing
+
+---
+
+**Note**: Your LangChain agent automatically selects the right tool based on the user's request. The `DynamicStructuredTool` provides full Zod schema validation for tool inputs, ensuring type-safe interactions.
+
+## Troubleshooting
+
+### Problem: "YDC_API_KEY is required" error
+
+**Solution**: Set your API key as an environment variable:
+
+```bash
+export YDC_API_KEY=your-api-key-here
+```
+
+Or pass it directly when creating tools:
+
+```typescript
+const searchTool = youSearch({ apiKey: 'your-api-key-here' });
+```
+
+### Problem: Agent isn't using the tools
+
+**Solution**: Make sure you're using `createAgent` from `langchain`, which automatically handles tool calling:
+
+```typescript
+import { createAgent, initChatModel } from 'langchain';
+import { youSearch } from '@youdotcom-oss/langchain';
+
+const agent = createAgent({
+  model: await initChatModel('claude-haiku-4-5'),
+  tools: [youSearch()],
+  systemPrompt: 'You are a helpful assistant.',
+});
+```
+
+### Problem: Getting 401 authentication errors
+
+**Solution**: Verify your API key is correct and properly set:
+
+```bash
+echo $YDC_API_KEY
+```
+
+Get a new API key at [you.com/platform/api-keys](https://you.com/platform/api-keys) if needed.
+
+### Problem: Getting rate limit errors (429)
+
+**Solution**: You've hit the API rate limit. Wait a few minutes before retrying, or check your API usage at [you.com/platform/api-keys](https://you.com/platform/api-keys).
+
+### Need more help?
+
+- **GitHub Issues**: [Report bugs](https://github.com/youdotcom-oss/dx-toolkit/issues)
+- **Email Support**: support@you.com
+
+## For contributors
+
+Interested in contributing? We'd love your help!
+
+**Development setup**: See [root AGENTS.md](../../AGENTS.md) for monorepo conventions.
+
+**Quick contribution steps:**
+1. Fork the repository
+2. Create a feature branch following [CONTRIBUTING.md](../../CONTRIBUTING.md) conventions
+3. Follow code style guidelines (Biome enforced)
+4. Write tests for your changes
+5. Run quality checks: `bun run check && bun test`
+6. Submit a pull request with a clear description
+
+---
+
+**License**: MIT - see [LICENSE](../../LICENSE) for details
+
+**Author**: You.com (https://you.com)

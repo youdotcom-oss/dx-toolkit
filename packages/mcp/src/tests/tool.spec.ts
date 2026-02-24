@@ -8,7 +8,7 @@ import type { SearchStructuredContent } from '../search/search.schema.ts'
 let client: Client
 
 beforeAll(async () => {
-  await $`bun run build` // 1256
+  await $`bun run build`
   const transport = new StdioClientTransport({
     command: 'npx',
     args: [Bun.resolveSync('../../bin/stdio', import.meta.dir)],
@@ -23,7 +23,7 @@ beforeAll(async () => {
   })
 
   await client.connect(transport)
-})
+}, 30_000)
 
 afterAll(async () => {
   await client.close()
