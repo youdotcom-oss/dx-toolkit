@@ -38,7 +38,7 @@ export type YouContentsConfig = YouToolsConfig & Partial<ContentsQuery>
 /**
  * Creates a User-Agent string for API requests
  */
-const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version} (You.com)`
+const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version}(You.com)`
 
 /**
  * You.com web search tool for LangChain
@@ -61,10 +61,6 @@ export const youSearch = (config: YouSearchConfig = {}) => {
       'Search the web for current information, news, articles, and content using You.com. Returns web results with snippets and news articles. Use this when you need up-to-date information or facts from the internet.',
     schema: SearchQuerySchema,
     func: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
-      }
-
       const response = await fetchSearchResults({
         searchQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
@@ -96,10 +92,6 @@ export const youContents = (config: YouContentsConfig = {}) => {
       'Extract page content from web URLs using You.com. Returns an array of objects, each with: url (string), title (string), markdown (string, the page content in markdown), html (string, optional), and metadata (object, optional). Read the markdown field to get the page content. Use this when you need to read and process web pages.',
     schema: ContentsQuerySchema,
     func: async (params) => {
-      if (!apiKey) {
-        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
-      }
-
       const response = await fetchContents({
         contentsQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,

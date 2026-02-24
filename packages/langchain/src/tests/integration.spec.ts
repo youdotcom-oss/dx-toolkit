@@ -31,12 +31,6 @@ const expectRealString = (value: unknown, minLength = 1, fieldName = 'field') =>
 }
 
 describe('Error Handling', () => {
-  test('missing API key throws error during invocation', async () => {
-    const searchTool = youSearch({ apiKey: '' })
-
-    await expect(searchTool.invoke({ query: 'test' })).rejects.toThrow(/YDC_API_KEY is required/)
-  })
-
   test('invalid API key format is handled with clear error', async () => {
     const searchTool = youSearch({ apiKey: 'invalid-key-format' })
 

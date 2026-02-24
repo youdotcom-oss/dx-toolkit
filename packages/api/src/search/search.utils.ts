@@ -46,27 +46,18 @@ export const fetchSearchResults = async ({
     } else if (errorCode === 402) {
       let errorMessage = 'Free tier limit exceeded. Please upgrade to continue.'
       let upgradeUrl = 'https://you.com/platform'
-
-      try {
-        const json = await response.json()
-        const parseResult = ApiErrorResponseSchema.safeParse(json)
-        if (parseResult.success) {
-          const errorBody = parseResult.data
-          if (errorBody.message) {
-            errorMessage = errorBody.message
-          }
-          if (errorBody.upgrade_url) {
-            upgradeUrl = errorBody.upgrade_url
-          }
-          if (errorBody.reset_at) {
-            const resetDate = new Date(errorBody.reset_at).toLocaleDateString()
-            errorMessage += ` Limit resets on ${resetDate}.`
-          }
-        }
-      } catch {
-        // If parsing fails, use default message
+      const json = await response.json()
+      const errorBody = ApiErrorResponseSchema.parse(json)
+      if (errorBody.message) {
+        errorMessage = errorBody.message
       }
-
+      if (errorBody.upgrade_url) {
+        upgradeUrl = errorBody.upgrade_url
+      }
+      if (errorBody.reset_at) {
+        const resetDate = new Date(errorBody.reset_at).toLocaleDateString()
+        errorMessage += ` Limit resets on ${resetDate}.`
+      }
       throw new Error(`${errorMessage} Upgrade at: ${upgradeUrl}`)
     }
 
