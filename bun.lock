@@ -59,7 +59,7 @@
     },
     "packages/mcp": {
       "name": "@youdotcom-oss/mcp",
-      "version": "2.0.7",
+      "version": "2.0.8",
       "bin": "bin/stdio.js",
       "dependencies": {
         "@hono/mcp": "^0.2.3",
