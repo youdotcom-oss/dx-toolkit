@@ -262,7 +262,7 @@ describe('message-transformer', () => {
             citations: null,
           } as Anthropic.TextBlock,
         ],
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: {
@@ -302,7 +302,7 @@ describe('message-transformer', () => {
             input: { location: 'San Francisco' },
           },
         ],
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         stop_reason: 'tool_use',
         stop_sequence: null,
         usage: {
@@ -348,7 +348,7 @@ describe('message-transformer', () => {
             citations: null,
           } as Anthropic.TextBlock,
         ],
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: {
@@ -387,7 +387,7 @@ describe('message-transformer', () => {
             input: { timezone: 'America/Los_Angeles' },
           },
         ],
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         stop_reason: 'tool_use',
         stop_sequence: null,
         usage: {
@@ -415,7 +415,7 @@ describe('message-transformer', () => {
         type: 'message',
         role: 'assistant',
         content: [],
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: {
@@ -442,18 +442,31 @@ describe('message-transformer', () => {
 describe('anthropic-model.enum', () => {
   describe('AnthropicModel enum', () => {
     test('should have correct model identifiers', () => {
+      expect(AnthropicModel.CLAUDE_OPUS_4_6 as string).toBe('claude-opus-4-6')
+      expect(AnthropicModel.CLAUDE_SONNET_4_6 as string).toBe('claude-sonnet-4-6')
+      expect(AnthropicModel.CLAUDE_HAIKU_4_5 as string).toBe('claude-haiku-4-5-20251001')
       expect(AnthropicModel.CLAUDE_OPUS_4_5 as string).toBe('claude-opus-4-5-20251101')
       expect(AnthropicModel.CLAUDE_SONNET_4_5 as string).toBe('claude-sonnet-4-5-20250929')
-      expect(AnthropicModel.CLAUDE_OPUS_3_5 as string).toBe('claude-opus-3-5-20240229')
-      expect(AnthropicModel.CLAUDE_SONNET_3_5 as string).toBe('claude-3-5-sonnet-20241022')
-      expect(AnthropicModel.CLAUDE_HAIKU_3_5 as string).toBe('claude-3-5-haiku-20241022')
-      expect(AnthropicModel.CLAUDE_3_OPUS as string).toBe('claude-3-opus-20240229')
-      expect(AnthropicModel.CLAUDE_3_SONNET as string).toBe('claude-3-sonnet-20240229')
       expect(AnthropicModel.CLAUDE_3_HAIKU as string).toBe('claude-3-haiku-20240307')
     })
   })
 
   describe('getModelDisplayName', () => {
+    test('should return correct display name for Claude Opus 4.6', () => {
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_4_6)
+      expect(displayName).toBe('Claude Opus 4.6')
+    })
+
+    test('should return correct display name for Claude Sonnet 4.6', () => {
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_4_6)
+      expect(displayName).toBe('Claude Sonnet 4.6')
+    })
+
+    test('should return correct display name for Claude Haiku 4.5', () => {
+      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_HAIKU_4_5)
+      expect(displayName).toBe('Claude Haiku 4.5')
+    })
+
     test('should return correct display name for Claude Opus 4.5', () => {
       const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_4_5)
       expect(displayName).toBe('Claude Opus 4.5')
@@ -464,31 +477,6 @@ describe('anthropic-model.enum', () => {
       expect(displayName).toBe('Claude Sonnet 4.5')
     })
 
-    test('should return correct display name for Claude Opus 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_OPUS_3_5)
-      expect(displayName).toBe('Claude Opus 3.5')
-    })
-
-    test('should return correct display name for Claude Sonnet 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_SONNET_3_5)
-      expect(displayName).toBe('Claude Sonnet 3.5')
-    })
-
-    test('should return correct display name for Claude Haiku 3.5', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_HAIKU_3_5)
-      expect(displayName).toBe('Claude Haiku 3.5')
-    })
-
-    test('should return correct display name for Claude 3 Opus', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_OPUS)
-      expect(displayName).toBe('Claude 3 Opus')
-    })
-
-    test('should return correct display name for Claude 3 Sonnet', () => {
-      const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_SONNET)
-      expect(displayName).toBe('Claude 3 Sonnet')
-    })
-
     test('should return correct display name for Claude 3 Haiku', () => {
       const displayName = getModelDisplayName(AnthropicModel.CLAUDE_3_HAIKU)
       expect(displayName).toBe('Claude 3 Haiku')
@@ -496,32 +484,24 @@ describe('anthropic-model.enum', () => {
   })
 
   describe('isValidModel', () => {
+    test('should return true for valid Claude Opus 4.6', () => {
+      expect(isValidModel('claude-opus-4-6')).toBe(true)
+    })
+
+    test('should return true for valid Claude Sonnet 4.6', () => {
+      expect(isValidModel('claude-sonnet-4-6')).toBe(true)
+    })
+
+    test('should return true for valid Claude Haiku 4.5', () => {
+      expect(isValidModel('claude-haiku-4-5-20251001')).toBe(true)
+    })
+
     test('should return true for valid Claude Opus 4.5', () => {
       expect(isValidModel('claude-opus-4-5-20251101')).toBe(true)
     })
 
     test('should return true for valid Claude Sonnet 4.5', () => {
       expect(isValidModel('claude-sonnet-4-5-20250929')).toBe(true)
-    })
-
-    test('should return true for valid Claude Opus 3.5', () => {
-      expect(isValidModel('claude-opus-3-5-20240229')).toBe(true)
-    })
-
-    test('should return true for valid Claude Sonnet 3.5', () => {
-      expect(isValidModel('claude-3-5-sonnet-20241022')).toBe(true)
-    })
-
-    test('should return true for valid Claude Haiku 3.5', () => {
-      expect(isValidModel('claude-3-5-haiku-20241022')).toBe(true)
-    })
-
-    test('should return true for valid Claude 3 Opus', () => {
-      expect(isValidModel('claude-3-opus-20240229')).toBe(true)
-    })
-
-    test('should return true for valid Claude 3 Sonnet', () => {
-      expect(isValidModel('claude-3-sonnet-20240229')).toBe(true)
     })
 
     test('should return true for valid Claude 3 Haiku', () => {
@@ -545,14 +525,12 @@ describe('anthropic-model.enum', () => {
     test('should return all model enum values', () => {
       const allModels = getAllModels()
 
-      expect(allModels).toHaveLength(8)
+      expect(allModels).toHaveLength(6)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_4_6)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_4_6)
+      expect(allModels).toContain(AnthropicModel.CLAUDE_HAIKU_4_5)
       expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_4_5)
       expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_4_5)
-      expect(allModels).toContain(AnthropicModel.CLAUDE_OPUS_3_5)
-      expect(allModels).toContain(AnthropicModel.CLAUDE_SONNET_3_5)
-      expect(allModels).toContain(AnthropicModel.CLAUDE_HAIKU_3_5)
-      expect(allModels).toContain(AnthropicModel.CLAUDE_3_OPUS)
-      expect(allModels).toContain(AnthropicModel.CLAUDE_3_SONNET)
       expect(allModels).toContain(AnthropicModel.CLAUDE_3_HAIKU)
     })
 
@@ -566,6 +544,21 @@ describe('anthropic-model.enum', () => {
   })
 
   describe('getModelFamily', () => {
+    test('should return "opus" for Opus 4.6', () => {
+      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_6)
+      expect(family).toBe('opus')
+    })
+
+    test('should return "sonnet" for Sonnet 4.6', () => {
+      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_4_6)
+      expect(family).toBe('sonnet')
+    })
+
+    test('should return "haiku" for Haiku 4.5', () => {
+      const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_4_5)
+      expect(family).toBe('haiku')
+    })
+
     test('should return "opus" for Opus 4.5', () => {
       const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5)
       expect(family).toBe('opus')
@@ -576,40 +569,9 @@ describe('anthropic-model.enum', () => {
       expect(family).toBe('sonnet')
     })
 
-    test('should return "opus" for Opus 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_3_5)
-      expect(family).toBe('opus')
-    })
-
-    test('should return "sonnet" for Sonnet 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_SONNET_3_5)
-      expect(family).toBe('sonnet')
-    })
-
-    test('should return "haiku" for Haiku 3.5', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_HAIKU_3_5)
-      expect(family).toBe('haiku')
-    })
-
-    test('should return "opus" for Claude 3 Opus', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_3_OPUS)
-      expect(family).toBe('opus')
-    })
-
-    test('should return "sonnet" for Claude 3 Sonnet', () => {
-      const family = getModelFamily(AnthropicModel.CLAUDE_3_SONNET)
-      expect(family).toBe('sonnet')
-    })
-
     test('should return "haiku" for Claude 3 Haiku', () => {
       const family = getModelFamily(AnthropicModel.CLAUDE_3_HAIKU)
       expect(family).toBe('haiku')
-    })
-
-    test('should handle case insensitivity', () => {
-      // Test that the function works with lowercase model strings
-      const family = getModelFamily(AnthropicModel.CLAUDE_OPUS_4_5)
-      expect(family).toBe('opus')
     })
   })
 })

@@ -444,10 +444,10 @@ describe('AnthropicChatModel Integration Tests', () => {
 
   describe('Model Variants', () => {
     test(
-      'should work with Claude Haiku 3.5',
+      'should work with Claude Haiku 4.5',
       async () => {
         const haikuModel = new AnthropicChatModel({
-          model: AnthropicModel.CLAUDE_HAIKU_3_5,
+          model: AnthropicModel.CLAUDE_HAIKU_4_5,
           apiKey: ANTHROPIC_API_KEY as string,
           requestOptions: {
             max_tokens: 100,
