@@ -37,13 +37,13 @@ Choose your package manager:
 
 ```bash
 # NPM
-npm install @youdotcom-oss/langchain langchain
+npm install @youdotcom-oss/langchain langchain @langchain/core
 
 # Bun
-bun add @youdotcom-oss/langchain langchain
+bun add @youdotcom-oss/langchain langchain @langchain/core
 
 # Yarn
-yarn add @youdotcom-oss/langchain langchain
+yarn add @youdotcom-oss/langchain langchain @langchain/core
 ```
 
 ### 3. Add tools to your agent
