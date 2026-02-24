@@ -54,7 +54,6 @@
         "langchain": "^1.2.24",
       },
       "peerDependencies": {
-        "@langchain/core": ">=1.1.26",
         "langchain": ">=1.0.0",
       },
     },
