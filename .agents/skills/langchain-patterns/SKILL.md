@@ -26,16 +26,20 @@ LangChain tool patterns using You.com API utilities from `@youdotcom-oss/api` pa
 ## Architecture
 
 **LangChain wraps API utilities as DynamicStructuredTool instances:**
-```
-@youdotcom-oss/api (Foundation)
-├── fetchSearchResults()
-├── SearchQuerySchema
-├── fetchContents()
-└── ContentsQuerySchema
-         ↓
-@youdotcom-oss/langchain (LangChain Wrapper)
-├── youSearch() - Wraps API utility as DynamicStructuredTool
-└── youContents() - Wraps API utility as DynamicStructuredTool
+
+```mermaid
+graph TD
+    API["@youdotcom-oss/api (Foundation)"]
+    API --> FSR["fetchSearchResults()"]
+    API --> SSR["SearchQuerySchema"]
+    API --> FC["fetchContents()"]
+    API --> CQS["ContentsQuerySchema"]
+
+    LC["@youdotcom-oss/langchain (LangChain Wrapper)"]
+    LC --> YS["youSearch() — DynamicStructuredTool"]
+    LC --> YC["youContents() — DynamicStructuredTool"]
+
+    API -->|wraps| LC
 ```
 
 ## Tech Stack
@@ -48,9 +52,8 @@ LangChain tool patterns using You.com API utilities from `@youdotcom-oss/api` pa
 ## Quick Start
 
 ```bash
-cd packages/langchain
-bun test
-bun run check
+bun --cwd packages/langchain test
+bun --cwd packages/langchain run check
 ```
 
 ## LangChain-Specific Patterns
@@ -128,6 +131,9 @@ export const youSearch = (config: YouSearchConfig = {}) => {
   const apiKey = configApiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
+    name: 'you_search',           // name, description, schema same as above
+    description: '...',
+    schema: SearchQuerySchema,
     // 2. Merge defaults with invoke-time params (params win)
     func: async (params) => {
       const response = await fetchSearchResults({
@@ -197,8 +203,8 @@ description: 'Web search tool'
 ## Testing
 
 ```bash
-bun test                              # All tests
-bun test src/tests/integration.spec.ts  # Integration tests
+bun --cwd packages/langchain test                              # All tests
+bun --cwd packages/langchain test src/tests/integration.spec.ts  # Integration tests
 ```
 
 **Prerequisites**: `YDC_API_KEY` and `ANTHROPIC_API_KEY` in `.env`
