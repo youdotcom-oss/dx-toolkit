@@ -33,6 +33,7 @@ This monorepo uses both rules (`.agents/rules/`) and skills (`.claude/skills/`) 
 | documentation | README/AGENTS.md standards, TSDoc strategy, thin philosophy |
 | mcp-patterns | Zod schemas, error handling, logging, response format |
 | ai-sdk-patterns | Input schemas, API key handling, response format |
+| langchain-patterns | DynamicStructuredTool wrapping, JSON string returns, config merging |
 | teams-ai-patterns | Memory API, Anthropic SDK, MCP client setup |
 
 **Benefits**:
@@ -71,11 +72,13 @@ graph TD
     ClaudeSkills --> DocSkill[documentation/]
     ClaudeSkills --> McpSkill[mcp-patterns/]
     ClaudeSkills --> AiSkill[ai-sdk-patterns/]
+    ClaudeSkills --> LangchainSkill[langchain-patterns/]
     ClaudeSkills --> TeamsSkill[teams-anthropic-patterns/]
     
     Packages --> Mcp[mcp/ - MCP Server]
     Packages --> Api[api/ - API Client]
     Packages --> AiSdk[ai-sdk-plugin/]
+    Packages --> Langchain[langchain/]
     Packages --> TeamsAnthropic[teams-anthropic/]
     
     Mcp --> McpSrc[src/, bin/, docs/, tests/]
@@ -99,8 +102,8 @@ graph TD
 
 **Key directories:**
 - `.agents/rules/` - Universal patterns (code, git, testing, workflows)
-- `.claude/skills/` - Package-specific patterns (documentation, mcp-patterns, ai-sdk-patterns, teams-anthropic-patterns)
-- `packages/` - NPM packages (mcp, api, ai-sdk-plugin, teams-anthropic)
+- `.claude/skills/` - Package-specific patterns (documentation, mcp-patterns, ai-sdk-patterns, langchain-patterns, teams-anthropic-patterns)
+- `packages/` - NPM packages (mcp, api, ai-sdk-plugin, langchain, teams-anthropic)
 - `.github/workflows/` - CI/CD workflows (_publish-package.yml, ci.yml, code-review.yml)
 - `scripts/` - Performance monitoring and CI scripts
 
@@ -148,6 +151,7 @@ Package-specific development patterns and workflows are in `.claude/skills/`:
 - **documentation** - Documentation standards (thin AGENTS.md philosophy, TSDoc strategy, README.md tone)
 - **mcp-patterns** - MCP server patterns (Zod schemas, error handling, logging, response format)
 - **ai-sdk-patterns** - Vercel AI SDK patterns (input schemas, API key handling, response format)
+- **langchain-patterns** - LangChain patterns (DynamicStructuredTool wrapping, JSON string returns, config merging)
 - **teams-anthropic-patterns** - Teams.ai patterns (Memory API, Anthropic SDK, MCP client setup)
 
 **Purpose**:
