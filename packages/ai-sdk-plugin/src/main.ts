@@ -56,9 +56,9 @@ export const youSearch = (config: YouToolsConfig = {}) => {
 }
 
 /**
- * You.com deep research tool for Vercel AI SDK
+ * You.com research tool for Vercel AI SDK
  *
- * Perform comprehensive research with cited sources and multi-step reasoning.
+ * Perform research with cited sources and configurable effort (lite, standard, deep, exhaustive).
  *
  * @param config - Configuration options
  * @returns A tool that can be used with AI SDK's generateText, streamText, etc.
@@ -70,7 +70,7 @@ export const youResearch = (config: YouToolsConfig = {}) => {
 
   return tool({
     description:
-      'Perform deep research with comprehensive answers and cited sources using You.com. Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
+      'Research a topic with comprehensive answers and cited sources using You.com. Supports configurable effort levels (lite, standard, deep, exhaustive). Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
     inputSchema: ResearchQuerySchema,
     execute: async (params) => {
       if (!apiKey) {

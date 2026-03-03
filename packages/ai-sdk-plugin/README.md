@@ -6,7 +6,7 @@ Give your AI applications **real-time access to the web** with native AI SDK too
 
 Build AI applications that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
-- **Deep research** - Comprehensive answers with cited sources and multi-step reasoning
+- **Research** - Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Extract any webpage** - Pull full content in markdown or HTML format
 - **Zero configuration** - Works with any AI SDK model provider (Anthropic, OpenAI, Google, and more)
 - **Type-safe** - Full TypeScript support with Zod schema validation
@@ -231,7 +231,7 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 
 ### youResearch()
 
-Deep research with comprehensive answers and cited sources. Performs multi-step reasoning across multiple web sources to produce thorough, well-researched responses with inline citations.
+Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
 
 **When your AI will use this:**
 - Complex questions requiring in-depth analysis

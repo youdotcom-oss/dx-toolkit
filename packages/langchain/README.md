@@ -1,12 +1,12 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** with structured tools. Search current content, perform deep research with cited sources, and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search, research, and content extraction directly into your LangChain agents** with zero server setup.
+Give your LangChain agents **real-time access to the web** with structured tools. Search current content, research topics with cited sources, and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search, research, and content extraction directly into your LangChain agents** with zero server setup.
 
 ## Features
 
 Build LangChain agents that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
-- **Deep research** - Comprehensive answers with cited sources and multi-step reasoning
+- **Research** - Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Extract any webpage** - Pull full content in markdown or HTML format
 - **Structured tool inputs** - Full Zod schema validation via `DynamicStructuredTool`
 - **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
@@ -220,7 +220,7 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 
 ### youResearch()
 
-Deep research with comprehensive answers and cited sources. Performs multi-step reasoning across multiple web sources to produce thorough, well-researched responses with inline citations.
+Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
 
 **When your agent will use this:**
 - Complex questions requiring in-depth analysis

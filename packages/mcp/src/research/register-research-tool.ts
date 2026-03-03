@@ -17,7 +17,8 @@ export const registerResearchTool = ({
     'you-research',
     {
       title: 'Research',
-      description: 'Perform deep research with comprehensive answers and cited sources',
+      description:
+        'Research a topic with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive).',
       inputSchema: ResearchQuerySchema.shape,
       outputSchema: ResearchStructuredContentSchema.shape,
     },

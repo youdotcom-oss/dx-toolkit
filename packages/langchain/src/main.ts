@@ -85,9 +85,9 @@ export const youSearch = (config: YouSearchConfig = {}) => {
 }
 
 /**
- * You.com deep research tool for LangChain
+ * You.com research tool for LangChain
  *
- * Perform comprehensive research with cited sources and multi-step reasoning.
+ * Perform research with cited sources and configurable effort (lite, standard, deep, exhaustive).
  *
  * @param config - Configuration options
  * @returns A DynamicStructuredTool for use with LangChain agents
@@ -101,7 +101,7 @@ export const youResearch = (config: YouResearchConfig = {}) => {
   return new DynamicStructuredTool({
     name: 'you_research',
     description:
-      'Perform deep research with comprehensive answers and cited sources using You.com. Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
+      'Research a topic with comprehensive answers and cited sources using You.com. Supports configurable effort levels (lite, standard, deep, exhaustive). Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
     schema: ResearchQuerySchema,
     func: async (params) => {
       const response = await callResearch({

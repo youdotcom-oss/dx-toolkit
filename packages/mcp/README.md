@@ -5,7 +5,7 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 ## Features
 
 - **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
-- **Deep research**: Comprehensive answers with cited sources and multi-step reasoning
+- **Research**: Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
 - **Multiple transport protocols**: STDIO and Streamable HTTP support
 - **Bearer Token Authentication**: Secure API access in HTTP mode
@@ -189,7 +189,7 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 **When to use**: When you need to search the web for information, filter by specific sites/file types, or get the latest news on a topic.
 
 ### you-research
-Deep research with comprehensive answers and cited sources. Performs multi-step reasoning across multiple web sources to produce thorough, well-researched responses with inline citations.
+Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
 
 **When to use**: When you need in-depth answers to complex questions, research reports with citations, or thorough analysis that goes beyond simple search results.
 
@@ -235,7 +235,7 @@ Here are common scenarios showing when and how to use each tool with natural lan
 Your AI agent can combine multiple tools in a single conversation:
 1. **Search + Extract**: "Search for the best TypeScript tutorials, then extract the content from the top 3 results"
 2. **Research + Deep Dive**: "Research WebAssembly performance benefits, then extract code samples from the cited sources"
-3. **News + Research**: "Find recent articles about AI regulation, then do deep research on the policy implications"
+3. **News + Research**: "Find recent articles about AI regulation, then research the policy implications"
 
 ### Pro tips
 

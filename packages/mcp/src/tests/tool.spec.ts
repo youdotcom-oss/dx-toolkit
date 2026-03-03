@@ -531,7 +531,7 @@ describe('registerResearchTool', () => {
 
     expect(researchTool).toBeDefined()
     expect(researchTool?.title).toBe('Research')
-    expect(researchTool?.description).toContain('deep research')
+    expect(researchTool?.description).toContain('Research a topic')
   })
 
   test(
