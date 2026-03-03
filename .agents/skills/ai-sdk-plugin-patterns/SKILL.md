@@ -30,7 +30,6 @@ AI SDK plugin patterns using You.com API utilities from `@youdotcom-oss/api` pac
 @youdotcom-oss/api (Foundation)
 ├── fetchSearchResults()
 ├── SearchQuerySchema
-├── formatSearchResults()
 ├── callResearch()
 ├── ResearchQuerySchema
 ├── fetchContents()
