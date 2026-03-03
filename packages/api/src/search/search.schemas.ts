@@ -95,7 +95,6 @@ export const SearchQuerySchema = z.object({
       'CN',
       'PL',
       'PT',
-      'PT-BR',
       'PH',
       'RU',
       'SA',

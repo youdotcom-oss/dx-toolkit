@@ -1,6 +1,39 @@
 import { describe, expect, test } from 'bun:test'
 import { ContentsQuerySchema } from '../contents.schemas.ts'
 
+const OPENAPI_SPEC_URL = 'https://you.com/specs/openapi_contents.yaml'
+
+type ContentsOpenApiSpec = {
+  paths: {
+    '/v1/contents': {
+      post: {
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                properties: {
+                  crawl_timeout: { minimum: number; maximum: number }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  components: {
+    schemas: {
+      ContentsFormats: { items: { enum: string[] } }
+    }
+  }
+}
+
+const fetchContentsSpec = async (): Promise<ContentsOpenApiSpec> => {
+  const response = await fetch(OPENAPI_SPEC_URL)
+  const text = await response.text()
+  return Bun.YAML.parse(text) as ContentsOpenApiSpec
+}
+
 describe('ContentsQuerySchema OpenAPI validation', () => {
   test('accepts valid contents queries', () => {
     const validQueries = [
@@ -61,16 +94,37 @@ describe('ContentsQuerySchema OpenAPI validation', () => {
   })
 
   test('crawl_timeout validation', () => {
-    // Valid timeouts (1-60)
     const validTimeouts = [1, 30, 60]
     for (const timeout of validTimeouts) {
       expect(() => ContentsQuerySchema.parse({ urls: ['https://example.com'], crawl_timeout: timeout })).not.toThrow()
     }
 
-    // Invalid timeouts
     const invalidTimeouts = [0, -1, 61, 100]
     for (const timeout of invalidTimeouts) {
       expect(() => ContentsQuerySchema.parse({ urls: ['https://example.com'], crawl_timeout: timeout })).toThrow()
     }
+  })
+})
+
+describe('ContentsQuerySchema conforms to live OpenAPI spec', () => {
+  test('formats enum matches spec', async () => {
+    const spec = await fetchContentsSpec()
+    const specFormats = spec.components.schemas.ContentsFormats.items.enum
+
+    const schemaFormats = ContentsQuerySchema.shape.formats.unwrap().element.options
+    expect([...schemaFormats].sort()).toEqual([...specFormats].sort())
+  })
+
+  test('crawl_timeout constraints match spec', async () => {
+    const spec = await fetchContentsSpec()
+    const specTimeout =
+      spec.paths['/v1/contents'].post.requestBody.content['application/json'].schema.properties.crawl_timeout
+
+    expect(specTimeout.minimum).toBeDefined()
+    expect(specTimeout.maximum).toBeDefined()
+
+    const schemaTimeout = ContentsQuerySchema.shape.crawl_timeout.unwrap()
+    expect(schemaTimeout.minValue).toBe(specTimeout.minimum)
+    expect(schemaTimeout.maxValue).toBe(specTimeout.maximum)
   })
 })

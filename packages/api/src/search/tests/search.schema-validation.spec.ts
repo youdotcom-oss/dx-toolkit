@@ -1,6 +1,42 @@
 import { describe, expect, test } from 'bun:test'
 import { LanguageSchema, SearchQuerySchema } from '../search.schemas.ts'
 
+const OPENAPI_SPEC_URL = 'https://you.com/specs/openapi_search_v1.yaml'
+
+type OpenApiSpec = {
+  paths: {
+    '/v1/search': {
+      get: {
+        parameters: Array<{
+          name: string
+          schema: {
+            enum?: string[]
+            minimum?: number
+            maximum?: number
+            $ref?: string
+            oneOf?: Array<{ $ref?: string }>
+          }
+        }>
+      }
+    }
+  }
+  components: {
+    schemas: {
+      Country: { enum: string[] }
+      Language: { enum: string[] }
+      SafeSearch: { enum: string[] }
+      LiveCrawl: { enum: string[] }
+      LiveCrawlFormats: { enum: string[] }
+    }
+  }
+}
+
+const fetchSearchSpec = async (): Promise<OpenApiSpec> => {
+  const response = await fetch(OPENAPI_SPEC_URL)
+  const text = await response.text()
+  return Bun.YAML.parse(text) as OpenApiSpec
+}
+
 describe('SearchQuerySchema OpenAPI validation', () => {
   test('accepts valid query parameters', () => {
     const validQueries = [
@@ -33,7 +69,6 @@ describe('SearchQuerySchema OpenAPI validation', () => {
   })
 
   test('LanguageSchema includes all 51 BCP 47 codes', () => {
-    // Test a sample of language codes from the OpenAPI spec
     const languageCodes = [
       'AR',
       'EU',
@@ -92,7 +127,6 @@ describe('SearchQuerySchema OpenAPI validation', () => {
       expect(() => LanguageSchema.parse(code)).not.toThrow()
     }
 
-    // Test that the schema has exactly 51 values
     expect(LanguageSchema.options.length).toBe(51)
   })
 
@@ -131,7 +165,6 @@ describe('SearchQuerySchema OpenAPI validation', () => {
       'CN',
       'PL',
       'PT',
-      'PT-BR',
       'PH',
       'RU',
       'SA',
@@ -148,5 +181,59 @@ describe('SearchQuerySchema OpenAPI validation', () => {
     for (const code of countryCodes) {
       expect(() => SearchQuerySchema.parse({ query: 'test', country: code })).not.toThrow()
     }
+  })
+})
+
+describe('SearchQuerySchema conforms to live OpenAPI spec', () => {
+  test('country enum matches spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specCountries = spec.components.schemas.Country.enum
+
+    const schemaCountries = SearchQuerySchema.shape.country.unwrap().options
+    expect([...schemaCountries].sort()).toEqual([...specCountries].sort())
+  })
+
+  test('language enum matches spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specLanguages = spec.components.schemas.Language.enum
+
+    const schemaLanguages = LanguageSchema.options
+    expect([...schemaLanguages].sort()).toEqual([...specLanguages].sort())
+  })
+
+  test('safesearch enum matches spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specSafesearch = spec.components.schemas.SafeSearch.enum
+
+    const schemaSafesearch = SearchQuerySchema.shape.safesearch.unwrap().options
+    expect([...schemaSafesearch].sort()).toEqual([...specSafesearch].sort())
+  })
+
+  test('livecrawl enum matches spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specLivecrawl = spec.components.schemas.LiveCrawl.enum
+
+    const schemaLivecrawl = SearchQuerySchema.shape.livecrawl.unwrap().options
+    expect([...schemaLivecrawl].sort()).toEqual([...specLivecrawl].sort())
+  })
+
+  test('livecrawl_formats enum matches spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specFormats = spec.components.schemas.LiveCrawlFormats.enum
+
+    const schemaFormats = SearchQuerySchema.shape.livecrawl_formats.unwrap().options
+    expect([...schemaFormats].sort()).toEqual([...specFormats].sort())
+  })
+
+  test('count constraints match spec', async () => {
+    const spec = await fetchSearchSpec()
+    const countParam = spec.paths['/v1/search'].get.parameters.find((p) => p.name === 'count')
+
+    expect(countParam?.schema.minimum).toBeDefined()
+    expect(countParam?.schema.maximum).toBeDefined()
+
+    const schemaCount = SearchQuerySchema.shape.count.unwrap()
+    expect(schemaCount.minValue).toBe(countParam?.schema.minimum)
+    expect(schemaCount.maxValue).toBe(countParam?.schema.maximum)
   })
 })
