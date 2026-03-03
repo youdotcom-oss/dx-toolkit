@@ -30,10 +30,16 @@ MCP server patterns using You.com API utilities from `@youdotcom-oss/api` packag
 @youdotcom-oss/api (Foundation)
 ├── fetchSearchResults()
 ├── SearchQuerySchema
-└── formatSearchResults()
+├── formatSearchResults()
+├── callResearch()
+├── ResearchQuerySchema
+├── fetchContents()
+└── ContentsQuerySchema
          ↓
 @youdotcom-oss/mcp (MCP Wrapper)
-└── registerSearchTool() - Wraps API utility as MCP tool
+├── registerSearchTool()   - Wraps API utility as MCP tool
+├── registerResearchTool() - Wraps API utility as MCP tool
+└── registerContentsTool() - Wraps API utility as MCP tool
 ```
 
 ## Tech Stack
@@ -177,6 +183,7 @@ test.serial('memory test', async () => {
 ```
 src/
 ├── search/register-search-tool.ts     # Uses API utilities
+├── research/register-research-tool.ts # Uses API utilities
 ├── contents/register-contents-tool.ts # Uses API utilities
 ├── get-mcp-server.ts                  # Server factory
 ├── stdio.ts                           # STDIO transport

@@ -30,10 +30,16 @@ AI SDK plugin patterns using You.com API utilities from `@youdotcom-oss/api` pac
 @youdotcom-oss/api (Foundation)
 ├── fetchSearchResults()
 ├── SearchQuerySchema
-└── formatSearchResults()
+├── formatSearchResults()
+├── callResearch()
+├── ResearchQuerySchema
+├── fetchContents()
+└── ContentsQuerySchema
          ↓
 @youdotcom-oss/ai-sdk-plugin (AI SDK Wrapper)
-└── youSearch() - Wraps API utility as AI SDK tool
+├── youSearch()   - Wraps API utility as AI SDK tool
+├── youResearch() - Wraps API utility as AI SDK tool
+└── youContents() - Wraps API utility as AI SDK tool
 ```
 
 ## Tech Stack
@@ -168,6 +174,7 @@ const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
 | Tool | API Utility | Schema |
 |------|-------------|--------|
 | `youSearch()` | `fetchSearchResults()` | `SearchQuerySchema` |
+| `youResearch()` | `callResearch()` | `ResearchQuerySchema` |
 | `youContents()` | `fetchContents()` | `ContentsQuerySchema` |
 
 ## Testing
