@@ -3,6 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { $ } from 'bun'
 import type { ContentsStructuredContent } from '../contents/contents.schemas.ts'
+import type { ResearchStructuredContent } from '../research/research.schemas.ts'
 import type { SearchStructuredContent } from '../search/search.schema.ts'
 
 let client: Client
@@ -519,5 +520,130 @@ describe('registerContentsTool', () => {
       expect(structuredContent.formats).toEqual(['markdown'])
     },
     { retry: 2 },
+  )
+})
+
+describe('registerResearchTool', () => {
+  test('tool is registered and available', async () => {
+    const tools = await client.listTools()
+
+    const researchTool = tools.tools.find((t) => t.name === 'you-research')
+
+    expect(researchTool).toBeDefined()
+    expect(researchTool?.title).toBe('Research')
+    expect(researchTool?.description).toContain('deep research')
+  })
+
+  test(
+    'performs basic research successfully',
+    async () => {
+      const result = await client.callTool({
+        name: 'you-research',
+        arguments: {
+          input: 'What is TypeScript?',
+          research_effort: 'lite',
+        },
+      })
+
+      expect(result).toHaveProperty('content')
+      expect(result).toHaveProperty('structuredContent')
+
+      const content = result.content as { type: string; text: string }[]
+      expect(Array.isArray(content)).toBe(true)
+      expect(content[0]).toHaveProperty('type', 'text')
+      expect(content[0]).toHaveProperty('text')
+
+      const text = content[0]?.text
+      expect(typeof text).toBe('string')
+      expect(text?.length).toBeGreaterThan(0)
+    },
+    { retry: 2 },
+  )
+
+  test(
+    'returns structured content with source information',
+    async () => {
+      const result = await client.callTool({
+        name: 'you-research',
+        arguments: {
+          input: 'What are the benefits of REST APIs?',
+          research_effort: 'lite',
+        },
+      })
+
+      const structuredContent = result.structuredContent as ResearchStructuredContent
+      expect(structuredContent).toHaveProperty('content_type', 'text')
+      expect(structuredContent).toHaveProperty('sourceCount')
+      expect(typeof structuredContent.sourceCount).toBe('number')
+      expect(structuredContent.sourceCount).toBeGreaterThan(0)
+
+      expect(structuredContent).toHaveProperty('sources')
+      expect(Array.isArray(structuredContent.sources)).toBe(true)
+      expect(structuredContent.sources.length).toBeGreaterThan(0)
+
+      const source = structuredContent.sources[0]
+      expect(source).toBeDefined()
+      expect(source).toHaveProperty('url')
+      expect(typeof source?.url).toBe('string')
+      expect(source).toHaveProperty('snippetCount')
+      expect(typeof source?.snippetCount).toBe('number')
+    },
+    { retry: 2 },
+  )
+
+  test(
+    'text content contains markdown with answer and sources',
+    async () => {
+      const result = await client.callTool({
+        name: 'you-research',
+        arguments: {
+          input: 'What is JWT authentication?',
+          research_effort: 'lite',
+        },
+      })
+
+      const content = result.content as { type: string; text: string }[]
+      const text = content[0]?.text
+      expect(text).toContain('# Answer')
+      expect(text).toContain('## Sources')
+    },
+    { retry: 2 },
+  )
+
+  test(
+    'handles research_effort parameter',
+    async () => {
+      const transport = new StdioClientTransport({
+        command: 'npx',
+        args: [Bun.resolveSync('../../bin/stdio', import.meta.dir)],
+        env: {
+          YDC_API_KEY: process.env.YDC_API_KEY ?? '',
+        },
+      })
+
+      const dedicatedClient = new Client({
+        name: 'test-client-research',
+        version: '0.0.1',
+      })
+
+      await dedicatedClient.connect(transport)
+
+      try {
+        const result = await dedicatedClient.callTool({
+          name: 'you-research',
+          arguments: {
+            input: 'Explain microservices architecture',
+            research_effort: 'standard',
+          },
+        })
+
+        const content = result.content as { type: string; text: string }[]
+        expect(content[0]).toHaveProperty('text')
+        expect(content[0]?.text?.length).toBeGreaterThan(0)
+      } finally {
+        await dedicatedClient.close()
+      }
+    },
+    { retry: 2, timeout: 120_000 },
   )
 })

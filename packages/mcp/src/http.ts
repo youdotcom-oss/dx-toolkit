@@ -4,6 +4,7 @@ import { trimTrailingSlash } from 'hono/trailing-slash'
 import packageJson from '../package.json' with { type: 'json' }
 import { registerContentsTool } from './contents/register-contents-tool.ts'
 import { getMCpServer } from './get-mcp-server.ts'
+import { registerResearchTool } from './research/register-research-tool.ts'
 import { registerSearchTool } from './search/register-search-tool.ts'
 import { useGetClientVersion } from './shared/use-client-version.ts'
 
@@ -40,6 +41,7 @@ const handleMcpRequest = async (c: Context) => {
     getUserAgent,
   })
   registerContentsTool({ mcp, YDC_API_KEY, getUserAgent })
+  registerResearchTool({ mcp, YDC_API_KEY, getUserAgent })
 
   const transport = new StreamableHTTPTransport()
   await mcp.connect(transport)
