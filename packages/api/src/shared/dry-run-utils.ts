@@ -7,9 +7,9 @@
  */
 
 import type { ContentsQuery } from '../contents/contents.schemas.ts'
-import type { DeepSearchQuery } from '../deep-search/deep-search.schemas.ts'
+import type { ResearchQuery } from '../research/research.schemas.ts'
 import type { SearchQuery } from '../search/search.schemas.ts'
-import { CONTENTS_API_URL, DEEP_SEARCH_API_URL, SEARCH_API_URL } from './api.constants.ts'
+import { CONTENTS_API_URL, RESEARCH_API_URL, SEARCH_API_URL } from './api.constants.ts'
 import type { GetUserAgent } from './api.types.ts'
 
 /**
@@ -111,31 +111,31 @@ export const buildContentsRequest = ({
 }
 
 /**
- * Build deep-search request details without making API call
+ * Build research request details without making API call
  * Useful for testing and debugging POST body construction
  *
- * @param params - Deep-search query parameters
+ * @param params - Research query parameters
  * @returns Request details including URL, headers, and POST body
  *
  * @public
  */
-export const buildDeepSearchRequest = ({
-  deepSearchQuery,
+export const buildResearchRequest = ({
+  researchQuery,
   YDC_API_KEY,
   getUserAgent,
 }: {
-  deepSearchQuery: DeepSearchQuery
+  researchQuery: ResearchQuery
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
 }): DryRunResult => {
   return {
-    url: DEEP_SEARCH_API_URL,
+    url: RESEARCH_API_URL,
     method: 'POST',
     headers: {
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
     },
-    body: JSON.stringify(deepSearchQuery),
+    body: JSON.stringify(researchQuery),
   }
 }

@@ -4,7 +4,7 @@
  *
  * Commands:
  *   search <query>              - Search the web with You.com
- *   deep-search <query>         - Perform deep research with comprehensive answers
+ *   research <input>            - Perform deep research with comprehensive answers
  *   contents <url> [url...]     - Extract content from URLs
  *
  * Options:
@@ -18,13 +18,13 @@ import type * as z from 'zod'
 import packageJson from '../package.json' with { type: 'json' }
 import { ContentsQuerySchema } from './contents/contents.schemas.ts'
 import { fetchContents } from './contents/contents.utils.ts'
-import { DeepSearchQuerySchema } from './deep-search/deep-search.schemas.ts'
-import { callDeepSearch } from './deep-search/deep-search.utils.ts'
+import { ResearchQuerySchema } from './research/research.schemas.ts'
+import { callResearch } from './research/research.utils.ts'
 import { SearchQuerySchema } from './search/search.schemas.ts'
 import { fetchSearchResults } from './search/search.utils.ts'
 import type { GetUserAgent } from './shared/api.types.ts'
 import { type CommandConfig, runCommand } from './shared/command-runner.ts'
-import { buildContentsRequest, buildDeepSearchRequest, buildSearchRequest } from './shared/dry-run-utils.ts'
+import { buildContentsRequest, buildResearchRequest, buildSearchRequest } from './shared/dry-run-utils.ts'
 import { generateErrorReportLink } from './shared/generate-error-report-link.ts'
 import { useGetUserAgent } from './shared/use-get-user-agents.ts'
 
@@ -42,7 +42,7 @@ Usage: ydc <command> --json <json> [options]
 
 Commands:
   search                      Search the web with You.com
-  deep-search                 Perform deep research with comprehensive answers
+  research                    Perform deep research with comprehensive answers
   contents                    Extract content from URLs
 
 Global Options:
@@ -63,7 +63,7 @@ Output Format:
 
 Examples:
   ydc search --json '{"query":"AI developments"}' --client ClaudeCode
-  ydc deep-search --json '{"query":"What are the latest breakthroughs in AI?","search_effort":"high"}' --client MyAgent
+  ydc research --json '{"input":"What are the latest breakthroughs in AI?","research_effort":"deep"}' --client MyAgent
   ydc contents --json '{"urls":["https://example.com"],"formats":["markdown"]}'
   ydc search --schema  # Get JSON schema for search --json input
   ydc search --json '{"query":"AI"}' --dry-run  # Inspect request without API call
@@ -97,26 +97,26 @@ const commands = {
       getUserAgent: GetUserAgent
     }) => buildSearchRequest({ searchQuery: input, YDC_API_KEY, getUserAgent }),
   },
-  'deep-search': {
-    schema: DeepSearchQuerySchema,
+  research: {
+    schema: ResearchQuerySchema,
     handler: ({
       input,
       YDC_API_KEY,
       getUserAgent,
     }: {
-      input: z.infer<typeof DeepSearchQuerySchema>
+      input: z.infer<typeof ResearchQuerySchema>
       YDC_API_KEY: string
       getUserAgent: GetUserAgent
-    }) => callDeepSearch({ deepSearchQuery: input, YDC_API_KEY, getUserAgent }),
+    }) => callResearch({ researchQuery: input, YDC_API_KEY, getUserAgent }),
     dryRunHandler: ({
       input,
       YDC_API_KEY,
       getUserAgent,
     }: {
-      input: z.infer<typeof DeepSearchQuerySchema>
+      input: z.infer<typeof ResearchQuerySchema>
       YDC_API_KEY: string
       getUserAgent: GetUserAgent
-    }) => buildDeepSearchRequest({ deepSearchQuery: input, YDC_API_KEY, getUserAgent }),
+    }) => buildResearchRequest({ researchQuery: input, YDC_API_KEY, getUserAgent }),
   },
   contents: {
     schema: ContentsQuerySchema,
