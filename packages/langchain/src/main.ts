@@ -50,7 +50,7 @@ export type YouContentsConfig = YouToolsConfig & Partial<ContentsQuery>
 /**
  * Creates a User-Agent string for API requests
  */
-const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version}(You.com)`
+const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version} (You.com)`
 
 /**
  * You.com web search tool for LangChain
