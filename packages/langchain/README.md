@@ -1,11 +1,12 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** with structured tools. Search current content and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search and content extraction directly into your LangChain agents** with zero server setup.
+Give your LangChain agents **real-time access to the web** with structured tools. Search current content, perform deep research with cited sources, and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search, research, and content extraction directly into your LangChain agents** with zero server setup.
 
 ## Features
 
 Build LangChain agents that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
+- **Deep research** - Comprehensive answers with cited sources and multi-step reasoning
 - **Extract any webpage** - Pull full content in markdown or HTML format
 - **Structured tool inputs** - Full Zod schema validation via `DynamicStructuredTool`
 - **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
@@ -206,7 +207,7 @@ console.log(result); // Search results
 
 ## Available tools
 
-This package provides two tools that your LangChain agents can use automatically:
+This package provides three tools that your LangChain agents can use automatically:
 
 ### youSearch()
 
@@ -216,6 +217,15 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 - Searching for current information or news
 - Finding specific content with filters (dates, sites, file types)
 - Research queries requiring multiple results
+
+### youResearch()
+
+Deep research with comprehensive answers and cited sources. Performs multi-step reasoning across multiple web sources to produce thorough, well-researched responses with inline citations.
+
+**When your agent will use this:**
+- Complex questions requiring in-depth analysis
+- Research reports needing cited sources
+- Thorough comparisons or detailed explanations
 
 ### youContents()
 

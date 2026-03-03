@@ -2,9 +2,12 @@ import { DynamicStructuredTool } from '@langchain/core/tools'
 import {
   type ContentsQuery,
   ContentsQuerySchema,
+  callResearch,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
+  type ResearchQuery,
+  ResearchQuerySchema,
   type SearchQuery,
   SearchQuerySchema,
 } from '@youdotcom-oss/api'
@@ -25,6 +28,15 @@ export type YouToolsConfig = {
  * can be set at construction and will be used unless overridden at invoke time.
  */
 export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
+
+/**
+ * Configuration for the youResearch tool
+ *
+ * Extends YouToolsConfig with optional ResearchQuery fields as defaults.
+ * Any field from ResearchQuery (e.g. research_effort) can be set at construction
+ * and will be used unless overridden at invoke time.
+ */
+export type YouResearchConfig = YouToolsConfig & Partial<ResearchQuery>
 
 /**
  * Configuration for the youContents tool
@@ -63,6 +75,37 @@ export const youSearch = (config: YouSearchConfig = {}) => {
     func: async (params) => {
       const response = await fetchSearchResults({
         searchQuery: { ...defaults, ...params },
+        YDC_API_KEY: apiKey,
+        getUserAgent,
+      })
+
+      return JSON.stringify(response)
+    },
+  })
+}
+
+/**
+ * You.com deep research tool for LangChain
+ *
+ * Perform comprehensive research with cited sources and multi-step reasoning.
+ *
+ * @param config - Configuration options
+ * @returns A DynamicStructuredTool for use with LangChain agents
+ *
+ * @public
+ */
+export const youResearch = (config: YouResearchConfig = {}) => {
+  const { apiKey: configApiKey, ...defaults } = config
+  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+
+  return new DynamicStructuredTool({
+    name: 'you_research',
+    description:
+      'Perform deep research with comprehensive answers and cited sources using You.com. Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
+    schema: ResearchQuerySchema,
+    func: async (params) => {
+      const response = await callResearch({
+        researchQuery: { ...defaults, ...params },
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

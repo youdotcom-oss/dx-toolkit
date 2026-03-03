@@ -1,8 +1,10 @@
 import {
   ContentsQuerySchema,
+  callResearch,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
+  ResearchQuerySchema,
   SearchQuerySchema,
 } from '@youdotcom-oss/api'
 import { tool } from 'ai'
@@ -27,20 +29,7 @@ const getUserAgent: GetUserAgent = () =>
  * @param config - Configuration options
  * @returns A tool that can be used with AI SDK's generateText, streamText, etc.
  *
- * @example
- * ```ts
- * import { generateText, stepCountIs } from 'ai';
- * import { youSearch } from '@youdotcom-oss/ai-sdk-plugin';
- *
- * const { text } = await generateText({
- *   model: 'anthropic/claude-sonnet-4.5',
- *   prompt: 'What happened in San Francisco last week?',
- *   tools: {
- *     search: youSearch(),
- *   },
- *   stopWhen: stepCountIs(3),
- * });
- * ```
+ * @public
  */
 export const youSearch = (config: YouToolsConfig = {}) => {
   const apiKey = config.apiKey ?? process.env.YDC_API_KEY
@@ -67,6 +56,39 @@ export const youSearch = (config: YouToolsConfig = {}) => {
 }
 
 /**
+ * You.com deep research tool for Vercel AI SDK
+ *
+ * Perform comprehensive research with cited sources and multi-step reasoning.
+ *
+ * @param config - Configuration options
+ * @returns A tool that can be used with AI SDK's generateText, streamText, etc.
+ *
+ * @public
+ */
+export const youResearch = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
+
+  return tool({
+    description:
+      'Perform deep research with comprehensive answers and cited sources using You.com. Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
+    inputSchema: ResearchQuerySchema,
+    execute: async (params) => {
+      if (!apiKey) {
+        throw new Error('YDC_API_KEY is required. Set it in environment variables or pass it in config.')
+      }
+
+      const response = await callResearch({
+        researchQuery: params,
+        YDC_API_KEY: apiKey,
+        getUserAgent,
+      })
+
+      return response
+    },
+  })
+}
+
+/**
  * You.com content extraction tool for Vercel AI SDK
  *
  * Extract full page content from URLs in markdown or HTML format.
@@ -74,20 +96,7 @@ export const youSearch = (config: YouToolsConfig = {}) => {
  * @param config - Configuration options
  * @returns A tool that can be used with AI SDK's generateText, streamText, etc.
  *
- * @example
- * ```ts
- * import { generateText, stepCountIs } from 'ai';
- * import { youContents } from '@youdotcom-oss/ai-sdk-plugin';
- *
- * const { text } = await generateText({
- *   model: 'anthropic/claude-sonnet-4.5',
- *   prompt: 'Summarize the content from vercel.com/blog',
- *   tools: {
- *     extract: youContents(),
- *   },
- *   stopWhen: stepCountIs(3),
- * });
- * ```
+ * @public
  */
 export const youContents = (config: YouToolsConfig = {}) => {
   const apiKey = config.apiKey ?? process.env.YDC_API_KEY

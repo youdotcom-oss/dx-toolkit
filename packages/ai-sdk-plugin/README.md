@@ -6,7 +6,7 @@ Give your AI applications **real-time access to the web** with native AI SDK too
 
 Build AI applications that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
-- **Generate answers with web context** - Fast AI responses enhanced with live web data
+- **Deep research** - Comprehensive answers with cited sources and multi-step reasoning
 - **Extract any webpage** - Pull full content in markdown or HTML format
 - **Zero configuration** - Works with any AI SDK model provider (Anthropic, OpenAI, Google, and more)
 - **Type-safe** - Full TypeScript support with Zod schema validation
@@ -57,7 +57,7 @@ Import the tools and add them to your AI SDK configuration:
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, stepCountIs } from 'ai';
-import { youSearch, youContents } from '@youdotcom-oss/ai-sdk-plugin';
+import { youSearch, youResearch, youContents } from '@youdotcom-oss/ai-sdk-plugin';
 
 // Create your AI model provider
 const anthropic = createAnthropic({
@@ -68,6 +68,7 @@ const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
   tools: {
     search: youSearch(),
+    research: youResearch(),
     extract: youContents(),
   },
   stopWhen: stepCountIs(5),  // Required for tool result processing
@@ -227,6 +228,15 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 - Searching for current information or news
 - Finding specific content with filters (dates, sites, file types)
 - Research queries requiring multiple results
+
+### youResearch()
+
+Deep research with comprehensive answers and cited sources. Performs multi-step reasoning across multiple web sources to produce thorough, well-researched responses with inline citations.
+
+**When your AI will use this:**
+- Complex questions requiring in-depth analysis
+- Research reports needing cited sources
+- Thorough comparisons or detailed explanations
 
 ### youContents()
 
