@@ -5,7 +5,7 @@ import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type ResearchQuery, ResearchResponseSchema } from './research.schemas.ts'
 
 /**
- * Perform deep research using You.com Research API
+ * Perform research using You.com Research API
  *
  * @param params - Research query parameters
  * @returns Research response with comprehensive answer and sources
@@ -35,8 +35,24 @@ export const callResearch = async ({
     body: JSON.stringify(researchQuery),
   })
 
-  await checkResponseForErrors(response)
+  if (!response.ok) {
+    const errorCode = response.status
+
+    if (errorCode === 429) {
+      throw new Error('Rate limited by You.com API. Please try again later.')
+    } else if (errorCode === 403) {
+      throw new Error('Forbidden. Please check your You.com API key.')
+    } else if (errorCode === 402) {
+      throw new Error('Free tier limit exceeded. Please upgrade at: https://you.com/platform')
+    }
+
+    throw new Error(`Research API request failed. Error code: ${errorCode}`)
+  }
+
   const data = await response.json()
+
+  // Check for error field in 200 responses
+  checkResponseForErrors(data)
 
   return ResearchResponseSchema.parse(data)
 }

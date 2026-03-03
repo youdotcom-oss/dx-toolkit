@@ -94,23 +94,21 @@ describe('runCommand', () => {
         outputData = data
       }
 
-      try {
-        await runCommand({
+      await expect(
+        runCommand({
           args: ['--schema', 'input'],
           commandName: 'test',
           config: {
             schema: TestSchema,
             handler: async () => ({ result: 'test' }),
           },
-        })
-      } catch (error) {
-        if (error instanceof Error && error.message === 'EXIT') {
-          const schema = JSON.parse(outputData)
-          expect(schema.type).toBe('object')
-          expect(schema.properties).toBeDefined()
-          expect(schema.properties.value).toBeDefined()
-        }
-      }
+        }),
+      ).rejects.toThrow('EXIT')
+
+      const schema = JSON.parse(outputData)
+      expect(schema.type).toBe('object')
+      expect(schema.properties).toBeDefined()
+      expect(schema.properties.value).toBeDefined()
 
       process.exit = originalExit
       console.log = originalLog
@@ -129,22 +127,20 @@ describe('runCommand', () => {
         outputData = data
       }
 
-      try {
-        await runCommand({
+      await expect(
+        runCommand({
           args: ['--schema'],
           commandName: 'test',
           config: {
             schema: TestSchema,
             handler: async () => ({ result: 'test' }),
           },
-        })
-      } catch (error) {
-        if (error instanceof Error && error.message === 'EXIT') {
-          const schema = JSON.parse(outputData)
-          expect(schema.type).toBe('object')
-          expect(schema.properties.value).toBeDefined()
-        }
-      }
+        }),
+      ).rejects.toThrow('EXIT')
+
+      const schema = JSON.parse(outputData)
+      expect(schema.type).toBe('object')
+      expect(schema.properties.value).toBeDefined()
 
       process.exit = originalExit
       console.log = originalLog
@@ -163,8 +159,8 @@ describe('runCommand', () => {
         outputData = data
       }
 
-      try {
-        await runCommand({
+      await expect(
+        runCommand({
           args: ['--schema', 'output'],
           commandName: 'test',
           config: {
@@ -172,14 +168,12 @@ describe('runCommand', () => {
             responseSchema: TestResponseSchema,
             handler: async () => ({ result: 'test' }),
           },
-        })
-      } catch (error) {
-        if (error instanceof Error && error.message === 'EXIT') {
-          const schema = JSON.parse(outputData)
-          expect(schema.type).toBe('object')
-          expect(schema.properties.result).toBeDefined()
-        }
-      }
+        }),
+      ).rejects.toThrow('EXIT')
+
+      const schema = JSON.parse(outputData)
+      expect(schema.type).toBe('object')
+      expect(schema.properties.result).toBeDefined()
 
       process.exit = originalExit
       console.log = originalLog
@@ -224,8 +218,8 @@ describe('runCommand', () => {
         outputData = data
       }
 
-      try {
-        await runCommand({
+      await expect(
+        runCommand({
           args: ['--help'],
           commandName: 'test',
           config: {
@@ -233,16 +227,14 @@ describe('runCommand', () => {
             description: 'A test command',
             handler: async () => ({ result: 'test' }),
           },
-        })
-      } catch (error) {
-        if (error instanceof Error && error.message === 'EXIT') {
-          expect(outputData).toContain('ydc test')
-          expect(outputData).toContain('A test command')
-          expect(outputData).toContain('value*')
-          expect(outputData).toContain('string')
-          expect(outputData).toContain('Test value')
-        }
-      }
+        }),
+      ).rejects.toThrow('EXIT')
+
+      expect(outputData).toContain('ydc test')
+      expect(outputData).toContain('A test command')
+      expect(outputData).toContain('value*')
+      expect(outputData).toContain('string')
+      expect(outputData).toContain('Test value')
 
       process.exit = originalExit
       console.log = originalLog

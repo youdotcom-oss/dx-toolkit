@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { RESEARCH_API_URL } from '../../shared/api.constants.ts'
 import { buildResearchRequest } from '../../shared/dry-run-utils.ts'
+import { ResearchQuerySchema } from '../research.schemas.ts'
 
 describe('buildResearchRequest', () => {
   const getUserAgent = () => 'test-agent'
@@ -8,7 +9,7 @@ describe('buildResearchRequest', () => {
 
   test('builds basic research request with input only', () => {
     const request = buildResearchRequest({
-      researchQuery: { input: 'What is AI?' },
+      researchQuery: ResearchQuerySchema.parse({ input: 'What is AI?' }),
       YDC_API_KEY,
       getUserAgent,
     })
@@ -21,7 +22,7 @@ describe('buildResearchRequest', () => {
 
     const body = JSON.parse(request.body!)
     expect(body.input).toBe('What is AI?')
-    expect(body.research_effort).toBeUndefined()
+    expect(body.research_effort).toBe('standard')
   })
 
   test('builds request with lite research effort', () => {
@@ -78,7 +79,7 @@ describe('buildResearchRequest', () => {
 
   test('uses correct API URL', () => {
     const request = buildResearchRequest({
-      researchQuery: { input: 'test' },
+      researchQuery: ResearchQuerySchema.parse({ input: 'test' }),
       YDC_API_KEY,
       getUserAgent,
     })
@@ -88,7 +89,7 @@ describe('buildResearchRequest', () => {
 
   test('includes all required headers', () => {
     const request = buildResearchRequest({
-      researchQuery: { input: 'test' },
+      researchQuery: ResearchQuerySchema.parse({ input: 'test' }),
       YDC_API_KEY: 'my-api-key',
       getUserAgent: () => 'CustomAgent/1.0',
     })

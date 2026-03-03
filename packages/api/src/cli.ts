@@ -51,7 +51,7 @@ const commands = {
   research: {
     schema: ResearchQuerySchema,
     responseSchema: ResearchResponseSchema,
-    description: 'Deep research with comprehensive answers',
+    description: 'Research with comprehensive answers',
     handler: ({
       input,
       YDC_API_KEY,
@@ -109,7 +109,7 @@ Usage: ydc <command> <json> [options]
 
 Commands:
   search      Search the web with You.com
-  research    Deep research with comprehensive answers
+  research    Research with comprehensive answers
   contents    Extract content from URLs
 
 Options:
@@ -128,7 +128,7 @@ Examples:
   ydc search --schema input | jq '.properties | keys'
   ydc search --schema output
   ydc search --help`)
-  process.exit(command ? 0 : 2)
+  process.exit(hasHelpFlag ? 0 : 2)
 }
 
 // Validate command
