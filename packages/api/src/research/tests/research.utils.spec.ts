@@ -24,7 +24,7 @@ describe('callResearch', () => {
       expect(Array.isArray(result.output.sources)).toBe(true)
       expect(result.output.content.length).toBeGreaterThan(0)
     },
-    { retry: 2 },
+    { retry: 2, timeout: 15_000 },
   )
 
   test(
@@ -42,7 +42,7 @@ describe('callResearch', () => {
       expect(typeof result.output.content).toBe('string')
       expect(Array.isArray(result.output.sources)).toBe(true)
     },
-    { retry: 2 },
+    { retry: 2, timeout: 30_000 },
   )
 
   test(
@@ -65,7 +65,7 @@ describe('callResearch', () => {
       expect(typeof source?.url).toBe('string')
       expect(Array.isArray(source?.snippets)).toBe(true)
     },
-    { retry: 2 },
+    { retry: 2, timeout: 15_000 },
   )
 
   test(
@@ -86,7 +86,7 @@ describe('callResearch', () => {
         expect(result.output.content).toMatch(/\[\d+\]/)
       }
     },
-    { retry: 2 },
+    { retry: 2, timeout: 15_000 },
   )
 
   test(
@@ -104,7 +104,7 @@ describe('callResearch', () => {
       expect(result.output.sources.length).toBeGreaterThan(0)
       expect(result.output.content.length).toBeGreaterThan(100)
     },
-    { retry: 2 },
+    { retry: 2, timeout: 15_000 },
   )
 
   test(
@@ -125,6 +125,6 @@ describe('callResearch', () => {
       expect(firstSource).toBeDefined()
       expect(firstSource?.snippets[0]?.length).toBeGreaterThan(0)
     },
-    { retry: 2 },
+    { retry: 2, timeout: 15_000 },
   )
 })
