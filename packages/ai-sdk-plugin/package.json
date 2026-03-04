@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/ai-sdk-plugin",
-  "version": "2.0.7",
+  "version": "2.1.0",
   "description": "Vercel AI SDK plugin for You.com web search, AI agents, and content extraction via MCP",
   "license": "MIT",
   "engines": {
