@@ -55,15 +55,20 @@ Import the tools and add them to your LangChain agent:
 import { getEnvironmentVariable } from '@langchain/core/utils/env';
 import { createAgent, initChatModel } from 'langchain';
 import * as z from 'zod';
-import { youSearch } from '@youdotcom-oss/langchain';
+import { youSearch, youResearch, youContents } from '@youdotcom-oss/langchain';
 
 // Fetch the You.com API key as an environment variable
 // Get a free API key with credits at https://you.com/platform
 const apiKey = getEnvironmentVariable('YDC_API_KEY') ?? '';
 
-// youSearch performs web searches and returns titles, URLs, and snippets
-// See our docs at https://docs.you.com/api-reference/search/v1-search for details
+// youSearch — web search with titles, URLs, snippets, and news articles
 const searchTool = youSearch({ apiKey });
+
+// youResearch — comprehensive answers with cited sources, configurable effort
+const researchTool = youResearch({ apiKey });
+
+// youContents — extract full page content from URLs in markdown or HTML
+const contentsTool = youContents({ apiKey });
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -71,25 +76,25 @@ const model = await initChatModel('claude-haiku-4-5', {
 });
 
 // Define the agent's behavior
-const systemPrompt = `You are a helpful assistant that summarizes search results.
+const systemPrompt = `You are a helpful research assistant.
 Be concise and informative. Always cite your sources.`;
 
 // Structured response format using Zod schema
 const responseFormat = z.object({
-  summary: z.string().describe('A concise summary of the search results'),
-  key_points: z.array(z.string()).describe('Key points from the search results'),
-  urls: z.array(z.string()).describe('The source URLs from the search results'),
+  summary: z.string().describe('A concise summary of the findings'),
+  key_points: z.array(z.string()).describe('Key points from the results'),
+  urls: z.array(z.string()).describe('Source URLs'),
 });
 
-// Create an agent that combines the model with the search tool
-const searchAgent = createAgent({
+// Create an agent with all three tools — it picks the right one automatically
+const agent = createAgent({
   model,
-  tools: [searchTool],
+  tools: [searchTool, researchTool, contentsTool],
   systemPrompt,
   responseFormat,
 });
 
-const result = await searchAgent.invoke({
+const result = await agent.invoke({
   messages: [{ role: 'user', content: 'What are the latest developments in AI?' }],
 });
 
