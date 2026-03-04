@@ -81,11 +81,7 @@ describe('callResearch', () => {
 
       expect(typeof result.output.content).toBe('string')
       expect(result.output.content.length).toBeGreaterThan(0)
-
-      if (result.output.content.includes('[')) {
-        expect(result.output.content).toMatch(/\[\d+\]/)
-      expect(typeof result.output.content).toBe('string')
-      expect(result.output.content.length).toBeGreaterThan(0)
+      expect(result.output.content).toMatch(/\[\d+\]/)
     },
     { retry: 2, timeout: 15_000 },
   )
