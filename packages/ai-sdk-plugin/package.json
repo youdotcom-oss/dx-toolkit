@@ -62,7 +62,7 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/api": "0.3.4"
+    "@youdotcom-oss/api": "0.4.0"
   },
   "peerDependencies": {
     "ai": "^6.0.83"
