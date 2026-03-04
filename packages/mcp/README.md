@@ -1,16 +1,24 @@
 # You.com MCP Server
 
-The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/). Search current content, get up-to-date answers, and extract live web pages—whether in your IDE or deployed agentic workflows. Built on MCP to **work everywhere your agents do**—one integration, unlimited compatibility across IDEs, frameworks, and production systems. 
+The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/). Search current content, get up-to-date answers, and extract live web pages—whether in your IDE or deployed agentic workflows. Built on MCP to **work everywhere your agents do**—one integration, unlimited compatibility across IDEs, frameworks, and production systems.
 
 ## Features
 
 - **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
 - **Research**: Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
-- **Multiple transport protocols**: STDIO and Streamable HTTP support
-- **Bearer Token Authentication**: Secure API access in HTTP mode
-- **TypeScript support**: Full type safety with Zod schemas
+- **Multiple access methods**: Remote server (recommended) or local STDIO bridge
+- **Free tier**: Search works without an API key (rate-limited by IP)
 - **Advanced search parameters**: Site filtering, file type filtering, language filtering, exact terms, and exclude terms
+
+## Architecture
+
+This npm package (`@youdotcom-oss/mcp`) is a **thin STDIO-to-HTTP bridge** that proxies MCP requests to the remote You.com MCP server at `https://api.you.com/mcp`.
+
+- **Remote server** at `api.you.com/mcp` — the primary MCP server (recommended for most users)
+- **STDIO bridge** via `npx @youdotcom-oss/mcp` — proxies STDIO to the remote server for MCP clients that require local processes
+
+The bridge transparently forwards all messages between your MCP client and the remote server, including authentication headers.
 
 ## Getting started
 
@@ -20,6 +28,8 @@ Get up and running with the You.com MCP Server in 4 quick steps:
 
 Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your You.com API key. Keep this key secure - you'll need it for configuration.
 
+> **Free tier**: Search works without an API key (rate-limited). API key required for contents and research tools.
+
 ### 2. Choose your setup
 
 You can discover this server in the [Anthropic MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.youdotcom-oss/mcp`, or configure it manually:
@@ -28,7 +38,7 @@ You can discover this server in the [Anthropic MCP Registry](https://registry.mo
 - Use `https://api.you.com/mcp` with HTTP transport
 - Authentication via `Authorization: Bearer <your-key>` header
 
-**NPM package** - Runs locally on your machine
+**NPM package** - STDIO bridge to the remote server
 - Use `npx @youdotcom-oss/mcp` with STDIO transport
 - Authentication via `YDC_API_KEY` environment variable
 - Requires Bun or Node.js
@@ -65,9 +75,9 @@ Choose your MCP client from the [detailed setup guides](#adding-to-your-mcp-clie
 
 **Configuration notes:**
 - Remote server recommended for most users (no installation, always up-to-date)
-- NPM package for local usage or self-hosting scenarios
-- HTTP transport for remote connections; STDIO transport for local packages
-- API key always required (header for HTTP, environment variable for STDIO)
+- NPM package for MCP clients that require local STDIO processes
+- `YDC_API_KEY` is optional — omit for free tier (search only, rate-limited)
+- `MCP_SERVER_URL` env var overrides the remote server URL (defaults to `https://api.you.com/mcp`)
 
 ### 4. Test your setup
 
@@ -292,7 +302,7 @@ Interested in contributing to the You.com MCP Server? We'd love your help!
 Need technical details? Check [AGENTS.md](./AGENTS.md) for complete development setup, architecture overview, code patterns, and testing guidelines.
 
 1. Fork the repository
-2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md) 
+2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md)
 3. Follow the code style guidelines and use conventional commits
 4. Write tests for your changes (maintain >80% coverage)
 5. Run quality checks: `bun run check && bun test`

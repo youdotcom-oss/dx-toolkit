@@ -1,7 +1,7 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "2.1.0",
-  "description": "You.com API Model Context Protocol Server - For programmatic API access, use @youdotcom-oss/api",
+  "version": "3.0.0",
+  "description": "You.com MCP STDIO bridge — proxies STDIO to the remote You.com MCP server at api.you.com/mcp",
   "license": "MIT",
   "engines": {
     "node": ">=18",
@@ -20,47 +20,34 @@
   "keywords": [
     "mcp",
     "web search",
-    "model context protocol"
+    "model context protocol",
+    "stdio bridge"
   ],
   "bin": "bin/stdio.js",
   "type": "module",
-  "exports": {
-    "./http": "./src/http.ts"
-  },
   "files": [
     "bin/stdio.js",
-    "./dist/**",
-    "./src/**",
-    "!./src/**/tests/*",
-    "!./src/**/*.spec.@(tsx|ts)"
+    "server.json"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/stdio.ts --outfile ./bin/stdio.js --target=node",
+    "build": "bun build ./src/stdio-bridge.ts --outfile ./bin/stdio.js --target=node",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
     "check:types": "tsc --noEmit",
     "check:write": "biome check --write && bun run format:package",
-    "dev": "bun src/stdio.ts",
+    "dev": "bun src/stdio-bridge.ts",
     "format:package": "format-package --write",
-    "inspect": "bash -c 'source .env 2>/dev/null || true; bunx @modelcontextprotocol/inspector -e YDC_API_KEY=$YDC_API_KEY bun dev'",
     "prepublishOnly": "bun run build",
-    "start": "bun run src/http.ts",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "test:coverage:watch": "bun test --coverage --watch",
     "test:watch": "bun test --watch"
   },
   "mcpName": "io.github.youdotcom-oss/mcp",
   "dependencies": {
-    "@youdotcom-oss/api": "0.4.0",
-    "zod": "^4.3.6",
-    "@hono/mcp": "^0.2.3",
-    "@modelcontextprotocol/sdk": "^1.25.3",
-    "hono": "^4.11.7"
+    "@modelcontextprotocol/sdk": "^1.25.3"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "0.20.0"
