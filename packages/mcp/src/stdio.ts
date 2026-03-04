@@ -2,6 +2,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerContentsTool } from './contents/register-contents-tool.ts'
 import { getMCpServer } from './get-mcp-server.ts'
+import { registerResearchTool } from './research/register-research-tool.ts'
 import { registerSearchTool } from './search/register-search-tool.ts'
 import { useGetClientVersion } from './shared/use-client-version.ts'
 
@@ -13,6 +14,7 @@ try {
 
   registerSearchTool({ mcp, YDC_API_KEY, getUserAgent })
   registerContentsTool({ mcp, YDC_API_KEY, getUserAgent })
+  registerResearchTool({ mcp, YDC_API_KEY, getUserAgent })
 
   const transport = new StdioServerTransport()
   await mcp.connect(transport)

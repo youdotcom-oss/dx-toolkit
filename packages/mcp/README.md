@@ -5,6 +5,7 @@ The You.com MCP Server gives your AI agents **real-time access to the latest web
 ## Features
 
 - **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
+- **Research**: Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
 - **Multiple transport protocols**: STDIO and Streamable HTTP support
 - **Bearer Token Authentication**: Secure API access in HTTP mode
@@ -180,12 +181,17 @@ For setup, follow the MCP installation [guide](https://zed.dev/docs/ai/mcp#as-cu
 
 ## Available tools
 
-This MCP server provides two tools that work seamlessly with your AI agent through natural language:
+This MCP server provides three tools that work seamlessly with your AI agent through natural language:
 
 ### you-search
 Comprehensive web and news search with advanced filtering capabilities. Perfect for finding current information, research articles, documentation, and news stories.
 
 **When to use**: When you need to search the web for information, filter by specific sites/file types, or get the latest news on a topic.
+
+### you-research
+Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
+
+**When to use**: When you need in-depth answers to complex questions, research reports with citations, or thorough analysis that goes beyond simple search results.
 
 ### you-contents
 Extract full page content from URLs in markdown, HTML, or structured metadata formats. Useful for documentation analysis, content processing, SEO data extraction, and batch URL processing.
@@ -208,6 +214,12 @@ Here are common scenarios showing when and how to use each tool with natural lan
 - "Get the latest news about renewable energy from the past week"
 - "Find PDF files about machine learning algorithms"
 
+**Use you-research when:**
+- "Give me a comprehensive analysis of the current state of AI regulation"
+- "Research the pros and cons of WebAssembly vs JavaScript for performance-critical applications"
+- "What are the latest breakthroughs in quantum computing? Include sources."
+- "Provide a detailed comparison of React, Vue, and Svelte with citations"
+
 ### Content extraction & analysis
 
 **Use you-contents when:**
@@ -221,9 +233,9 @@ Here are common scenarios showing when and how to use each tool with natural lan
 ### Combined workflows
 
 Your AI agent can combine multiple tools in a single conversation:
-1. **Research + Extract**: "Search for the best TypeScript tutorials, then extract the content from the top 3 results"
-2. **Question + Deep Dive**: "What is WebAssembly? Then search for real-world examples and extract code samples"
-3. **News + Analysis**: "Find recent articles about AI regulation, then summarize the key points"
+1. **Search + Extract**: "Search for the best TypeScript tutorials, then extract the content from the top 3 results"
+2. **Research + Deep Dive**: "Research WebAssembly performance benefits, then extract code samples from the cited sources"
+3. **News + Research**: "Find recent articles about AI regulation, then research the policy implications"
 
 ### Pro tips
 

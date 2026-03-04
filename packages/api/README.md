@@ -2,11 +2,12 @@
 
 > You.com API client with bundled CLI for AI agents that can use bash commands
 
-Fast, lightweight API client and CLI tools for web search, AI answers, and content extraction. Optimized for AI agents supporting the [Agent Skills Spec](https://agentskills.io/home) with built-in support for calling bash commands.
+Fast, lightweight API client and CLI tools for web search, research, and content extraction. Optimized for AI agents supporting the [Agent Skills Spec](https://agentskills.io/home) with built-in support for calling bash commands.
 
 ## Features
 
 - **⚡ Faster than builtin search APIs** - Optimized infrastructure for agent workloads
+- **🔬 Research** - Comprehensive answers with cited sources and multi-step reasoning
 - **🔄 Livecrawl** - Search AND extract content in one API call
 - **✅ Verifiable references** - Every result includes citation URLs
 - **📱 Agent skills optimized** - JSON output for bash pipelines (jq, grep, awk)
@@ -18,27 +19,26 @@ Fast, lightweight API client and CLI tools for web search, AI answers, and conte
 ### CLI Usage
 
 ```bash
-# Use with bunx (no install needed) - Schema-driven JSON input
-bunx @youdotcom-oss/api search --json '{"query":"AI developments"}' --client ClaudeCode
+# Use with bunx (no install needed) - Positional JSON input
+bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
 
 # Or install globally to use 'ydc' command
 bun i -g @youdotcom-oss/api
-ydc search --json '{"query":"AI developments"}' --client ClaudeCode
+ydc search '{"query":"AI developments"}' --client ClaudeCode
 
-# Get comprehensive research with citations
-bunx @youdotcom-oss/api deep-search --json '{
-  "query":"What happened in AI this week?",
-  "search_effort":"high"
-}' --client MyAgent
+# Research with cited sources
+ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
 
 # Extract web content
-bunx @youdotcom-oss/api contents --json '{
-  "urls":["https://example.com"],
-  "formats":["markdown"]
-}' --client MyAgent
+ydc contents '{"urls":["https://example.com"],"formats":["markdown"]}'
 
-# Discover available parameters with --schema
-ydc search --schema | jq '.properties | keys'
+# Pipe JSON via stdin
+echo '{"query":"AI"}' | ydc search
+
+# Discover available parameters
+ydc search --help
+ydc search --schema input | jq '.properties | keys'
+ydc search --schema output
 ```
 
 ### Programmatic Usage
@@ -92,62 +92,61 @@ export YDC_CLIENT="YourAgentName"  # Optional: default client for tracking
 
 ## CLI Reference
 
-**Schema-driven JSON input**: This CLI is optimized for AI agents using bash commands. All query parameters are passed as JSON via the required `--json` flag.
+**Unix-style JSON input**: This CLI is optimized for AI agents using bash commands. All query parameters are passed as JSON via positional argument or stdin pipe.
 
 ### Commands
 
-All commands require the `--json` flag with a JSON string containing the query parameters:
-
 ```bash
-ydc search --json '{"query":"..."}'
-ydc deep-search --json '{"query":"...","search_effort":"medium"}'
-ydc contents --json '{"urls":["..."]}'
+ydc search '{"query":"..."}'
+ydc research '{"input":"...","research_effort":"standard"}'
+ydc contents '{"urls":["..."]}'
 ```
 
 ### Global Options
 
-- `--json <json>` - **Required**. JSON string with command parameters
 - `--api-key <key>` - You.com API key (overrides YDC_API_KEY)
 - `--client <name>` - Client name for tracking (overrides YDC_CLIENT)
-- `--schema` - Output JSON schema for what can be passed to --json
+- `--schema <input|output>` - Output JSON schema and exit
 - `--dry-run` - Show request details without making API call
-- `--help, -h` - Show help
+- `--help, -h` - Show help (per-command with `ydc <cmd> --help`)
 
 ### Schema Discovery
 
-Use `--schema` to discover what parameters each command accepts:
+Use `--schema` and `--help` to discover what parameters each command accepts:
 
 ```bash
-# Get schema for search command
+# Per-command help with parameter table
+ydc search --help
+ydc research --help
+
+# Get input schema for search command
+ydc search --schema input
+
+# Get response schema
+ydc search --schema output
+
+# Default: --schema without value shows input schema
 ydc search --schema
-
-# Get schema for deep-search command
-ydc deep-search --schema
-
-# Get schema for contents command
-ydc contents --schema
 ```
-
-The schema output describes the JSON structure to pass via `--json`.
 
 ### Search Command
 
 ```bash
-ydc search --json '{"query":"..."}' [options]
+ydc search '{"query":"..."}' [options]
 
 Examples:
   # Basic search
-  ydc search --json '{"query":"machine learning"}' --client ClaudeCode
+  ydc search '{"query":"machine learning"}' --client ClaudeCode
 
   # Search with livecrawl (KEY FEATURE)
-  ydc search --json '{
+  ydc search '{
     "query":"documentation",
     "livecrawl":"web",
     "livecrawl_formats":"markdown"
   }' --client ClaudeCode
 
   # Advanced filters
-  ydc search --json '{
+  ydc search '{
     "query":"AI papers",
     "site":"arxiv.org",
     "fileType":"pdf",
@@ -156,11 +155,11 @@ Examples:
   }' --client ClaudeCode
 
   # Parse with jq
-  api search --json '{"query":"AI"}' --client ClaudeCode | \
+  ydc search '{"query":"AI"}' --client ClaudeCode | \
     jq -r '.results.web[] | .title'
 
   # Extract livecrawl content
-  api search --json '{
+  ydc search '{
     "query":"docs",
     "livecrawl":"web",
     "livecrawl_formats":"markdown"
@@ -168,7 +167,7 @@ Examples:
     jq -r '.results.web[0].contents.markdown'
 ```
 
-**Available search parameters** (use `--schema` to see full schema):
+**Available search parameters** (use `--help` to see full parameter table):
 - `query` (required) - Search query string
 - `count` - Max results per section (1-100)
 - `offset` - Pagination offset (0-9)
@@ -183,72 +182,75 @@ Examples:
 - `livecrawl` - Live-crawl sections: web/news/all
 - `livecrawl_formats` - html/markdown
 
-### Deep-Search Command
+### Research Command
 
 ```bash
-ydc deep-search --json '{"query":"..."}' [options]
+ydc research '{"input":"..."}' [options]
 
 Examples:
-  # Comprehensive research with medium effort
-  api deep-search --json '{"query":"What is quantum computing?"}' --client ClaudeCode
+  # Standard research (default effort)
+  ydc research '{"input":"What is quantum computing?"}' --client ClaudeCode
 
-  # High-effort deep research (up to 5 minutes)
-  api deep-search --json '{
-    "query":"Latest breakthroughs in AI agents",
-    "search_effort":"high"
+  # Thorough research (takes longer)
+  ydc research '{
+    "input":"Latest breakthroughs in AI agents",
+    "research_effort":"deep"
   }' --client ClaudeCode
 
   # Parse answer and sources
-  api deep-search --json '{
-    "query":"AI trends 2026"
+  ydc research '{
+    "input":"AI trends 2026"
   }' --client ClaudeCode | \
-    jq -r '.answer, "\nSources:", (.results[]? | "- \(.title): \(.url)")'
+    jq -r '.output.content, "\nSources:", (.output.sources[]? | "- \(.title): \(.url)")'
+
+  # Pipe via stdin
+  echo '{"input":"Explain WebAssembly"}' | ydc research
 ```
 
-**Available deep-search parameters** (use `--schema` to see full schema):
-- `query` (required) - Research question requiring in-depth investigation
-- `search_effort` - Computation budget: `low` (<30s), `medium` (<60s, default), `high` (<300s)
+**Available research parameters** (use `--help` to see full parameter table):
+- `input` (required) - Research question requiring in-depth investigation
+- `research_effort` - Effort level: `lite` (fast), `standard` (default), `deep` (thorough), `exhaustive` (most comprehensive)
 
 ### Contents Command
 
 ```bash
-ydc contents --json '{"urls":["..."]}' [options]
+ydc contents '{"urls":["..."]}' [options]
 
 Examples:
   # Extract markdown
-  api contents --json '{
+  ydc contents '{
     "urls":["https://example.com"],
     "formats":["markdown"]
   }' --client ClaudeCode
 
   # Multiple formats
-  api contents --json '{
+  ydc contents '{
     "urls":["https://example.com"],
     "formats":["markdown","html","metadata"]
   }' --client ClaudeCode
 
   # Multiple URLs
-  api contents --json '{
+  ydc contents '{
     "urls":["https://a.com","https://b.com"],
     "formats":["markdown"]
   }' --client ClaudeCode
 
   # Save to file
-  api contents --json '{
+  ydc contents '{
     "urls":["https://example.com"],
     "formats":["markdown"]
   }' --client ClaudeCode | \
     jq -r '.[0].markdown' > output.md
 
   # With timeout
-  api contents --json '{
+  ydc contents '{
     "urls":["https://example.com"],
     "formats":["markdown","metadata"],
     "crawl_timeout":30
   }' --client ClaudeCode
 ```
 
-**Available contents parameters** (use `--schema` to see full schema):
+**Available contents parameters** (use `--help` to see full parameter table):
 - `urls` (required) - Array of URLs to extract
 - `formats` - Array of formats: markdown, html, metadata
 - `crawl_timeout` - Timeout in seconds (1-60)
@@ -264,8 +266,7 @@ Examples:
 
 - **Error** (exit code 1): Error message + mailto link on stderr
   ```
-  Error: --json flag is required
-      at searchCommand (/path/to/search.ts:26:11)
+  Error: Missing required input
   mailto:support@you.com?subject=API%20Issue%20CLI...
   ```
 
@@ -275,7 +276,7 @@ Examples:
 
 ```bash
 # Direct access to response fields
-ydc search --json '{"query":"AI"}' | jq '.results.web[0].title'
+ydc search '{"query":"AI"}' | jq '.results.web[0].title'
 
 # No need to unwrap .data or .success
 ```
@@ -317,22 +318,22 @@ console.log(response.results.news); // News results
 console.log(response.metadata); // Query metadata
 ```
 
-### Deep-Search
+### Research
 
 ```typescript
-import { callDeepSearch, DeepSearchQuerySchema } from '@youdotcom-oss/api';
+import { callResearch, ResearchQuerySchema } from '@youdotcom-oss/api';
 
-const response = await callDeepSearch({
-  deepSearchQuery: {
-    query: 'What happened in AI this week?',
-    search_effort: 'high', // low | medium | high
+const response = await callResearch({
+  researchQuery: {
+    input: 'What happened in AI this week?',
+    research_effort: 'deep', // lite | standard | deep | exhaustive
   },
   YDC_API_KEY: process.env.YDC_API_KEY,
   getUserAgent,
 });
 
-console.log(response.answer); // Comprehensive answer with inline citations
-console.log(response.results); // Array of sources with URLs, titles, and snippets
+console.log(response.output.content); // Comprehensive answer with inline citations
+console.log(response.output.sources); // Array of sources with URLs, titles, and snippets
 ```
 
 ### Contents
@@ -363,7 +364,7 @@ console.log(response[0].metadata); // Structured metadata
 set -e
 
 # Capture result, check exit code
-if ! result=$(api search --json '{"query":"AI developments"}' --client ClaudeCode); then
+if ! result=$(ydc search '{"query":"AI developments"}' --client ClaudeCode); then
   echo "Search failed with code $?"
   exit 1
 fi
@@ -377,7 +378,7 @@ echo "$result" | jq .
 ```bash
 #!/usr/bin/env bash
 for i in {1..3}; do
-  if api search --json '{"query":"AI"}' --client ClaudeCode; then
+  if ydc search '{"query":"AI"}' --client ClaudeCode; then
     exit 0
   fi
   [ $i -lt 3 ] && sleep 5
@@ -390,9 +391,9 @@ exit 1
 
 ```bash
 #!/usr/bin/env bash
-ydc search --json '{"query":"AI"}' --client ClaudeCode &
-ydc search --json '{"query":"ML"}' --client ClaudeCode &
-ydc search --json '{"query":"LLM"}' --client ClaudeCode &
+ydc search '{"query":"AI"}' --client ClaudeCode &
+ydc search '{"query":"ML"}' --client ClaudeCode &
+ydc search '{"query":"LLM"}' --client ClaudeCode &
 wait
 ```
 
@@ -403,7 +404,7 @@ wait
 set -e
 
 # Search with livecrawl
-search=$(api search --json '{
+search=$(ydc search '{
   "query":"AI 2026",
   "count":5,
   "livecrawl":"web",
@@ -411,14 +412,14 @@ search=$(api search --json '{
 }' --client ClaudeCode)
 
 # Get comprehensive research with citations
-answer=$(api deep-search --json '{
-  "query":"Summarize AI developments in 2026",
-  "search_effort":"high"
+answer=$(ydc research '{
+  "input":"Summarize AI developments in 2026",
+  "research_effort":"deep"
 }' --client ClaudeCode)
 
 # Extract top result URL and fetch content
 url=$(echo "$search" | jq -r '.results.web[0].url')
-ydc contents --json "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
+ydc contents "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
   --client ClaudeCode | jq -r '.[0].markdown' > output.md
 ```
 
@@ -429,7 +430,10 @@ ydc contents --json "{\"urls\":[\"$url\"],\"formats\":[\"markdown\"]}" \
 set -e
 
 # Discover available search parameters
-schema=$(api search --schema)
+ydc search --help
+
+# Or get machine-readable schema
+schema=$(ydc search --schema input)
 echo "$schema" | jq '.properties | keys'
 
 # Build query dynamically
@@ -441,7 +445,7 @@ query=$(jq -n '{
 }')
 
 # Execute search
-ydc search --json "$query" --client ClaudeCode
+ydc search "$query" --client ClaudeCode
 ```
 
 ## Agent Skills Integration
@@ -452,10 +456,10 @@ This package is designed for agents that support the [Agent Skills Spec](https:/
 
 The [youdotcom-cli skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli) teaches agents:
 
-- **Schema Discovery** - Use `--schema` to discover available parameters
+- **Schema Discovery** - Use `--schema` and `--help` to discover available parameters
 - **Runtime Setup** - Check for Node.js/Bun, install if needed
 - **API Configuration** - Set up API keys and client tracking
-- **Command Patterns** - JSON-only input with compact output
+- **Command Patterns** - Positional JSON input with compact output
 - **Error Handling** - Stdout/stderr separation with exit codes
 - **Advanced Workflows** - Livecrawl, parallel execution, rate limiting
 
@@ -486,8 +490,8 @@ All functions are fully typed with TypeScript. Import types alongside functions:
 import type {
   SearchQuery,
   SearchResponse,
-  DeepSearchQuery,
-  DeepSearchResponse,
+  ResearchQuery,
+  ResearchResponse,
   ContentsQuery,
   ContentsApiResponse,
 } from '@youdotcom-oss/api';
@@ -538,6 +542,7 @@ bun run format
 
 - [@youdotcom-oss/mcp](https://www.npmjs.com/package/@youdotcom-oss/mcp) - Model Context Protocol server
 - [@youdotcom-oss/ai-sdk-plugin](https://www.npmjs.com/package/@youdotcom-oss/ai-sdk-plugin) - Vercel AI SDK integration
+- [@youdotcom-oss/langchain](https://www.npmjs.com/package/@youdotcom-oss/langchain) - LangChain.js integration
 
 ## Support
 

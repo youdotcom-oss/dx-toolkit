@@ -1,11 +1,11 @@
 import { DynamicStructuredTool } from '@langchain/core/tools'
 import {
-  type ContentsQuery,
   ContentsQuerySchema,
+  callResearch,
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
-  type SearchQuery,
+  ResearchQuerySchema,
   SearchQuerySchema,
 } from '@youdotcom-oss/api'
 import packageJson from '../package.json' with { type: 'json' }
@@ -18,27 +18,9 @@ export type YouToolsConfig = {
 }
 
 /**
- * Configuration for the youSearch tool
- *
- * Extends YouToolsConfig with optional SearchQuery fields as defaults.
- * Any field from SearchQuery (e.g. count, freshness, country, safesearch, livecrawl)
- * can be set at construction and will be used unless overridden at invoke time.
- */
-export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
-
-/**
- * Configuration for the youContents tool
- *
- * Extends YouToolsConfig with optional ContentsQuery fields as defaults.
- * Any field from ContentsQuery (e.g. formats, crawl_timeout) can be set at construction
- * and will be used unless overridden at invoke time.
- */
-export type YouContentsConfig = YouToolsConfig & Partial<ContentsQuery>
-
-/**
  * Creates a User-Agent string for API requests
  */
-const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version}(You.com)`
+const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version} (You.com)`
 
 /**
  * You.com web search tool for LangChain
@@ -51,9 +33,8 @@ const getUserAgent: GetUserAgent = () => `LangChain-Plugin/${packageJson.version
  *
  * @public
  */
-export const youSearch = (config: YouSearchConfig = {}) => {
-  const { apiKey: configApiKey, ...defaults } = config
-  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+export const youSearch = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
     name: 'you_search',
@@ -62,7 +43,37 @@ export const youSearch = (config: YouSearchConfig = {}) => {
     schema: SearchQuerySchema,
     func: async (params) => {
       const response = await fetchSearchResults({
-        searchQuery: { ...defaults, ...params },
+        searchQuery: params,
+        YDC_API_KEY: apiKey,
+        getUserAgent,
+      })
+
+      return JSON.stringify(response)
+    },
+  })
+}
+
+/**
+ * You.com research tool for LangChain
+ *
+ * Perform research with cited sources and configurable effort (lite, standard, deep, exhaustive).
+ *
+ * @param config - Configuration options
+ * @returns A DynamicStructuredTool for use with LangChain agents
+ *
+ * @public
+ */
+export const youResearch = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
+
+  return new DynamicStructuredTool({
+    name: 'you_research',
+    description:
+      'Research a topic with comprehensive answers and cited sources using You.com. Supports configurable effort levels (lite, standard, deep, exhaustive). Returns a detailed answer with inline citations and a list of sources. Use this when you need thorough, well-researched answers to complex questions.',
+    schema: ResearchQuerySchema,
+    func: async (params) => {
+      const response = await callResearch({
+        researchQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
       })
@@ -82,9 +93,8 @@ export const youSearch = (config: YouSearchConfig = {}) => {
  *
  * @public
  */
-export const youContents = (config: YouContentsConfig = {}) => {
-  const { apiKey: configApiKey, ...defaults } = config
-  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+export const youContents = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
     name: 'you_contents',
@@ -93,7 +103,7 @@ export const youContents = (config: YouContentsConfig = {}) => {
     schema: ContentsQuerySchema,
     func: async (params) => {
       const response = await fetchContents({
-        contentsQuery: { ...defaults, ...params },
+        contentsQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

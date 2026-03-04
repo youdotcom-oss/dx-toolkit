@@ -1,11 +1,12 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** with structured tools. Search current content and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search and content extraction directly into your LangChain agents** with zero server setup.
+Give your LangChain agents **real-time access to the web** with structured tools. Search current content, research topics with cited sources, and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search, research, and content extraction directly into your LangChain agents** with zero server setup.
 
 ## Features
 
 Build LangChain agents that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
+- **Research** - Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Extract any webpage** - Pull full content in markdown or HTML format
 - **Structured tool inputs** - Full Zod schema validation via `DynamicStructuredTool`
 - **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
@@ -54,15 +55,20 @@ Import the tools and add them to your LangChain agent:
 import { getEnvironmentVariable } from '@langchain/core/utils/env';
 import { createAgent, initChatModel } from 'langchain';
 import * as z from 'zod';
-import { youSearch } from '@youdotcom-oss/langchain';
+import { youSearch, youResearch, youContents } from '@youdotcom-oss/langchain';
 
 // Fetch the You.com API key as an environment variable
 // Get a free API key with credits at https://you.com/platform
 const apiKey = getEnvironmentVariable('YDC_API_KEY') ?? '';
 
-// youSearch performs web searches and returns titles, URLs, and snippets
-// See our docs at https://docs.you.com/api-reference/search/v1-search for details
+// youSearch — web search with titles, URLs, snippets, and news articles
 const searchTool = youSearch({ apiKey });
+
+// youResearch — comprehensive answers with cited sources, configurable effort
+const researchTool = youResearch({ apiKey });
+
+// youContents — extract full page content from URLs in markdown or HTML
+const contentsTool = youContents({ apiKey });
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -70,25 +76,25 @@ const model = await initChatModel('claude-haiku-4-5', {
 });
 
 // Define the agent's behavior
-const systemPrompt = `You are a helpful assistant that summarizes search results.
+const systemPrompt = `You are a helpful research assistant.
 Be concise and informative. Always cite your sources.`;
 
 // Structured response format using Zod schema
 const responseFormat = z.object({
-  summary: z.string().describe('A concise summary of the search results'),
-  key_points: z.array(z.string()).describe('Key points from the search results'),
-  urls: z.array(z.string()).describe('The source URLs from the search results'),
+  summary: z.string().describe('A concise summary of the findings'),
+  key_points: z.array(z.string()).describe('Key points from the results'),
+  urls: z.array(z.string()).describe('Source URLs'),
 });
 
-// Create an agent that combines the model with the search tool
-const searchAgent = createAgent({
+// Create an agent with all three tools — it picks the right one automatically
+const agent = createAgent({
   model,
-  tools: [searchTool],
+  tools: [searchTool, researchTool, contentsTool],
   systemPrompt,
   responseFormat,
 });
 
-const result = await searchAgent.invoke({
+const result = await agent.invoke({
   messages: [{ role: 'user', content: 'What are the latest developments in AI?' }],
 });
 
@@ -206,7 +212,7 @@ console.log(result); // Search results
 
 ## Available tools
 
-This package provides two tools that your LangChain agents can use automatically:
+This package provides three tools that your LangChain agents can use automatically:
 
 ### youSearch()
 
@@ -216,6 +222,15 @@ Comprehensive web and news search with advanced filtering capabilities. Perfect 
 - Searching for current information or news
 - Finding specific content with filters (dates, sites, file types)
 - Research queries requiring multiple results
+
+### youResearch()
+
+Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
+
+**When your agent will use this:**
+- Complex questions requiring in-depth analysis
+- Research reports needing cited sources
+- Thorough comparisons or detailed explanations
 
 ### youContents()
 

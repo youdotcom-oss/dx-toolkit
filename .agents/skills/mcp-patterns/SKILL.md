@@ -30,10 +30,16 @@ MCP server patterns using You.com API utilities from `@youdotcom-oss/api` packag
 @youdotcom-oss/api (Foundation)
 ├── fetchSearchResults()
 ├── SearchQuerySchema
-└── formatSearchResults()
+├── callResearch()
+├── ResearchQuerySchema
+├── fetchContents()
+├── ContentsQuerySchema
+└── generateErrorReportLink()
          ↓
 @youdotcom-oss/mcp (MCP Wrapper)
-└── registerSearchTool() - Wraps API utility as MCP tool
+├── registerSearchTool()   - Wraps API utility as MCP tool
+├── registerResearchTool() - Wraps API utility as MCP tool
+└── registerContentsTool() - Wraps API utility as MCP tool
 ```
 
 ## Tech Stack
@@ -81,13 +87,10 @@ const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
 **Return both `content` and `structuredContent`:**
 
 ```typescript
-return {
-  content: [{ type: 'text', text: formatSearchResults(response) }],
-  structuredContent: response  // Original API response
-};
+return formatSearchResults(response)
 ```
 
-*Verify:* All tool handlers return both fields  
+*Verify:* All tool handlers return both fields
 *Fix:* Add `structuredContent` with raw API response
 
 ### Error Handling - NEVER Throw
@@ -97,11 +100,12 @@ return {
 ```typescript
 // ✅ Return error as content
 try {
-  const result = await fetchSearchResults({ params, YDC_API_KEY, getUserAgent });
-  return { content: [{ type: 'text', text: formatSearchResults(result) }] };
+  const result = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
+  return formatSearchResults(result)
 } catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : String(err)
   return {
-    content: [{ type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+    content: [{ type: 'text' as const, text: `Error: ${errorMessage}` }],
     isError: true
   };
 }
@@ -134,11 +138,12 @@ console.log('Calling API');  // Interferes with stdio transport
 **Wrap API utilities, don't reimplement:**
 
 ```typescript
-// ✅ Use API package utilities
-import { fetchSearchResults, formatSearchResults } from '@youdotcom-oss/api';
+// ✅ Use API package fetch utilities + local format utils
+import { fetchSearchResults } from '@youdotcom-oss/api';
+import { formatSearchResults } from './search.utils.ts';  // Local to MCP
 
-const response = await fetchSearchResults({ params, YDC_API_KEY, getUserAgent });
-const text = formatSearchResults(response);
+const response = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
+return formatSearchResults(response)
 
 // ❌ Don't duplicate fetch logic
 const response = await fetch(url);  // Wrong - use API utility
@@ -177,6 +182,7 @@ test.serial('memory test', async () => {
 ```
 src/
 ├── search/register-search-tool.ts     # Uses API utilities
+├── research/register-research-tool.ts # Uses API utilities
 ├── contents/register-contents-tool.ts # Uses API utilities
 ├── get-mcp-server.ts                  # Server factory
 ├── stdio.ts                           # STDIO transport

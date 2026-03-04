@@ -29,7 +29,7 @@ Foundation package for You.com API - CLI tool and shared utilities used by MCP a
 **Foundation Layer** - Other packages build on this:
 ```
 @youdotcom-oss/api (Foundation)
-├── CLI commands (search, deep-search, contents)
+├── CLI commands (search, research, contents)
 ├── API utilities (fetch*, format*, call*)
 ├── Zod schemas (*Schema)
 └── Type definitions (types.ts)
@@ -179,9 +179,9 @@ src/
 │   ├── search.schemas.ts     # SearchQuerySchema
 │   ├── search.utils.ts       # fetchSearchResults()
 │   └── tests/
-├── deep-search/
-│   ├── deep-search.schemas.ts    # DeepSearchQuerySchema
-│   ├── deep-search.utils.ts      # callDeepSearch()
+├── research/
+│   ├── research.schemas.ts       # ResearchQuerySchema
+│   ├── research.utils.ts         # callResearch()
 │   └── tests/
 ├── contents/
 │   ├── contents.schemas.ts   # ContentsQuerySchema
