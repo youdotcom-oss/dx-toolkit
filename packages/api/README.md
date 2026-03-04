@@ -2,12 +2,12 @@
 
 > You.com API client with bundled CLI for AI agents that can use bash commands
 
-Fast, lightweight API client and CLI tools for web search, deep research, and content extraction. Optimized for AI agents supporting the [Agent Skills Spec](https://agentskills.io/home) with built-in support for calling bash commands.
+Fast, lightweight API client and CLI tools for web search, research, and content extraction. Optimized for AI agents supporting the [Agent Skills Spec](https://agentskills.io/home) with built-in support for calling bash commands.
 
 ## Features
 
 - **⚡ Faster than builtin search APIs** - Optimized infrastructure for agent workloads
-- **🔬 Deep research** - Comprehensive answers with cited sources and multi-step reasoning
+- **🔬 Research** - Comprehensive answers with cited sources and multi-step reasoning
 - **🔄 Livecrawl** - Search AND extract content in one API call
 - **✅ Verifiable references** - Every result includes citation URLs
 - **📱 Agent skills optimized** - JSON output for bash pipelines (jq, grep, awk)
@@ -26,7 +26,7 @@ bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
 bun i -g @youdotcom-oss/api
 ydc search '{"query":"AI developments"}' --client ClaudeCode
 
-# Deep research with cited sources
+# Research with cited sources
 ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
 
 # Extract web content
@@ -191,7 +191,7 @@ Examples:
   # Standard research (default effort)
   ydc research '{"input":"What is quantum computing?"}' --client ClaudeCode
 
-  # Deep research (thorough, takes longer)
+  # Thorough research (takes longer)
   ydc research '{
     "input":"Latest breakthroughs in AI agents",
     "research_effort":"deep"

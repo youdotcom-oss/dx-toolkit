@@ -1,6 +1,35 @@
 import { describe, expect, test } from 'bun:test'
 import { ResearchEffortSchema, ResearchQuerySchema } from '../research.schemas.ts'
 
+const OPENAPI_SPEC_URL = 'https://you.com/specs/openapi_research.yaml'
+
+type OpenApiSpec = {
+  paths: {
+    '/v1/research': {
+      post: {
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                properties: {
+                  input: { maxLength: number }
+                  research_effort: { enum: string[] }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+const fetchResearchSpec = async (): Promise<OpenApiSpec> => {
+  const response = await fetch(OPENAPI_SPEC_URL)
+  const text = await response.text()
+  return Bun.YAML.parse(text) as OpenApiSpec
+}
+
 describe('ResearchQuerySchema OpenAPI validation', () => {
   test('accepts valid query parameters', () => {
     const validQueries = [
@@ -72,5 +101,24 @@ describe('ResearchQuerySchema OpenAPI validation', () => {
     for (const query of complexQueries) {
       expect(() => ResearchQuerySchema.parse(query)).not.toThrow()
     }
+  })
+})
+
+describe('ResearchQuerySchema conforms to live OpenAPI spec', () => {
+  test('research_effort enum matches spec', async () => {
+    const spec = await fetchResearchSpec()
+    const specEfforts =
+      spec.paths['/v1/research'].post.requestBody.content['application/json'].schema.properties.research_effort.enum
+
+    const schemaEfforts = ResearchEffortSchema.options
+    expect([...schemaEfforts].sort()).toEqual([...specEfforts].sort())
+  })
+
+  test('input maxLength matches spec', async () => {
+    const spec = await fetchResearchSpec()
+    const inputMaxLength =
+      spec.paths['/v1/research'].post.requestBody.content['application/json'].schema.properties.input.maxLength
+
+    expect(inputMaxLength).toBe(40_000)
   })
 })

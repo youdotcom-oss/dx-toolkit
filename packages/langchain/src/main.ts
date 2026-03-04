@@ -6,7 +6,6 @@ import {
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
-  type ResearchQuery,
   ResearchQuerySchema,
   type SearchQuery,
   SearchQuerySchema,
@@ -28,15 +27,6 @@ export type YouToolsConfig = {
  * can be set at construction and will be used unless overridden at invoke time.
  */
 export type YouSearchConfig = YouToolsConfig & Partial<SearchQuery>
-
-/**
- * Configuration for the youResearch tool
- *
- * Extends YouToolsConfig with optional ResearchQuery fields as defaults.
- * Any field from ResearchQuery (e.g. research_effort) can be set at construction
- * and will be used unless overridden at invoke time.
- */
-export type YouResearchConfig = YouToolsConfig & Partial<ResearchQuery>
 
 /**
  * Configuration for the youContents tool
@@ -94,9 +84,8 @@ export const youSearch = (config: YouSearchConfig = {}) => {
  *
  * @public
  */
-export const youResearch = (config: YouResearchConfig = {}) => {
-  const { apiKey: configApiKey, ...defaults } = config
-  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+export const youResearch = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return new DynamicStructuredTool({
     name: 'you_research',
@@ -105,7 +94,7 @@ export const youResearch = (config: YouResearchConfig = {}) => {
     schema: ResearchQuerySchema,
     func: async (params) => {
       const response = await callResearch({
-        researchQuery: { ...defaults, ...params },
+        researchQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

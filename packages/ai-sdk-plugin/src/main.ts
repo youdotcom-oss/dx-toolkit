@@ -4,7 +4,6 @@ import {
   fetchContents,
   fetchSearchResults,
   type GetUserAgent,
-  type ResearchQuery,
   ResearchQuerySchema,
   SearchQuerySchema,
 } from '@youdotcom-oss/api'
@@ -17,15 +16,6 @@ import packageJson from '../package.json' with { type: 'json' }
 export type YouToolsConfig = {
   apiKey?: string
 }
-
-/**
- * Configuration for the youResearch tool
- *
- * Extends YouToolsConfig with optional ResearchQuery fields as defaults.
- * Any field from ResearchQuery (e.g. research_effort) can be set at construction
- * and will be used unless overridden at invoke time.
- */
-export type YouResearchConfig = YouToolsConfig & Partial<ResearchQuery>
 
 /**
  * Creates a User-Agent string for API requests
@@ -75,9 +65,8 @@ export const youSearch = (config: YouToolsConfig = {}) => {
  *
  * @public
  */
-export const youResearch = (config: YouResearchConfig = {}) => {
-  const { apiKey: configApiKey, ...defaults } = config
-  const apiKey = configApiKey ?? process.env.YDC_API_KEY
+export const youResearch = (config: YouToolsConfig = {}) => {
+  const apiKey = config.apiKey ?? process.env.YDC_API_KEY
 
   return tool({
     description:
@@ -89,7 +78,7 @@ export const youResearch = (config: YouResearchConfig = {}) => {
       }
 
       const response = await callResearch({
-        researchQuery: { ...defaults, ...params },
+        researchQuery: params,
         YDC_API_KEY: apiKey,
         getUserAgent,
       })

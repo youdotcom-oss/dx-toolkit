@@ -19,7 +19,7 @@ This monorepo uses both rules (`.agents/rules/`) and skills (`.claude/skills/`) 
 |------|----------|
 | core.md | Type conventions, arrow functions, object params, private fields |
 | bun.md | Bun APIs (file system, shell, path resolution) |
-| testing.md | Test patterns, assertions, coverage, Docker tests |
+| testing.md | Test patterns, assertions, coverage |
 | modules.md | Module organization, import patterns, file structure |
 | workflow.md | Git workflow, branching, commits, GitHub CLI |
 | accuracy.md | Verification standards, uncertainty handling, LSP usage |
@@ -911,10 +911,6 @@ graph TD
 
 **Coverage checklist** - Happy path, edge cases, error paths, real integrations  
 *Verify:* Review test file completeness
-
-**Docker tests** - `*.docker.ts` for external APIs, run via docker-compose  
-*Verify:* Check if test needs API key or external service  
-*Fix:* Rename to `.docker.ts`, update CI gating
 
 **Run:** `bun test` before commit
 

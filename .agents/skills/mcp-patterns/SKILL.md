@@ -87,11 +87,10 @@ const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
 **Return both `content` and `structuredContent`:**
 
 ```typescript
-const { content, structuredContent } = formatSearchResults(response)  // Local util
-return { content, structuredContent }
+return formatSearchResults(response)
 ```
 
-*Verify:* All tool handlers return both fields  
+*Verify:* All tool handlers return both fields
 *Fix:* Add `structuredContent` with raw API response
 
 ### Error Handling - NEVER Throw
@@ -102,8 +101,7 @@ return { content, structuredContent }
 // ✅ Return error as content
 try {
   const result = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
-  const { content, structuredContent } = formatSearchResults(result)  // Local util
-  return { content, structuredContent }
+  return formatSearchResults(result)
 } catch (err: unknown) {
   const errorMessage = err instanceof Error ? err.message : String(err)
   return {
@@ -145,7 +143,7 @@ import { fetchSearchResults } from '@youdotcom-oss/api';
 import { formatSearchResults } from './search.utils.ts';  // Local to MCP
 
 const response = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
-const { content, structuredContent } = formatSearchResults(response);
+return formatSearchResults(response)
 
 // ❌ Don't duplicate fetch logic
 const response = await fetch(url);  // Wrong - use API utility
