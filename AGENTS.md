@@ -882,8 +882,12 @@ graph TD
 - `feature.constants.ts` - Constants, error codes
 - `feature.ts` - Main implementation
 
-**Direct imports** - Import from specific files, not through re-exports within module  
-*Verify:* Check for circular imports  
+**Zod namespace import** - `import * as z from 'zod'` not `import { z } from 'zod'`
+*Verify:* `grep "import { z }" src/`
+*Fix:* Replace with `import * as z from 'zod'`
+
+**Direct imports** - Import from specific files, not through re-exports within module
+*Verify:* Check for circular imports
 *Fix:* Import directly: `from './feature.types.ts'` not `from './feature.ts'`
 
 
