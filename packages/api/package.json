@@ -34,21 +34,28 @@
     "ydc": "./bin/cli.js"
   },
   "type": "module",
-  "main": "./src/main.ts",
+  "main": "./dist/main.js",
   "exports": {
-    ".": "./src/main.ts"
+    ".": {
+      "bun": "./src/main.ts",
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    }
   },
   "files": [
     "./src/**",
     "!./src/**/tests/*",
     "!./src/**/*.spec.ts",
+    "dist",
     "bin/cli.js"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/cli.ts --outfile ./bin/cli.js --target=node",
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external zod && bun build ./src/cli.ts --outfile ./bin/cli.js --target=node",
+    "build:types": "tsc --project tsconfig.build.json --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
     "check:package": "format-package --check",
@@ -62,6 +69,7 @@
     "test:coverage:watch": "bun test --coverage --watch",
     "test:watch": "bun test --watch"
   },
+  "types": "./dist/main.d.ts",
   "dependencies": {
     "zod": "^4.3.6"
   }
