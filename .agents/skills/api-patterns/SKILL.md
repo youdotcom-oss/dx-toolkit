@@ -26,20 +26,23 @@ Foundation package for You.com API - CLI tool and shared utilities used by MCP a
 
 ## Architecture
 
-**Foundation Layer** - Other packages build on this:
+**Foundation Layer** - AI SDK Plugin and LangChain build on this:
 ```
 @youdotcom-oss/api (Foundation)
 ├── CLI commands (search, research, contents)
 ├── API utilities (fetch*, format*, call*)
 ├── Zod schemas (*Schema)
-└── Type definitions (types.ts)
+├── Dry-run request builders (build*Request)
+└── Type definitions (api.types.ts)
          ↓
-    Used by MCP, AI SDK Plugin
+    Used by AI SDK Plugin, LangChain
 ```
+
+> **Note**: `@youdotcom-oss/mcp` is now a thin STDIO bridge — it no longer imports from this package. Only AI SDK Plugin and LangChain consume API utilities directly.
 
 **When adding new APIs:**
 1. Add to API package FIRST (schemas, utils, types)
-2. THEN expose via MCP tools or AI SDK tools
+2. THEN expose via AI SDK tools or LangChain tools
 3. Keep foundation logic in API package
 
 ## Tech Stack
@@ -52,10 +55,8 @@ Foundation package for You.com API - CLI tool and shared utilities used by MCP a
 ## Quick Start
 
 ```bash
-cd packages/api
-bun install
-bun test
-bun run check
+bun --cwd packages/api test
+bun --cwd packages/api check
 ```
 
 ## Package-Specific Patterns
@@ -168,33 +169,65 @@ const response = await fetch(url, {
 });
 ```
 
-*Verify:* `grep -L "getUserAgent()" src/*/utils.ts`  
+*Verify:* `grep -L "getUserAgent()" src/*/utils.ts`
 *Fix:* Add `getUserAgent()` to all fetch calls
+
+### Extra Headers Pattern
+
+**All fetch and dry-run functions accept an optional `extraHeaders` param:**
+
+```typescript
+// ✅ Pass extra headers (e.g., for MCP proxy authentication)
+const results = await fetchSearchResults({
+  searchQuery: { query: 'AI' },
+  YDC_API_KEY,
+  getUserAgent,
+  extraHeaders: { 'X-Custom-Header': 'value' },
+})
+
+// extraHeaders are spread BEFORE standard headers, so standard headers win on conflict
+headers: new Headers({
+  ...extraHeaders,       // ← custom headers first
+  'X-API-Key': YDC_API_KEY,  // ← standard headers override
+  'User-Agent': getUserAgent(),
+})
+```
+
+**Type**: `ExtraHeaders = Record<string, string>` (exported from `api.types.ts`)
+
+*Verify:* All `fetch*` and `build*Request` functions include `extraHeaders?: ExtraHeaders` param
+*Fix:* Add param to function signature and spread before standard headers
 
 ## File Organization
 
 ```
 src/
 ├── search/
-│   ├── search.schemas.ts     # SearchQuerySchema
-│   ├── search.utils.ts       # fetchSearchResults()
+│   ├── search.schemas.ts              # SearchQuerySchema
+│   ├── search.utils.ts                # fetchSearchResults()
 │   └── tests/
 ├── research/
-│   ├── research.schemas.ts       # ResearchQuerySchema
-│   ├── research.utils.ts         # callResearch()
+│   ├── research.schemas.ts            # ResearchQuerySchema
+│   ├── research.utils.ts              # callResearch()
 │   └── tests/
 ├── contents/
-│   ├── contents.schemas.ts   # ContentsQuerySchema
-│   ├── contents.utils.ts     # fetchContents()
+│   ├── contents.schemas.ts            # ContentsQuerySchema
+│   ├── contents.utils.ts              # fetchContents()
 │   └── tests/
 ├── shared/
-│   ├── api-constants.ts
-│   ├── api.types.ts
-│   ├── check-response-for-errors.ts
+│   ├── api.constants.ts               # API URLs
+│   ├── api.types.ts                   # GetUserAgent, ExtraHeaders
+│   ├── api-error.schemas.ts           # Error response schemas
+│   ├── check-response-for-errors.ts   # 200-response error detection
+│   ├── command-runner.ts              # CLI command dispatch
+│   ├── dry-run-utils.ts               # build*Request() for --dry-run
+│   ├── format-search-results-text.ts  # Human-readable search formatting
+│   ├── generate-command-help.ts       # CLI --help generation
+│   ├── generate-error-report-link.ts  # mailto link for error reports
+│   ├── use-get-user-agents.ts         # getUserAgent factory
 │   └── tests/
-├── main.ts                   # Public API exports
-├── cli.ts                    # CLI wrapper
-└── stdio.ts                  # STDIO entry (if needed)
+├── main.ts                            # Public API exports
+└── cli.ts                             # CLI entry point
 ```
 
 ## Testing
@@ -236,7 +269,6 @@ See [root AGENTS.md](../../AGENTS.md#publishing)
 - [`.agents/rules/core.md`](../../.agents/rules/core.md) - Type over interface, arrow functions
 - [`.agents/rules/bun.md`](../../.agents/rules/bun.md) - Bun APIs (Bun.file, Bun.$)
 - [`.agents/rules/testing.md`](../../.agents/rules/testing.md) - Test patterns
-- [`.claude/skills/mcp-patterns`](../mcp-patterns/SKILL.md) - Consumes API utilities
 - [`.claude/skills/ai-sdk-plugin-patterns`](../ai-sdk-plugin-patterns/SKILL.md) - Consumes API utilities
 
 ## Contributing

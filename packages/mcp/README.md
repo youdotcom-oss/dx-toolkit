@@ -242,7 +242,7 @@ If you encounter a problem, you can report it via email or GitHub:
 
 Interested in contributing to the You.com MCP Server? We'd love your help!
 
-Need technical details? Check [AGENTS.md](./AGENTS.md) for complete development setup, architecture overview, code patterns, and testing guidelines.
+Need technical details? See the [mcp-patterns skill](../../.agents/skills/mcp-patterns/SKILL.md) for architecture, bridge maintenance patterns, and testing guidelines.
 
 1. Fork the repository
 2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md)

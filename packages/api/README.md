@@ -46,7 +46,7 @@ ydc search --schema output
 ```typescript
 import { fetchSearchResults } from '@youdotcom-oss/api';
 
-const getUserAgent = (client: string) => `MyApp/${client} (You.com; 1.0.0)`;
+const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
 
 const results = await fetchSearchResults({
   searchQuery: { query: 'AI developments', livecrawl: 'web' },
@@ -294,12 +294,14 @@ ydc search '{"query":"AI"}' | jq '.results.web[0].title'
 
 ## Programmatic API
 
+All fetch functions accept an optional `extraHeaders` parameter for passing custom HTTP headers (e.g., proxy authentication). Standard headers (`X-API-Key`, `User-Agent`) always take precedence.
+
 ### Search
 
 ```typescript
 import { fetchSearchResults, SearchQuerySchema } from '@youdotcom-oss/api';
 
-const getUserAgent = (client: string) => `MyApp/${client} (You.com; 1.0.0)`;
+const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
 
 const response = await fetchSearchResults({
   searchQuery: {
@@ -310,6 +312,7 @@ const response = await fetchSearchResults({
   },
   YDC_API_KEY: process.env.YDC_API_KEY,
   getUserAgent,
+  extraHeaders: { 'X-Custom': 'value' }, // optional
 });
 
 // Access results
