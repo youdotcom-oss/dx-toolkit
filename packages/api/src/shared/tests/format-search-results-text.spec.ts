@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { formatSearchResultsText } from '../../../../mcp/src/shared/format-search-results-text.ts'
+import { formatSearchResultsText } from '../format-search-results-text.ts'
 
 describe('formatSearchResultsText', () => {
   test('formats basic search results with title and URL', () => {
