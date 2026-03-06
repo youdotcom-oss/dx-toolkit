@@ -26,8 +26,8 @@ export const createBridge = (stdio: Transport, http: Transport): void => {
   const terminate =
     (label: string) =>
     (err: unknown): void => {
-      process.stderr.write(`${label} error: ${err}\n`)
       if (closing) return
+      process.stderr.write(`${label} error: ${err}\n`)
       closing = true
       void Promise.allSettled([stdio.close(), http.close()]).then(() => process.exit(1))
     }
