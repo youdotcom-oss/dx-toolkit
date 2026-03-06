@@ -106,4 +106,28 @@ describe('buildContentsRequest', () => {
     const body = JSON.parse(request.body!)
     expect(body.crawl_timeout).toBeUndefined()
   })
+
+  test('forwards customHeaders into request headers', () => {
+    const request = buildContentsRequest({
+      contentsQuery: { urls: ['https://example.com'] },
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-OAuth-User-Id': 'user-123' },
+    })
+
+    expect(request.headers['X-OAuth-User-Id']).toBe('user-123')
+  })
+
+  test('standard headers cannot be overridden by customHeaders', () => {
+    const request = buildContentsRequest({
+      contentsQuery: { urls: ['https://example.com'] },
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-API-Key': 'attacker-key', 'User-Agent': 'evil', 'Content-Type': 'text/plain' },
+    })
+
+    expect(request.headers['X-API-Key']).toBe(YDC_API_KEY)
+    expect(request.headers['User-Agent']).toBe('test-agent')
+    expect(request.headers['Content-Type']).toBe('application/json')
+  })
 })

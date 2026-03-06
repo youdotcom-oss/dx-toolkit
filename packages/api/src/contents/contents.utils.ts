@@ -1,5 +1,5 @@
 import { CONTENTS_API_URL } from '../shared/api.constants.ts'
-import type { ExtraHeaders, GetUserAgent } from '../shared/api.types.ts'
+import type { CustomHeaders, GetUserAgent } from '../shared/api.types.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type ContentsApiResponse, ContentsApiResponseSchema, type ContentsQuery } from './contents.schemas.ts'
 
@@ -15,12 +15,12 @@ export const fetchContents = async ({
   contentsQuery: { urls, formats, format, crawl_timeout },
   YDC_API_KEY = process.env.YDC_API_KEY,
   getUserAgent,
-  extraHeaders,
+  customHeaders,
 }: {
   contentsQuery: ContentsQuery
   YDC_API_KEY?: string
   getUserAgent: GetUserAgent
-  extraHeaders?: ExtraHeaders
+  customHeaders?: CustomHeaders
 }): Promise<ContentsApiResponse> => {
   if (!YDC_API_KEY) {
     throw new Error('YDC_API_KEY is required for Contents API')
@@ -47,7 +47,7 @@ export const fetchContents = async ({
   const options = {
     method: 'POST',
     headers: new Headers({
-      ...extraHeaders,
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),

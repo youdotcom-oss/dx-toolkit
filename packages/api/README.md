@@ -294,7 +294,7 @@ ydc search '{"query":"AI"}' | jq '.results.web[0].title'
 
 ## Programmatic API
 
-All fetch functions accept an optional `extraHeaders` parameter for passing custom HTTP headers (e.g., proxy authentication). Standard headers (`X-API-Key`, `User-Agent`) always take precedence.
+All fetch functions accept an optional `customHeaders` parameter for passing custom HTTP headers (e.g., proxy authentication). Standard headers (`X-API-Key`, `User-Agent`) always take precedence.
 
 ### Search
 
@@ -312,7 +312,7 @@ const response = await fetchSearchResults({
   },
   YDC_API_KEY: process.env.YDC_API_KEY,
   getUserAgent,
-  extraHeaders: { 'X-Custom': 'value' }, // optional
+  customHeaders: { 'X-Custom': 'value' }, // optional
 });
 
 // Access results

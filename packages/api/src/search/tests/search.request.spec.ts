@@ -119,4 +119,27 @@ describe('buildSearchRequest', () => {
       'machine learning best practices (Python OR PyTorch) -TensorFlow filetype:pdf',
     )
   })
+
+  test('forwards customHeaders into request headers', () => {
+    const request = buildSearchRequest({
+      searchQuery: { query: 'AI' },
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-OAuth-User-Id': 'user-123' },
+    })
+
+    expect(request.headers['X-OAuth-User-Id']).toBe('user-123')
+  })
+
+  test('standard headers cannot be overridden by customHeaders', () => {
+    const request = buildSearchRequest({
+      searchQuery: { query: 'AI' },
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-API-Key': 'attacker-key', 'User-Agent': 'evil' },
+    })
+
+    expect(request.headers['X-API-Key']).toBe(YDC_API_KEY)
+    expect(request.headers['User-Agent']).toBe('test-agent')
+  })
 })

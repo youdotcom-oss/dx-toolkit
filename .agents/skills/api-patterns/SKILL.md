@@ -172,30 +172,30 @@ const response = await fetch(url, {
 *Verify:* `grep -L "getUserAgent()" src/*/utils.ts`
 *Fix:* Add `getUserAgent()` to all fetch calls
 
-### Extra Headers Pattern
+### Custom Headers Pattern
 
-**All fetch and dry-run functions accept an optional `extraHeaders` param:**
+**All fetch and dry-run functions accept an optional `customHeaders` param:**
 
 ```typescript
-// ✅ Pass extra headers (e.g., for MCP proxy authentication)
+// ✅ Pass custom headers (e.g., for OAuth user identification)
 const results = await fetchSearchResults({
   searchQuery: { query: 'AI' },
   YDC_API_KEY,
   getUserAgent,
-  extraHeaders: { 'X-Custom-Header': 'value' },
+  customHeaders: { 'X-Custom-Header': 'value' },
 })
 
-// extraHeaders are spread BEFORE standard headers, so standard headers win on conflict
+// customHeaders are spread BEFORE standard headers, so standard headers win on conflict
 headers: new Headers({
-  ...extraHeaders,       // ← custom headers first
+  ...customHeaders,       // ← custom headers first
   'X-API-Key': YDC_API_KEY,  // ← standard headers override
   'User-Agent': getUserAgent(),
 })
 ```
 
-**Type**: `ExtraHeaders = Record<string, string>` (exported from `api.types.ts`)
+**Type**: `CustomHeaders = Record<string, string>` (exported from `api.types.ts`)
 
-*Verify:* All `fetch*` and `build*Request` functions include `extraHeaders?: ExtraHeaders` param
+*Verify:* All `fetch*` and `build*Request` functions include `customHeaders?: CustomHeaders` param
 *Fix:* Add param to function signature and spread before standard headers
 
 ## File Organization
@@ -216,7 +216,7 @@ src/
 │   └── tests/
 ├── shared/
 │   ├── api.constants.ts               # API URLs
-│   ├── api.types.ts                   # GetUserAgent, ExtraHeaders
+│   ├── api.types.ts                   # GetUserAgent, CustomHeaders
 │   ├── api-error.schemas.ts           # Error response schemas
 │   ├── check-response-for-errors.ts   # 200-response error detection
 │   ├── command-runner.ts              # CLI command dispatch
