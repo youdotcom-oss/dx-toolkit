@@ -185,9 +185,9 @@ const measureMcp = async (): Promise<PerformanceResult> => {
 
   // Create client for measurements
   const transport = new StdioClientTransport({
-    command: 'npx',
+    command: 'bun',
     args: [stdioPath],
-    env: { YDC_API_KEY },
+    env: { ...process.env, YDC_API_KEY },
   })
 
   const client = new Client({
