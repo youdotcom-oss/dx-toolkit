@@ -88,7 +88,7 @@
         "@ai-sdk/anthropic": "^3.0.42",
         "@modelcontextprotocol/sdk": "^1.25.3",
         "@youdotcom-oss/ai-sdk-plugin": "workspace:*",
-        "@youdotcom-oss/mcp": "workspace:*",
+        "@youdotcom-oss/api": "workspace:*",
       },
     },
   },
