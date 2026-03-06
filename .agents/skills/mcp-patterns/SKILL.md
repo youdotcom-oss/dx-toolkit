@@ -1,211 +1,194 @@
 ---
 name: mcp-patterns
-description: MCP server patterns - Zod schemas, error handling, logging, response format, testing. Uses @youdotcom-oss/api utilities.
+description: STDIO bridge maintenance patterns for @youdotcom-oss/mcp - transport lifecycle, shutdown guards, error handling.
 license: MIT
 compatibility: Bun >= 1.2.21, MCP SDK >= 1.24.3
 metadata:
   author: youdotcom-oss
-  version: "1.0.0"
+  version: "2.0.0"
   category: development
-  keywords: [mcp, model-context-protocol, zod, error-handling, logging]
+  keywords: [mcp, model-context-protocol, stdio-bridge, transport, shutdown]
 ---
 
-# MCP Server Patterns
+# MCP Bridge Patterns
 
-MCP server patterns using You.com API utilities from `@youdotcom-oss/api` package.
+Maintenance patterns for the `@youdotcom-oss/mcp` STDIO bridge package.
 
-> **For end users**: See [packages/mcp/README.md](../../packages/mcp/README.md)  
+> **Package scope**: This package is a **transport bridge only**. The MCP tools (search, research, contents) live on the remote server at `api.you.com/mcp`. Contributing here means improving bridge reliability — shutdown handling, error recovery, env setup — not tool behavior.
+
+> **For end users**: See [packages/mcp/README.md](../../packages/mcp/README.md)
 > **For universal patterns**: See [`.agents/rules/core.md`](../../.agents/rules/core.md)
 
 ## When to Use
 
 - Contributing to `@youdotcom-oss/mcp` package
-- Implementing MCP tools
-- Debugging MCP server issues
+- Debugging bridge shutdown or connection issues
+- Understanding transport lifecycle
 
 ## Architecture
 
-**MCP wraps API utilities as MCP tools:**
-```
-@youdotcom-oss/api (Foundation)
-├── fetchSearchResults()
-├── SearchQuerySchema
-├── callResearch()
-├── ResearchQuerySchema
-├── fetchContents()
-├── ContentsQuerySchema
-└── generateErrorReportLink()
-         ↓
-@youdotcom-oss/mcp (MCP Wrapper)
-├── registerSearchTool()   - Wraps API utility as MCP tool
-├── registerResearchTool() - Wraps API utility as MCP tool
-└── registerContentsTool() - Wraps API utility as MCP tool
+```mermaid
+graph TD
+    Client["MCP Client\n(Claude, Cursor, etc.)"]
+    Stdio["StdioServerTransport"]
+    Bridge["bridge.ts\n(createBridge)"]
+    Http["StreamableHTTPClientTransport"]
+    Remote["api.you.com/mcp\n(hosted remote server)"]
+
+    Client <-->|STDIO| Stdio
+    Stdio <-->|messages| Bridge
+    Bridge <-->|messages| Http
+    Http <-->|HTTPS| Remote
 ```
 
 ## Tech Stack
 
-- **MCP SDK**: @modelcontextprotocol/sdk ^1.24.3
-- **API Utilities**: @youdotcom-oss/api ^0.1.0
-- **HTTP Transport**: Hono ^4.10.7
-- **Testing**: Bun test
+- **MCP SDK**: @modelcontextprotocol/sdk ^1.24.3 (only dependency)
+- **Testing**: Bun test (unit tests with mock transports)
 
 ## Quick Start
 
 ```bash
-cd packages/mcp
-bun test
-bun run check
-bun run dev      # STDIO mode
-bun start        # HTTP mode
+bun --cwd packages/mcp test
+bun --cwd packages/mcp check
+bun --cwd packages/mcp dev      # STDIO mode
 ```
 
-## MCP-Specific Patterns
+## Bridge Maintenance Patterns
 
-### Schema Import from API Package
+### Closing Guard — Prevent Double-Close Cycles
 
-**ALWAYS import schemas from `@youdotcom-oss/api`:**
-
-```typescript
-// ✅ Import from API package
-import { SearchQuerySchema } from '@youdotcom-oss/api';
-
-export const registerSearchTool = (mcp: McpServer) => {
-  mcp.tool('search', SearchQuerySchema, async (params) => {
-    // ...
-  });
-};
-
-// ❌ Don't duplicate schemas
-const SearchQuerySchema = z.object({ /* ... */ });  // Wrong
-```
-
-*Verify:* `grep "z.object" src/*/register-*` should be empty  
-*Fix:* Import schemas from `@youdotcom-oss/api`
-
-### Tool Response Format
-
-**Return both `content` and `structuredContent`:**
+**The `closing` flag prevents re-entrant shutdown when both transports fire close events:**
 
 ```typescript
-return formatSearchResults(response)
-```
+// ✅ Guard every shutdown path
+let closing = false
 
-*Verify:* All tool handlers return both fields
-*Fix:* Add `structuredContent` with raw API response
-
-### Error Handling - NEVER Throw
-
-**MCP tools return errors, never throw:**
-
-```typescript
-// ✅ Return error as content
-try {
-  const result = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
-  return formatSearchResults(result)
-} catch (err: unknown) {
-  const errorMessage = err instanceof Error ? err.message : String(err)
-  return {
-    content: [{ type: 'text' as const, text: `Error: ${errorMessage}` }],
-    isError: true
-  };
+const shutdown = (): void => {
+  if (closing) return  // ← guard
+  closing = true
+  void Promise.allSettled([stdio.close(), http.close()]).then(() => process.exit(0))
 }
 
-// ❌ Don't throw
-throw new Error('API failed');  // Breaks MCP protocol
+const terminate =
+  (label: string) =>
+  (err: unknown): void => {
+    if (closing) return  // ← guard suppresses spurious logs during teardown
+    process.stderr.write(`${label} error: ${err}\n`)
+    closing = true
+    void Promise.allSettled([stdio.close(), http.close()]).then(() => process.exit(1))
+  }
 ```
 
-*Verify:* `grep 'throw new' src/*/register-*` returns nothing  
-*Fix:* Convert throws to error returns
+*Why*: When HTTP closes, `onclose` → `shutdown()` → `stdio.close()` → `stdio.onclose` → `shutdown()` again. Without the guard you get double `process.exit()`. The `closing` check in `terminate()` also suppresses error logs that fire after clean shutdown has already started.
 
-### Logging via MCP Protocol
+*Verify*: `closing` must be set to `true` before any async work begins in both `shutdown` and `terminate`.
 
-**Use `getLogger(mcp)` not `console.log`:**
+### Void + `.catch()` on `send()`
+
+**Never await `send()` directly in an event handler — use void + `.catch()` to capture rejections:**
 
 ```typescript
-// ✅ MCP notifications
-const log = getLogger(mcp);
-log('Calling You.com API');
+// ✅ Correct — rejection routed to terminate
+stdio.onmessage = (message) => {
+  void http.send(message).catch(terminate('HTTP send'))
+}
 
-// ❌ Bypasses protocol
-console.log('Calling API');  // Interferes with stdio transport
+// ❌ Wrong — rejection becomes unhandled
+stdio.onmessage = async (message) => {
+  await http.send(message)
+}
 ```
 
-*Verify:* `grep 'console.log' src/` in tool files  
-*Fix:* Replace with `getLogger(mcp)`
+*Why*: `onmessage` is a synchronous callback. An async rejection inside it becomes unhandled unless explicitly caught. `.catch(terminate(...))` routes it to the clean shutdown path.
 
-### API Utility Usage
+### `process.env` Spread When Spawning
 
-**Wrap API utilities, don't reimplement:**
+**Always spread `process.env` when creating a `StdioClientTransport` — required for `npx` to resolve:**
 
 ```typescript
-// ✅ Use API package fetch utilities + local format utils
-import { fetchSearchResults } from '@youdotcom-oss/api';
-import { formatSearchResults } from './search.utils.ts';  // Local to MCP
+// ✅ Preserves PATH and other env vars
+const transport = new StdioClientTransport({
+  command: 'npx',
+  args: ['@youdotcom-oss/mcp'],
+  env: { ...process.env, YDC_API_KEY },
+})
 
-const response = await fetchSearchResults({ searchQuery, YDC_API_KEY, getUserAgent });
-return formatSearchResults(response)
-
-// ❌ Don't duplicate fetch logic
-const response = await fetch(url);  // Wrong - use API utility
+// ❌ Strips PATH — npx not found
+env: { YDC_API_KEY }
 ```
 
-*Verify:* No direct `fetch()` calls in tool files  
-*Fix:* Use `@youdotcom-oss/api` utilities
+*Verify*: `grep 'env:' src/tests/` — check for `...process.env` spread
 
 ## Testing
 
-### Dedicated Clients for Long Tests
-
-**Shared clients timeout on long tests, use dedicated:**
+Tests are pure unit tests using mock transports — no live HTTP calls, no `YDC_API_KEY` required.
 
 ```typescript
-// ✅ Dedicated client for long/isolated tests
-test.serial('memory test', async () => {
-  const transport = new StdioClientTransport({
-    command: 'npx',
-    args: [stdioPath],
-    env: { YDC_API_KEY },
-  });
-
-  const client = new Client({ name: 'test', version: '1.0.0' });
-  await client.connect(transport);
-  await client.callTool(/* ... */);
-  await client.close();
-}, { timeout: 15_000 });
+const makeTransport = (): Transport => ({
+  send: mock((_msg: JSONRPCMessage) => Promise.resolve()),
+  start: mock(() => Promise.resolve()),
+  close: mock(() => Promise.resolve()),
+  onmessage: undefined,
+  onerror: undefined,
+  onclose: undefined,
+})
 ```
 
-*When*: Long tests (>30s), retry tests, performance tests  
-*Verify*: Check test has `timeout` and dedicated client setup
+**Flush microtasks** before asserting async effects from `Promise.allSettled`:
+
+```typescript
+const flushAsync = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+test('closes both transports when http closes', async () => {
+  const stdio = makeTransport()
+  const http = makeTransport()
+  createBridge(stdio, http)
+
+  http.onclose!()
+  await flushAsync()  // ← wait for Promise.allSettled chain to resolve
+
+  expect(stdio.close).toHaveBeenCalledTimes(1)
+})
+```
+
+**Mock `process.exit` and `process.stderr.write`** to prevent test process termination:
+
+```typescript
+beforeEach(() => {
+  exitSpy = spyOn(process, 'exit').mockImplementation((() => {}) as () => never)
+  stderrSpy = spyOn(process.stderr, 'write').mockImplementation(() => true)
+})
+
+afterEach(() => {
+  exitSpy.mockRestore()
+  stderrSpy.mockRestore()
+})
+```
 
 ## File Organization
 
 ```
 src/
-├── search/register-search-tool.ts     # Uses API utilities
-├── research/register-research-tool.ts # Uses API utilities
-├── contents/register-contents-tool.ts # Uses API utilities
-├── get-mcp-server.ts                  # Server factory
-├── stdio.ts                           # STDIO transport
-├── http.ts                            # HTTP transport
-└── utils.ts                           # Public exports
+├── bridge.ts              # createBridge() — testable core logic
+├── stdio-bridge.ts        # entry point — thin wrapper
+└── tests/
+    └── stdio-bridge.spec.ts
 ```
 
 ## Troubleshooting
 
-**YDC_API_KEY not found:**
+**STDIO bridge won't connect:**
 ```bash
-echo "export YDC_API_KEY=your-key" > .env
-source .env
+echo $YDC_API_KEY        # Verify API key set
+echo $MCP_SERVER_URL     # Optional: check custom remote endpoint override
 ```
 
-**Test failures with 429:**  
-Wait before re-running, use `bun test --bail`
+**Test failures — process.exit called unexpectedly:**
+Ensure `exitSpy` is restored in `afterEach`. Without restore, the mock leaks into subsequent tests.
 
-**Stdio connection issues:**  
-```bash
-bun run dev  # Verify server starts
-echo $YDC_API_KEY  # Verify API key set
-```
+**Spurious error logs in teardown:**
+The `closing` guard in `terminate()` suppresses logs that fire after shutdown starts. If you see repeated logs, check that `if (closing) return` runs before `process.stderr.write`.
 
 ## Publishing
 
@@ -217,7 +200,6 @@ Workflow: `.github/workflows/publish-mcp.yml`
 
 ## Related Skills
 
-- [`.claude/skills/api-patterns`](../api-patterns/SKILL.md) - Foundation API utilities
 - [`.agents/rules/core.md`](../../.agents/rules/core.md) - Code patterns
 - [`.agents/rules/testing.md`](../../.agents/rules/testing.md) - Test patterns
 
@@ -226,6 +208,6 @@ Workflow: `.github/workflows/publish-mcp.yml`
 Package scope: `mcp` in commits
 
 ```bash
-feat(mcp): add search filter
-fix(mcp): resolve timeout
+feat(mcp): improve shutdown reliability
+fix(mcp): resolve double-close cycle
 ```
