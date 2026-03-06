@@ -244,6 +244,8 @@ Interested in contributing to the You.com MCP Server? We'd love your help!
 
 Need technical details? See the [mcp-patterns skill](../../.agents/skills/mcp-patterns/SKILL.md) for architecture, bridge maintenance patterns, and testing guidelines.
 
+**Publishing note**: npm publish (`.github/workflows/publish-mcp.yml`) is for STDIO bridge changes only — rarely needed. The Anthropic MCP Registry is updated separately via `.github/workflows/publish-registry.yml` when the remote server's public surface changes (tools, auth, URL).
+
 1. Fork the repository
 2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md)
 3. Follow the code style guidelines and use conventional commits

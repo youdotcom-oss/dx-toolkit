@@ -194,9 +194,10 @@ The `closing` guard in `terminate()` suppresses logs that fire after shutdown st
 
 See [root AGENTS.md](../../AGENTS.md#publishing)
 
-**MCP-specific**: Triggers deployment and Anthropic registry update
+Two separate workflows:
 
-Workflow: `.github/workflows/publish-mcp.yml`
+- **npm publish** (`.github/workflows/publish-mcp.yml`) — For STDIO bridge changes only. Rarely needed since the bridge is frozen; server changes happen in `youdotcom-mcp-server`.
+- **Registry publish** (`.github/workflows/publish-registry.yml`) — For Anthropic MCP Registry updates. Run manually when the remote server's public surface changes (tools, auth, URL). Auto-increments `server.json` version.
 
 ## Related Skills
 
