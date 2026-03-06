@@ -291,7 +291,7 @@ If you encounter a problem, you can report it via email or GitHub:
 
 **Web support:** [You.com Support](https://you.com/support/contact-us)
 
-**GitHub Issues:** [Report bugs and feature requests](https://github.com/youdotcom-oss/mcp-server/issues)
+**GitHub Issues:** [Report bugs and feature requests](https://github.com/youdotcom-oss/dx-toolkit/issues)
 
 **Tip:** When errors occur, check your MCP client logs - they include a pre-filled mailto link with error details for easy reporting.
 

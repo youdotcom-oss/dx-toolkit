@@ -1,73 +1,168 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
+import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js'
+import { createBridge } from '../bridge.ts'
 
-describe('stdio-bridge configuration', () => {
-  test('defaults MCP_SERVER_URL to https://api.you.com/mcp', async () => {
-    // Verify the default URL is correct by importing the bridge source
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain("'https://api.you.com/mcp'")
-  })
-
-  test('reads YDC_API_KEY from environment', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('process.env.YDC_API_KEY')
-  })
-
-  test('sets Authorization header when API key is present', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('Bearer')
-    expect(source).toContain('Authorization')
-  })
-
-  test('connects without auth when no API key (free tier)', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    // Should only set Authorization header conditionally
-    expect(source).toContain('if (process.env.YDC_API_KEY)')
-  })
-
-  test('uses StdioServerTransport for local side', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('StdioServerTransport')
-  })
-
-  test('uses StreamableHTTPClientTransport for remote side', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('StreamableHTTPClientTransport')
-  })
-
-  test('proxies messages bidirectionally', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    // Should wire stdio.onmessage → http.send and http.onmessage → stdio.send
-    expect(source).toContain('stdio.onmessage')
-    expect(source).toContain('http.onmessage')
-    expect(source).toContain('http.send')
-    expect(source).toContain('stdio.send')
-  })
-
-  test('handles errors gracefully', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('stdio.onerror')
-    expect(source).toContain('http.onerror')
-    expect(source).toContain('process.stderr.write')
-  })
-
-  test('handles shutdown on transport close', async () => {
-    const source = await Bun.file(new URL('../stdio-bridge.ts', import.meta.url)).text()
-    expect(source).toContain('http.onclose')
-    expect(source).toContain('stdio.onclose')
-  })
+const makeTransport = (): Transport => ({
+  send: mock((_msg: JSONRPCMessage) => Promise.resolve()),
+  start: mock(() => Promise.resolve()),
+  close: mock(() => Promise.resolve()),
+  onmessage: undefined,
+  onerror: undefined,
+  onclose: undefined,
 })
 
-describe('stdio-bridge build', () => {
-  test('builds to bin/stdio.js successfully', async () => {
-    const result = Bun.spawnSync(['bun', 'run', 'build'], {
-      cwd: new URL('../../', import.meta.url).pathname,
+// Flush the microtask queue so Promise.allSettled chains resolve
+const flushAsync = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+const ping: JSONRPCMessage = { jsonrpc: '2.0', method: 'ping', id: 1 }
+const pong: JSONRPCMessage = { jsonrpc: '2.0', result: {}, id: 1 }
+
+describe('createBridge', () => {
+  let exitSpy: ReturnType<typeof spyOn<NodeJS.Process, 'exit'>>
+  let stderrSpy: ReturnType<typeof spyOn>
+
+  beforeEach(() => {
+    exitSpy = spyOn(process, 'exit').mockImplementation((() => {}) as () => never)
+    stderrSpy = spyOn(process.stderr, 'write').mockImplementation(() => true)
+  })
+
+  afterEach(() => {
+    exitSpy.mockRestore()
+    stderrSpy.mockRestore()
+  })
+
+  describe('message proxying', () => {
+    test('forwards messages from stdio to http', () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      stdio.onmessage!(ping)
+
+      expect(http.send).toHaveBeenCalledWith(ping)
+      expect(stdio.send).not.toHaveBeenCalled()
     })
-    expect(result.exitCode).toBe(0)
 
-    const binFile = Bun.file(new URL('../../bin/stdio.js', import.meta.url))
-    expect(await binFile.exists()).toBe(true)
+    test('forwards messages from http to stdio', () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
 
-    const contents = await binFile.text()
-    expect(contents.length).toBeGreaterThan(0)
+      http.onmessage!(pong)
+
+      expect(stdio.send).toHaveBeenCalledWith(pong)
+      expect(http.send).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('shutdown', () => {
+    test('closes both transports when http closes', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      http.onclose!()
+      await flushAsync()
+
+      expect(stdio.close).toHaveBeenCalledTimes(1)
+      expect(http.close).toHaveBeenCalledTimes(1)
+    })
+
+    test('closes both transports when stdio closes', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      stdio.onclose!()
+      await flushAsync()
+
+      expect(stdio.close).toHaveBeenCalledTimes(1)
+      expect(http.close).toHaveBeenCalledTimes(1)
+    })
+
+    test('does not close twice when both sides fire onclose', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      http.onclose!()
+      stdio.onclose!()
+      await flushAsync()
+
+      expect(stdio.close).toHaveBeenCalledTimes(1)
+      expect(http.close).toHaveBeenCalledTimes(1)
+    })
+
+    test('exits with 0 after clean close', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      http.onclose!()
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledWith(0)
+    })
+  })
+
+  describe('error handling', () => {
+    test('terminates with exit 1 on stdio transport error', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      stdio.onerror!(new Error('STDIO failed'))
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledWith(1)
+    })
+
+    test('terminates with exit 1 on http transport error', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      http.onerror!(new Error('HTTP failed'))
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledWith(1)
+    })
+
+    test('terminates with exit 1 when http.send rejects', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      ;(http.send as ReturnType<typeof mock>).mockImplementation(() => Promise.reject(new Error('send failed')))
+      createBridge(stdio, http)
+
+      stdio.onmessage!(ping)
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledWith(1)
+    })
+
+    test('terminates with exit 1 when stdio.send rejects', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      ;(stdio.send as ReturnType<typeof mock>).mockImplementation(() => Promise.reject(new Error('send failed')))
+      createBridge(stdio, http)
+
+      http.onmessage!(pong)
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledWith(1)
+    })
+
+    test('does not exit twice when error follows close', async () => {
+      const stdio = makeTransport()
+      const http = makeTransport()
+      createBridge(stdio, http)
+
+      http.onclose!()
+      http.onerror!(new Error('late error'))
+      await flushAsync()
+
+      expect(exitSpy).toHaveBeenCalledTimes(1)
+    })
   })
 })
