@@ -1,6 +1,6 @@
 import type * as z from 'zod'
 import { RESEARCH_API_URL } from '../shared/api.constants.ts'
-import type { GetUserAgent } from '../shared/api.types.ts'
+import type { CustomHeaders, GetUserAgent } from '../shared/api.types.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type ResearchQuery, ResearchResponseSchema } from './research.schemas.ts'
 
@@ -16,10 +16,12 @@ export const callResearch = async ({
   researchQuery,
   YDC_API_KEY = process.env.YDC_API_KEY,
   getUserAgent,
+  customHeaders,
 }: {
   researchQuery: ResearchQuery
   YDC_API_KEY?: string
   getUserAgent: GetUserAgent
+  customHeaders?: CustomHeaders
 }) => {
   if (!YDC_API_KEY) {
     throw new Error('YDC_API_KEY is required for Research API')
@@ -28,6 +30,7 @@ export const callResearch = async ({
   const response = await fetch(RESEARCH_API_URL, {
     method: 'POST',
     headers: new Headers({
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),

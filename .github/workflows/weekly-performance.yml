@@ -29,14 +29,6 @@ jobs:
       - name: Build packages
         run: bun run build
 
-      - name: Download previous failure count
-        id: previous_count
-        uses: actions/download-artifact@v4
-        with:
-          name: performance-failure-count
-          path: .
-        continue-on-error: true
-
       - name: Run performance measurements
         id: perf_tests
         run: |
@@ -48,87 +40,58 @@ jobs:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
         continue-on-error: true
 
-      - name: Track failures and create issue if needed
+      - name: Create issue on failure
         if: steps.perf_tests.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Read previous failure count (default to 0)
-          FAILURE_COUNT=0
-          if [ -f failure_count.txt ]; then
-            FAILURE_COUNT=$(cat failure_count.txt)
-          fi
+          EXISTING_ISSUE=$(gh issue list --label "performance,automated-issue" --state open --json number --jq '.[0].number')
 
-          # Increment failure count
-          FAILURE_COUNT=$((FAILURE_COUNT + 1))
-          echo $FAILURE_COUNT > failure_count.txt
-          echo "Current failure count: $FAILURE_COUNT"
+          if [ -z "$EXISTING_ISSUE" ]; then
+            echo "Creating GitHub issue for performance monitoring failure..."
+            gh issue create \
+              --title "Performance monitoring failing: investigation needed" \
+              --label "performance,automated-issue" \
+              --body "## Performance Monitoring Failure
 
-          # Create issue after 3 consecutive failures
-          if [ $FAILURE_COUNT -ge 3 ]; then
-            echo "Creating GitHub issue for performance monitoring failures..."
+          The weekly performance monitoring workflow failed.
 
-            # Check if issue already exists
-            EXISTING_ISSUE=$(gh issue list --label "performance,automated-issue" --state open --json number --jq '.[0].number')
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            if [ -z "$EXISTING_ISSUE" ]; then
-              gh issue create \
-                --title "Performance Monitoring Failing: Investigation Needed" \
-                --label "performance,automated-issue" \
-                --body "## Performance Monitoring Failures
-
-          Performance monitoring has failed for **$FAILURE_COUNT consecutive weeks**.
-
-          ### Troubleshooting Steps
+          ### Troubleshooting
 
           1. **Run locally to diagnose:**
           \`\`\`bash
-          export YDC_API_KEY=your-key
+          source .env
           bun scripts/performance/measure.ts > results.json
           \`\`\`
 
-          2. **Check for common issues:**
+          2. **Common causes:**
+          - Broken import in \`scripts/performance/measure.ts\`
           - API key permissions (needs search, contents, express access)
           - Rate limiting (429 errors)
-          - API endpoint changes
-          - Build failures in packages/api
+          - Build failures
 
-          3. **Review measurement script:**
-          - Check \`scripts/performance/measure.ts\`
-          - Verify API package builds correctly
-          - Look for timeout issues
-
-          4. **Check workflow logs:**
-          - View recent workflow runs: https://github.com/youdotcom-oss/dx-toolkit/actions/workflows/weekly-performance.yml
-
-          ### Action Required
-          1. Investigate the root cause using steps above
-          2. Fix the measurement script or API package issues
-          3. Test locally before pushing fix
-          4. Close this issue once monitoring is restored
+          3. **Workflow logs:**
+          ${{ github.server_url }}/${{ github.repository }}/actions/workflows/weekly-performance.yml
 
           ---
-          *This issue was automatically created after $FAILURE_COUNT consecutive failures.*"
-
-              echo "Issue created successfully"
-            else
-              echo "Issue already exists: #$EXISTING_ISSUE"
-            fi
+          *Automatically created by the weekly performance workflow.*"
+          else
+            echo "Issue already open: #$EXISTING_ISSUE"
           fi
 
-      - name: Reset failure count on success
+      - name: Close issue on success
         if: steps.perf_tests.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "0" > failure_count.txt
-          echo "Performance monitoring passed - resetting failure count"
+          EXISTING_ISSUE=$(gh issue list --label "performance,automated-issue" --state open --json number --jq '.[0].number')
 
-      - name: Upload failure count artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: performance-failure-count
-          path: failure_count.txt
-          retention-days: 90
+          if [ -n "$EXISTING_ISSUE" ]; then
+            echo "Closing issue #$EXISTING_ISSUE — performance monitoring restored"
+            gh issue close "$EXISTING_ISSUE" --comment "Performance monitoring is passing again. Closing automatically."
+          fi
 
       - name: Detect regressions and file issues
         if: steps.perf_tests.outcome == 'success'

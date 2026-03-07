@@ -1,15 +1,14 @@
 # You.com MCP Server
 
-The You.com MCP Server gives your AI agents **real-time access to the latest web information** through the [Model Context Protocol](https://modelcontextprotocol.io/). Search current content, get up-to-date answers, and extract live web pages—whether in your IDE or deployed agentic workflows. Built on MCP to **work everywhere your agents do**—one integration, unlimited compatibility across IDEs, frameworks, and production systems. 
+Connect your AI agents to You.com's **hosted MCP service** for real-time web search, AI answers, and content extraction. [Model Context Protocol](https://modelcontextprotocol.io/) gives you one integration that works across IDEs, frameworks, and production systems. Use the remote server at `https://api.you.com/mcp` directly, or install this npm package as a lightweight STDIO bridge for clients that require a local process.
 
 ## Features
 
 - **Web and news search**: Comprehensive search using You.com's unified Search API with advanced search operators
 - **Research**: Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Content extraction**: Extract and retrieve full content from web pages in markdown or HTML format
-- **Multiple transport protocols**: STDIO and Streamable HTTP support
-- **Bearer Token Authentication**: Secure API access in HTTP mode
-- **TypeScript support**: Full type safety with Zod schemas
+- **Multiple access methods**: Remote server (recommended) or local STDIO bridge
+- **Free tier**: Search works without an API key (rate-limited by IP)
 - **Advanced search parameters**: Site filtering, file type filtering, language filtering, exact terms, and exclude terms
 
 ## Getting started
@@ -20,6 +19,8 @@ Get up and running with the You.com MCP Server in 4 quick steps:
 
 Visit [you.com/platform/api-keys](https://you.com/platform/api-keys) to get your You.com API key. Keep this key secure - you'll need it for configuration.
 
+> **Free tier**: Search works without an API key (rate-limited). API key required for contents and research tools.
+
 ### 2. Choose your setup
 
 You can discover this server in the [Anthropic MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.youdotcom-oss/mcp`, or configure it manually:
@@ -28,7 +29,7 @@ You can discover this server in the [Anthropic MCP Registry](https://registry.mo
 - Use `https://api.you.com/mcp` with HTTP transport
 - Authentication via `Authorization: Bearer <your-key>` header
 
-**NPM package** - Runs locally on your machine
+**NPM package** - STDIO bridge to the remote server
 - Use `npx @youdotcom-oss/mcp` with STDIO transport
 - Authentication via `YDC_API_KEY` environment variable
 - Requires Bun or Node.js
@@ -65,9 +66,9 @@ Choose your MCP client from the [detailed setup guides](#adding-to-your-mcp-clie
 
 **Configuration notes:**
 - Remote server recommended for most users (no installation, always up-to-date)
-- NPM package for local usage or self-hosting scenarios
-- HTTP transport for remote connections; STDIO transport for local packages
-- API key always required (header for HTTP, environment variable for STDIO)
+- NPM package for MCP clients that require local STDIO processes
+- `YDC_API_KEY` is optional — omit for free tier (search only, rate-limited)
+- `MCP_SERVER_URL` env var overrides the remote server URL (defaults to `https://api.you.com/mcp`)
 
 ### 4. Test your setup
 
@@ -80,33 +81,23 @@ Your agent will automatically use the appropriate tool based on your natural lan
 
 ## Adding to your MCP client
 
-Detailed configuration instructions for specific MCP clients. See [Getting Started](#getting-started) above for a quick overview.
+Use the configuration templates from [Getting Started](#getting-started) above with your client's MCP setup. Any MCP-compatible client follows the same pattern.
 
 <details>
 <summary><strong>Claude Code</strong></summary>
 
-Use the Claude Code CLI to add the You.com MCP server:
-
-**Quick setup:**
 ```bash
 claude mcp add --transport http ydc-server https://api.you.com/mcp --header "Authorization: Bearer <your-api-key>"
 ```
 
-For setup, follow the MCP installation [guide](https://code.claude.com/docs/en/mcp).
+For full setup, see the MCP installation [guide](https://code.claude.com/docs/en/mcp).
 
 </details>
 
 <details>
 <summary><strong>Claude Desktop</strong></summary>
 
-For setup, follow the MCP installation [guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
-
-</details>
-
-<details>
-<summary><strong>Codex</strong></summary>
-
-For setup, follow the MCP installation [guide](https://github.com/openai/codex/blob/main/docs/config.md#streamable-http).
+Use the remote server configuration template from Step 3 above. For full setup, see the MCP installation [guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
 
 </details>
 
@@ -115,69 +106,31 @@ For setup, follow the MCP installation [guide](https://github.com/openai/codex/b
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=ydc-server&config=eyJ1cmwiOiJodHRwczovL2FwaS55b3UuY29tL21jcCIsImhlYWRlcnMiOnsiQXV0aG9yaXphdGlvbiI6IkJlYXJlciA8eW91LWFwaS1rZXk%2BIn19)
 
-For setup, follow the MCP installation [guide](https://cursor.com/docs/context/mcp#installing-mcp-servers); use the configuration template above ***without type field***.
+Use the configuration template above ***without the type field***. For full setup, see the [guide](https://cursor.com/docs/context/mcp#installing-mcp-servers).
 
 **Note:** To avoid conflicts, go to Settings > Agents tab and turn off Cursor's built-in web search tool.
 
 </details>
 
 <details>
-<summary><strong>Gemini CLI</strong></summary>
-
-For setup, follow the MCP installation [guide](https://google-gemini.github.io/gemini-cli/docs/tools/mcp-server.html#how-to-set-up-your-mcp-server); use the configuration template above.
-
-</details>
-
-<details>
-<summary><strong>JetBrains IDEs</strong></summary>
-
-For setup, follow the MCP installation [guide](https://www.jetbrains.com/help/ai-assistant/mcp.html#connect-to-an-mcp-server); use the configuration template above.
-
-**Supported IDEs:** IntelliJ IDEA, PyCharm, WebStorm, etc. (requires AI Assistant enabled)
-
-</details>
-
-<details>
-<summary><strong>LM Studio</strong></summary>
-
-For setup, follow the MCP installation [guide](https://lmstudio.ai/docs/app/mcp); use the configuration template above ***without type field***.
-
-</details>
-
-<details>
-<summary><strong>opencode</strong></summary>
-
-For setup, follow the MCP installation [guide](https://opencode.ai/docs/mcp-servers/#remote); use the configuration template above.
-
-</details>
-
-<details>
 <summary><strong>VS Code</strong></summary>
 
-Use the VS Code CLI to add the You.com MCP server:
-
-**Quick setup (command line):**
 ```bash
 code --add-mcp "{\"name\":\"ydc-server\",\"url\":\"https://api.you.com/mcp\",\"type\":\"http\",\"headers\":{\"Authorization\":\"Bearer <your-api-key>\"}}"
 ```
 
-For setup, follow the MCP installation [guide](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_add-an-mcp-server); use the configuration template above.
+For full setup, see the MCP installation [guide](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_add-an-mcp-server).
 
 </details>
 
-<details>
-<summary><strong>Windsurf</strong></summary>
-
-For setup, follow the MCP installation [guide](https://docs.windsurf.com/windsurf/cascade/mcp#adding-a-new-mcp-plugin).
-
-</details>
-
-<details>
-<summary><strong>Zed Editor</strong></summary>
-
-For setup, follow the MCP installation [guide](https://zed.dev/docs/ai/mcp#as-custom-servers); use the configuration template above ***without type field***.
-
-</details>
+**Other clients** — use the configuration template from Step 3 with your client's MCP setup guide:
+- [Codex](https://github.com/openai/codex/blob/main/docs/config.md#streamable-http)
+- [Gemini CLI](https://google-gemini.github.io/gemini-cli/docs/tools/mcp-server.html#how-to-set-up-your-mcp-server)
+- [JetBrains IDEs](https://www.jetbrains.com/help/ai-assistant/mcp.html#connect-to-an-mcp-server)
+- [LM Studio](https://lmstudio.ai/docs/app/mcp) *(omit type field)*
+- [opencode](https://opencode.ai/docs/mcp-servers/#remote)
+- [Windsurf](https://docs.windsurf.com/windsurf/cascade/mcp#adding-a-new-mcp-plugin)
+- [Zed Editor](https://zed.dev/docs/ai/mcp#as-custom-servers) *(omit type field)*
 
 ## Available tools
 
@@ -281,7 +234,7 @@ If you encounter a problem, you can report it via email or GitHub:
 
 **Web support:** [You.com Support](https://you.com/support/contact-us)
 
-**GitHub Issues:** [Report bugs and feature requests](https://github.com/youdotcom-oss/mcp-server/issues)
+**GitHub Issues:** [Report bugs and feature requests](https://github.com/youdotcom-oss/dx-toolkit/issues)
 
 **Tip:** When errors occur, check your MCP client logs - they include a pre-filled mailto link with error details for easy reporting.
 
@@ -289,10 +242,12 @@ If you encounter a problem, you can report it via email or GitHub:
 
 Interested in contributing to the You.com MCP Server? We'd love your help!
 
-Need technical details? Check [AGENTS.md](./AGENTS.md) for complete development setup, architecture overview, code patterns, and testing guidelines.
+Need technical details? See the [mcp-patterns skill](../../.agents/skills/mcp-patterns/SKILL.md) for architecture, bridge maintenance patterns, and testing guidelines.
+
+**Publishing note**: npm publish (`.github/workflows/publish-mcp.yml`) is for STDIO bridge changes only — rarely needed. The Anthropic MCP Registry is updated separately via `.github/workflows/publish-registry.yml` when the remote server's public surface changes (tools, auth, URL).
 
 1. Fork the repository
-2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md) 
+2. Create a feature branch following naming conventions in [CONTRIBUTING.md](../../CONTRIBUTING.md)
 3. Follow the code style guidelines and use conventional commits
 4. Write tests for your changes (maintain >80% coverage)
 5. Run quality checks: `bun run check && bun test`

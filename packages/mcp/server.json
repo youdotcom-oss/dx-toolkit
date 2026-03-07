@@ -3,7 +3,7 @@
   "name": "io.github.youdotcom-oss/mcp",
   "title": "You.com Web Access & AI",
   "description": "Web search, AI agent, and content extraction via You.com APIs",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "remotes": [
     {
       "type": "streamable-http",
@@ -12,7 +12,7 @@
         {
           "name": "Authorization",
           "description": "Bearer (You.com API key)",
-          "isRequired": true,
+          "isRequired": false,
           "isSecret": true
         }
       ]
@@ -22,17 +22,24 @@
     {
       "registryType": "npm",
       "identifier": "@youdotcom-oss/mcp",
-      "version": "2.1.1",
+      "version": "3.0.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "YDC_API_KEY",
-          "description": "You.com API key",
-          "isRequired": true,
+          "description": "You.com API key (optional — omit for free tier)",
+          "isRequired": false,
           "isSecret": true,
           "format": "string"
+        },
+        {
+          "name": "MCP_SERVER_URL",
+          "description": "Remote MCP server URL (defaults to https://api.you.com/mcp)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "uri"
         }
       ]
     }

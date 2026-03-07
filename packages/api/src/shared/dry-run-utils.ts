@@ -10,7 +10,7 @@ import type { ContentsQuery } from '../contents/contents.schemas.ts'
 import type { ResearchQuery } from '../research/research.schemas.ts'
 import type { SearchQuery } from '../search/search.schemas.ts'
 import { CONTENTS_API_URL, RESEARCH_API_URL, SEARCH_API_URL } from './api.constants.ts'
-import type { GetUserAgent } from './api.types.ts'
+import type { CustomHeaders, GetUserAgent } from './api.types.ts'
 
 /**
  * Result structure for dry-run request inspection
@@ -38,10 +38,12 @@ export const buildSearchRequest = ({
   searchQuery,
   YDC_API_KEY,
   getUserAgent,
+  customHeaders,
 }: {
   searchQuery: SearchQuery
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
+  customHeaders?: CustomHeaders
 }): DryRunResult => {
   // Convert all search query params to query string parameters
   const queryParams: Record<string, string> = {}
@@ -56,6 +58,7 @@ export const buildSearchRequest = ({
     url: SEARCH_API_URL,
     method: 'GET',
     headers: {
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY,
       'User-Agent': getUserAgent(),
     },
@@ -76,10 +79,12 @@ export const buildContentsRequest = ({
   contentsQuery: { urls, formats, format, crawl_timeout },
   YDC_API_KEY,
   getUserAgent,
+  customHeaders,
 }: {
   contentsQuery: ContentsQuery
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
+  customHeaders?: CustomHeaders
 }): DryRunResult => {
   // Handle backward compatibility: prefer formats array, fallback to format string, default to ['markdown']
   const requestFormats = formats || (format ? [format] : ['markdown'])
@@ -102,6 +107,7 @@ export const buildContentsRequest = ({
     url: CONTENTS_API_URL,
     method: 'POST',
     headers: {
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
@@ -123,15 +129,18 @@ export const buildResearchRequest = ({
   researchQuery,
   YDC_API_KEY,
   getUserAgent,
+  customHeaders,
 }: {
   researchQuery: ResearchQuery
   YDC_API_KEY: string
   getUserAgent: GetUserAgent
+  customHeaders?: CustomHeaders
 }): DryRunResult => {
   return {
     url: RESEARCH_API_URL,
     method: 'POST',
     headers: {
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY,
       'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),

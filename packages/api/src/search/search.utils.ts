@@ -1,5 +1,5 @@
 import { SEARCH_API_URL } from '../shared/api.constants.ts'
-import type { GetUserAgent } from '../shared/api.types.ts'
+import type { CustomHeaders, GetUserAgent } from '../shared/api.types.ts'
 import { ApiErrorResponseSchema } from '../shared/api-error.schemas.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
 import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
@@ -8,10 +8,12 @@ export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
   searchQuery,
   getUserAgent,
+  customHeaders,
 }: {
   searchQuery: SearchQuery
   YDC_API_KEY?: string
   getUserAgent: GetUserAgent
+  customHeaders?: CustomHeaders
 }) => {
   const url = new URL(SEARCH_API_URL)
 
@@ -29,6 +31,7 @@ export const fetchSearchResults = async ({
   const options = {
     method: 'GET',
     headers: new Headers({
+      ...customHeaders,
       'X-API-Key': YDC_API_KEY || '',
       'User-Agent': getUserAgent(),
     }),

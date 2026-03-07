@@ -21,4 +21,5 @@ export * from './shared/api.types.ts'
 // Shared
 export * from './shared/api-error.schemas.ts'
 export * from './shared/dry-run-utils.ts'
+export * from './shared/format-search-results-text.ts'
 export * from './shared/generate-error-report-link.ts'

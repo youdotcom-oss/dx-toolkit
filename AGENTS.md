@@ -477,33 +477,20 @@ This convention follows industry standards used by Node.js and most major projec
 
 ### Workflow Files
 
-**`.github/workflows/publish-mcp.yml`** (MCP-specific workflow with deployment):
+**`.github/workflows/publish-mcp.yml`** (MCP npm publish):
 - Triggered: Manual via `workflow_dispatch`
-- Note: This workflow includes remote deployment steps specific to the MCP package. Other packages use simpler publish workflows without deployment.
-- Actions:
-  1. Computes next version from bump type (patch/minor/major) and current package.json
-  2. Updates package version in packages/mcp/package.json
-  3. Scans all workspace packages for dependencies on @youdotcom-oss/mcp
-  4. Updates dependent packages with exact version (e.g., "1.4.0", no ^ or ~)
-  5. Commits all version updates together
-  6. Creates GitHub release
-  7. Publishes to npm
-  8. Triggers remote repository via `repository_dispatch` (for production deployments)
-- Dependency Updates: Automatically updates workspace dependencies
-- Deployment Architecture:
-  - **update-remote-version** job: Sends `update-mcp-version` event to deployment repository
-  - **deploy-production** job: Conditionally sends `deploy-mcp-production` event (only for stable releases)
-  - Uses `DEPLOYMENT_REPO` secret to specify target repository
-  - Actively verifies remote version update completion before deployment:
-    - Polls every 20 seconds for up to 3 attempts (60s total)
-    - Checks specific `update-version` job status using GitHub API
-    - Only considers runs created within last 90 seconds
-    - Fails fast if remote job fails or times out
-  - Prereleases skip production deployment (`is_prerelease == 'true'`)
-- Required Secrets:
-  - `PUBLISH_TOKEN`: For git operations bypassing branch protection
-  - `RELEASE_ADMIN_TOKEN`: For triggering workflows on remote repository
-  - `DEPLOYMENT_REPO`: Repository to trigger (format: `owner/repo`)
+- Publishes `@youdotcom-oss/mcp` STDIO bridge to npm
+- Rarely needed — the bridge is frozen; server changes happen in `youdotcom-mcp-server`
+- Uses `_publish-package.yml` reusable workflow
+- Required Secret: `PUBLISH_TOKEN` (for git operations on protected branches)
+
+**`.github/workflows/publish-registry.yml`** (Anthropic MCP Registry):
+- Triggered: Manual via `workflow_dispatch` (no inputs required)
+- Decoupled from npm publish — run when the server's public surface changes (tools, auth, URL)
+- Auto-increments `server.json` version via patch bump
+- Installs `mcp-publisher`, authenticates via GitHub OIDC, publishes to registry
+- Commits updated `server.json` back to main
+- Required Secret: `PUBLISH_TOKEN` (for pushing to protected main branch)
 
 **`.github/workflows/_publish-package.yml`** (Reusable workflow for all packages):
 - Reusable workflow for publishing packages to npm
@@ -511,23 +498,6 @@ This convention follows industry standards used by Node.js and most major projec
 - Handles version updates, npm publishing, and GitHub releases
 - Uses NPM Trusted Publishing (OIDC) for authentication
 - Requires `PUBLISH_TOKEN` secret for git operations on protected branches
-- Note: Most packages only use this workflow. MCP adds deployment steps in its specific workflow.
-
-**Remote Repository Requirements** (MCP package deployment only):
-
-The remote repository (specified in `DEPLOYMENT_REPO`) must have workflows that listen for `repository_dispatch` events.
-This is only used for the MCP package which requires remote deployment infrastructure:
-
-1. **`update-version.yml`** - Listens for `update-mcp-version` event:
-   - Receives version in `client_payload.version`
-   - Updates package dependency to published version
-   - Commits changes to main branch
-   - Creates GitHub release with changelog
-
-2. **`deploy-prod.yml`** - Listens for `deploy-mcp-production` event:
-   - Receives version in `client_payload.version`
-   - Builds Docker image with version tag
-   - Deploys to production environment (multi-region)
 
 **`.github/workflows/ci.yml`**:
 - Runs lint and test checks to validate all packages
@@ -737,8 +707,11 @@ All packages in this monorepo are published to npm via GitHub Actions workflows.
 
 **Package-Specific Workflows**:
 - Each package has its own workflow: `.github/workflows/publish-{package}.yml`
-- Some packages may have additional deployment steps (see package-specific AGENTS.md)
-- Example: MCP package triggers remote deployment and Anthropic MCP Registry update
+
+**MCP Registry Publishing** (decoupled from npm):
+- Workflow: `.github/workflows/publish-registry.yml` (manual trigger, no inputs)
+- Run when the remote server's public surface changes (tools, auth, URL) — not on npm publish
+- Auto-increments `server.json` version, authenticates via GitHub OIDC, publishes to Anthropic MCP Registry
 
 **Version Format**:
 - Git tags: `v{version}` (e.g., `v1.3.4`)

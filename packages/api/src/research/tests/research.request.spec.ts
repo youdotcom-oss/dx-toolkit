@@ -98,4 +98,28 @@ describe('buildResearchRequest', () => {
     expect(request.headers['Content-Type']).toBe('application/json')
     expect(request.headers['User-Agent']).toBe('CustomAgent/1.0')
   })
+
+  test('forwards customHeaders into request headers', () => {
+    const request = buildResearchRequest({
+      researchQuery: ResearchQuerySchema.parse({ input: 'test' }),
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-OAuth-User-Id': 'user-123' },
+    })
+
+    expect(request.headers['X-OAuth-User-Id']).toBe('user-123')
+  })
+
+  test('standard headers cannot be overridden by customHeaders', () => {
+    const request = buildResearchRequest({
+      researchQuery: ResearchQuerySchema.parse({ input: 'test' }),
+      YDC_API_KEY,
+      getUserAgent,
+      customHeaders: { 'X-API-Key': 'attacker-key', 'User-Agent': 'evil', 'Content-Type': 'text/plain' },
+    })
+
+    expect(request.headers['X-API-Key']).toBe(YDC_API_KEY)
+    expect(request.headers['User-Agent']).toBe('test-agent')
+    expect(request.headers['Content-Type']).toBe('application/json')
+  })
 })
