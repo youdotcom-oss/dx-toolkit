@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/api",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "You.com API client with bundled CLI for agents supporting Agent Skills",
   "license": "MIT",
   "engines": {
