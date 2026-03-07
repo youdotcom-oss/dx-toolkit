@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "You.com MCP STDIO bridge — proxies STDIO to the remote You.com MCP server at api.you.com/mcp",
   "license": "MIT",
   "engines": {
