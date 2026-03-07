@@ -271,10 +271,11 @@ describe('message-transformer', () => {
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
-          server_tool_use: { web_search_requests: 0 },
+          server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
           service_tier: null,
           inference_geo: null,
         },
+        container: null,
       }
 
       const result = transformFromAnthropicMessage(anthropicResponse)
@@ -300,6 +301,7 @@ describe('message-transformer', () => {
             id: 'toolu_123',
             name: 'get_weather',
             input: { location: 'San Francisco' },
+            caller: { type: 'direct' },
           },
         ],
         model: 'claude-sonnet-4-6',
@@ -311,10 +313,11 @@ describe('message-transformer', () => {
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
-          server_tool_use: { web_search_requests: 0 },
+          server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
           service_tier: null,
           inference_geo: null,
         },
+        container: null,
       }
 
       const result = transformFromAnthropicMessage(anthropicResponse)
@@ -357,10 +360,11 @@ describe('message-transformer', () => {
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
-          server_tool_use: { web_search_requests: 0 },
+          server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
           service_tier: null,
           inference_geo: null,
         },
+        container: null,
       }
 
       const result = transformFromAnthropicMessage(anthropicResponse)
@@ -379,12 +383,14 @@ describe('message-transformer', () => {
             id: 'toolu_1',
             name: 'get_weather',
             input: { location: 'San Francisco' },
+            caller: { type: 'direct' },
           },
           {
             type: 'tool_use',
             id: 'toolu_2',
             name: 'get_time',
             input: { timezone: 'America/Los_Angeles' },
+            caller: { type: 'direct' },
           },
         ],
         model: 'claude-sonnet-4-6',
@@ -396,10 +402,11 @@ describe('message-transformer', () => {
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
-          server_tool_use: { web_search_requests: 0 },
+          server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
           service_tier: null,
           inference_geo: null,
         },
+        container: null,
       }
 
       const result = transformFromAnthropicMessage(anthropicResponse)
@@ -424,10 +431,11 @@ describe('message-transformer', () => {
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
           cache_creation: { ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: 0 },
-          server_tool_use: { web_search_requests: 0 },
+          server_tool_use: { web_search_requests: 0, web_fetch_requests: 0 },
           service_tier: null,
           inference_geo: null,
         },
+        container: null,
       }
 
       const result = transformFromAnthropicMessage(anthropicResponse)

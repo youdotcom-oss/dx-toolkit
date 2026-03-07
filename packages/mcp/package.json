@@ -41,6 +41,7 @@
     "check:write": "biome check --write && bun run format:package",
     "dev": "bun src/stdio-bridge.ts",
     "format:package": "format-package --write",
+    "inspector": "mcp-inspector --config mcp-inspector.json -e YDC_API_KEY=$YDC_API_KEY",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch"
@@ -50,6 +51,6 @@
     "@modelcontextprotocol/sdk": "^1.25.3"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "0.20.0"
+    "@modelcontextprotocol/inspector": "0.21.1"
   }
 }

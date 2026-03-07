@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "youdotcom": {
+      "command": "bun",
+      "args": ["src/stdio-bridge.ts"],
+      "env": {}
+    }
+  }
+}

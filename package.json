@@ -32,7 +32,7 @@
     ]
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.15",
+    "@biomejs/biome": "2.4.6",
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
     "@plaited/development-skills": "0.8.1",
