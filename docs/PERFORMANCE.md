@@ -213,13 +213,13 @@ Aim for thresholds that keep total lag below perception thresholds.
 <!-- BEGIN AUTO-GENERATED RESULTS -->
 ## Latest Test Results
 
-**Last Updated**: 2026-01-26T13:16:45.387Z
-**Workflow Run**: [View Results](https://github.com/youdotcom-oss/dx-toolkit/actions/runs/21359014602)
+**Last Updated**: 2026-03-09T13:27:07.352Z
+**Workflow Run**: [View Results](https://github.com/youdotcom-oss/dx-toolkit/actions/runs/22855650962)
 
 | Package | Processing Lag | Overhead % | Memory | Status |
 |---------|---------------|------------|--------|--------|
-| @youdotcom-oss/mcp | ✅ -17.34ms (< 100.00ms) | ✅ -12.69% (< 50.00%) | ✅ 75.38KB (< 400.00KB) | ✅ Pass |
-| @youdotcom-oss/ai-sdk-plugin | ✅ -10.61ms (< 80.00ms) | ✅ -7.70% (< 35.00%) | ✅ 139.88KB (< 350.00KB) | ✅ Pass |
+| @youdotcom-oss/mcp | ✅ 46.22ms (< 100.00ms) | ✅ 13.14% (< 50.00%) | ✅ 188.79KB (< 400.00KB) | ✅ Pass |
+| @youdotcom-oss/ai-sdk-plugin | ✅ -30.29ms (< 80.00ms) | ✅ -7.61% (< 35.00%) | ✅ -9.75KB (< 350.00KB) | ✅ Pass |
 
 <details>
 <summary>View detailed metrics</summary>
@@ -227,24 +227,24 @@ Aim for thresholds that keep total lag below perception thresholds.
 
 ### @youdotcom-oss/mcp
 
-**Timestamp**: 2026-01-26T13:16:45.332Z
+**Timestamp**: 2026-03-09T13:27:04.638Z
 
 **Processing Lag**:
-- Raw API avg: 136.72ms
-- Wrapper avg: 119.37ms
-- Processing lag: -17.34ms
+- Raw API avg: 351.68ms
+- Wrapper avg: 397.89ms
+- Processing lag: 46.22ms
 - Threshold: < 100.00ms
 - Status: ✅ Pass
 
 **Overhead**:
-- Percentage: -12.69%
+- Percentage: 13.14%
 - Threshold: < 50.00%
 - Status: ✅ Pass
 
 **Memory**:
-- Heap before: 12005.36KB
-- Heap after: 12080.74KB
-- Growth: 75.38KB
+- Heap before: 11132.60KB
+- Heap after: 11321.40KB
+- Growth: 188.79KB
 - Threshold: < 400.00KB
 - Status: ✅ Pass
 
@@ -254,24 +254,24 @@ Aim for thresholds that keep total lag below perception thresholds.
 
 ### @youdotcom-oss/ai-sdk-plugin
 
-**Timestamp**: 2026-01-26T13:16:43.832Z
+**Timestamp**: 2026-03-09T13:27:04.793Z
 
 **Processing Lag**:
-- Raw API avg: 137.77ms
-- Wrapper avg: 127.16ms
-- Processing lag: -10.61ms
+- Raw API avg: 398.24ms
+- Wrapper avg: 367.95ms
+- Processing lag: -30.29ms
 - Threshold: < 80.00ms
 - Status: ✅ Pass
 
 **Overhead**:
-- Percentage: -7.70%
+- Percentage: -7.61%
 - Threshold: < 35.00%
 - Status: ✅ Pass
 
 **Memory**:
-- Heap before: 12023.51KB
-- Heap after: 12163.38KB
-- Growth: 139.88KB
+- Heap before: 11295.67KB
+- Heap after: 11285.91KB
+- Growth: -9.75KB
 - Threshold: < 350.00KB
 - Status: ✅ Pass
 
