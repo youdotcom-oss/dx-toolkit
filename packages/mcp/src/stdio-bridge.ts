@@ -8,6 +8,9 @@ const headers: Record<string, string> = {}
 if (process.env.YDC_API_KEY) {
   headers.Authorization = `Bearer ${process.env.YDC_API_KEY}`
 }
+if (process.env.YDC_DISABLED_TOOLS) {
+  headers['X-Disable-Tools'] = process.env.YDC_DISABLED_TOOLS
+}
 
 try {
   const stdio = new StdioServerTransport()

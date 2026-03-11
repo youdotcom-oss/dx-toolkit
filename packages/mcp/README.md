@@ -69,6 +69,7 @@ Choose your MCP client from the [detailed setup guides](#adding-to-your-mcp-clie
 - NPM package for MCP clients that require local STDIO processes
 - `YDC_API_KEY` is optional — omit for free tier (search only, rate-limited)
 - `MCP_SERVER_URL` env var overrides the remote server URL (defaults to `https://api.you.com/mcp`)
+- `YDC_DISABLED_TOOLS` env var disables specific tools (comma-separated, e.g. `"you-research,you-contents"`)
 
 ### 4. Test your setup
 
@@ -212,6 +213,11 @@ Your AI agent can combine multiple tools in a single conversation:
 - Verify your API key has the necessary permissions
 - For remote server: Ensure you can reach https://api.you.com/mcp-health
 - For local: Verify Bun or Node.js is installed and the package is properly set up
+
+**Disabling specific tools:**
+- Remote server: Add `"X-Disable-Tools": "you-research,you-contents"` to your headers config
+- NPM package: Set `"YDC_DISABLED_TOOLS": "you-research,you-contents"` in your env config
+- Available tool names: `you-search`, `you-research`, `you-contents`
 
 **Authentication errors:**
 - Remote server uses Bearer token authentication in headers
