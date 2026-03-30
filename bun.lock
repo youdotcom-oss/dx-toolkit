@@ -43,7 +43,7 @@
     },
     "packages/langchain": {
       "name": "@youdotcom-oss/langchain",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "dependencies": {
         "@youdotcom-oss/api": "0.5.1",
       },
