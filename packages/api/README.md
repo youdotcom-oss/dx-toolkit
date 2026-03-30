@@ -75,7 +75,7 @@ ydc search --help
 echo '{"query":"AI"}' | ydc search
 ```
 
-### Using Programmatically
+### Programmatic Usage
 
 ```typescript
 import { fetchSearchResults } from '@youdotcom-oss/api';
