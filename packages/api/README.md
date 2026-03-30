@@ -14,49 +14,6 @@ Fast, lightweight API client and CLI tools for web search, research, and content
 - **🛠️ Dual interface** - CLI tools AND programmatic TypeScript API
 - **🪶 Lightweight** - No heavy dependencies, just Zod for validation
 
-## Quick Start
-
-### CLI Usage
-
-```bash
-# Use with bunx (no install needed) - Positional JSON input
-bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
-
-# Or install globally to use 'ydc' command
-bun i -g @youdotcom-oss/api
-ydc search '{"query":"AI developments"}' --client ClaudeCode
-
-# Research with cited sources
-ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
-
-# Extract web content
-ydc contents '{"urls":["https://example.com"],"formats":["markdown"]}'
-
-# Pipe JSON via stdin
-echo '{"query":"AI"}' | ydc search
-
-# Discover available parameters
-ydc search --help
-ydc search --schema input | jq '.properties | keys'
-ydc search --schema output
-```
-
-### Programmatic Usage
-
-```typescript
-import { fetchSearchResults } from '@youdotcom-oss/api';
-
-const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
-
-const results = await fetchSearchResults({
-  searchQuery: { query: 'AI developments', livecrawl: 'web' },
-  YDC_API_KEY: process.env.YDC_API_KEY,
-  getUserAgent,
-});
-
-console.log(results.results.web);
-```
-
 ## Installation
 
 ```bash
@@ -80,14 +37,63 @@ bun i -g @youdotcom-oss/api
 
 ## Setup
 
-**Get API Key:**
-1. Visit https://you.com/platform/api-keys
-2. Create new API key
-3. Set environment variable:
+Get your API key and set environment variables:
 
+1. **Get API Key**: Visit https://you.com/platform/api-keys and create a new API key
+2. **Set environment**:
+   ```bash
+   export YDC_API_KEY="your-api-key"
+   export YDC_CLIENT="YourAgentName"  # Optional: identifies your app for tracking
+   ```
+
+## Quick Start
+
+### Using the CLI
+
+**No installation needed** — try with `bunx`:
 ```bash
-export YDC_API_KEY="your-api-key"
-export YDC_CLIENT="YourAgentName"  # Optional: default client for tracking
+bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
+```
+
+**Or install globally** for repeated use:
+```bash
+bun i -g @youdotcom-oss/api
+```
+
+**Use the `ydc` command:**
+```bash
+# Search the web and news
+ydc search '{"query":"AI developments this past week"}' --client ClaudeCode
+
+# Get comprehensive answers with cited sources
+ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
+
+# Extract content from URLs
+ydc contents '{"urls":["https://example.com"],"formats":["markdown"]}'
+
+# Discover available parameters
+ydc search --help
+```
+
+**Pipe JSON via stdin**
+```bash
+echo '{"query":"AI"}' | ydc search
+```
+
+### Using Programmatically
+
+```typescript
+import { fetchSearchResults } from '@youdotcom-oss/api';
+
+const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
+
+const results = await fetchSearchResults({
+  searchQuery: { query: 'AI developments', livecrawl: 'web' },
+  YDC_API_KEY: process.env.YDC_API_KEY,
+  getUserAgent,
+});
+
+console.log(results.results.web);
 ```
 
 ## CLI Reference
