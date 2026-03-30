@@ -30,7 +30,7 @@ yarn add @youdotcom-oss/api
 pnpm add @youdotcom-oss/api
 ```
 
-**Global installation for CLI:**
+**Install globally:**
 ```bash
 bun i -g @youdotcom-oss/api
 ```
@@ -53,11 +53,6 @@ Get your API key and set environment variables:
 **No installation needed** — try with `bunx`:
 ```bash
 bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
-```
-
-**Or install globally** for repeated use:
-```bash
-bun i -g @youdotcom-oss/api
 ```
 
 **Use the `ydc` command:**
@@ -457,20 +452,25 @@ query=$(jq -n '{
 ydc search "$query" --client ClaudeCode
 ```
 
-## Agent Skills Integration
+## Agent Skills Integrations
 
-This package is designed for agents that support the [Agent Skills Spec](https://agentskills.io/home). The **youdotcom-cli** skill provides guided workflows for agents to integrate You.com capabilities.
+If you'd prefer not to install this package, two zero-dependency alternatives are available as [Agent Skills](https://agentskills.io/home) — that teach your agent how to interact with You.com APIs directly:
 
-### What Agents Get
+### [youdotcom-cli](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli) — no Node.js/Bun required
 
-The [youdotcom-cli skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli) teaches agents:
+Uses `curl` and `jq` to call You.com APIs. Ideal when your agent environment doesn't have Node.js or Bun available, or you want to avoid any npm dependencies entirely.
 
-- **Schema Discovery** - Use `--schema` and `--help` to discover available parameters
-- **Runtime Setup** - Check for Node.js/Bun, install if needed
-- **API Configuration** - Set up API keys and client tracking
-- **Command Patterns** - Positional JSON input with compact output
-- **Error Handling** - Stdout/stderr separation with exit codes
-- **Advanced Workflows** - Livecrawl, parallel execution, rate limiting
+```bash
+npx skills add youdotcom-oss/agent-skills --skill youdotcom-cli
+```
+
+### [youdotcom-api](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-api) — build your own integration
+
+Tell your agent how to integrate You.com APIs from scratch, directly into your own code (in any language) without wrapping this package. Includes full JSON schemas for all endpoints and runnable examples for each API.
+
+```bash
+npx skills add youdotcom-oss/agent-skills --skill youdotcom-api
+```
 
 ### Compatible Agents
 
@@ -481,15 +481,6 @@ Works with any bash-capable agent supporting Agent Skills:
 - **Codex** - OpenAI's CLI agent
 - **Roo Code** - VS Code extension
 - And more...
-
-### Installation for Agents
-
-```bash
-# Add skill to agent's skills directory
-npx skills add youdotcom-oss/agent-skills --skill youdotcom-cli
-```
-
-**Using the CLI**: See the skill's SKILL.md for complete integration workflow.
 
 ## TypeScript Types
 
