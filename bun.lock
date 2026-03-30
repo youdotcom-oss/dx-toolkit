@@ -19,7 +19,7 @@
     },
     "packages/ai-sdk-plugin": {
       "name": "@youdotcom-oss/ai-sdk-plugin",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "dependencies": {
         "@youdotcom-oss/api": "0.5.1",
       },
