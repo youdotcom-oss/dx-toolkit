@@ -35,11 +35,12 @@ export const formatContentsResponse = (
     }
 
     if (formats.includes('html') && item.html) {
+      // Text output is a brief preview only — full HTML is in structuredContent.items[].html
       textParts.push('\n### HTML Content\n')
       textParts.push(`Length: ${item.html.length} characters\n`)
       textParts.push(item.html.substring(0, 500))
       if (item.html.length > 500) {
-        textParts.push('...\n(truncated for display)')
+        textParts.push('...\n(truncated for display — full HTML available in structuredContent)')
       }
       textParts.push('\n')
     }

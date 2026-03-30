@@ -56,8 +56,8 @@ jobs:
           echo "⏳ Waiting for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
           echo "Looking for release: v${VERSION}"
 
-          max_attempts=3  # Check up to 3 times (20s, 40s, 60s)
-          check_interval=20  # Check every 20 seconds
+          max_attempts=10  # Check up to 10 times (5min total)
+          check_interval=30  # Check every 30 seconds
           attempt=0
 
           while [ $attempt -lt $max_attempts ]; do
