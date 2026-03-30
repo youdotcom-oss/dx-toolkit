@@ -14,49 +14,6 @@ Fast, lightweight API client and CLI tools for web search, research, and content
 - **🛠️ Dual interface** - CLI tools AND programmatic TypeScript API
 - **🪶 Lightweight** - No heavy dependencies, just Zod for validation
 
-## Quick Start
-
-### CLI Usage
-
-```bash
-# Use with bunx (no install needed) - Positional JSON input
-bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
-
-# Or install globally to use 'ydc' command
-bun i -g @youdotcom-oss/api
-ydc search '{"query":"AI developments"}' --client ClaudeCode
-
-# Research with cited sources
-ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
-
-# Extract web content
-ydc contents '{"urls":["https://example.com"],"formats":["markdown"]}'
-
-# Pipe JSON via stdin
-echo '{"query":"AI"}' | ydc search
-
-# Discover available parameters
-ydc search --help
-ydc search --schema input | jq '.properties | keys'
-ydc search --schema output
-```
-
-### Programmatic Usage
-
-```typescript
-import { fetchSearchResults } from '@youdotcom-oss/api';
-
-const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
-
-const results = await fetchSearchResults({
-  searchQuery: { query: 'AI developments', livecrawl: 'web' },
-  YDC_API_KEY: process.env.YDC_API_KEY,
-  getUserAgent,
-});
-
-console.log(results.results.web);
-```
-
 ## Installation
 
 ```bash
@@ -73,21 +30,65 @@ yarn add @youdotcom-oss/api
 pnpm add @youdotcom-oss/api
 ```
 
-**Global installation for CLI:**
+**Install globally:**
 ```bash
 bun i -g @youdotcom-oss/api
 ```
 
 ## Setup
 
-**Get API Key:**
-1. Visit https://you.com/platform/api-keys
-2. Create new API key
-3. Set environment variable:
+Get your API key and set environment variables:
 
+1. **Get API Key**: Visit https://you.com/platform/api-keys and create a new API key
+2. **Set environment**:
+   ```bash
+   export YDC_API_KEY="your-api-key"
+   export YDC_CLIENT="YourAgentName"  # Optional: identifies your app for tracking
+   ```
+
+## Quick Start
+
+### Using the CLI
+
+**No installation needed** — try with `bunx`:
 ```bash
-export YDC_API_KEY="your-api-key"
-export YDC_CLIENT="YourAgentName"  # Optional: default client for tracking
+bunx @youdotcom-oss/api search '{"query":"AI developments"}' --client ClaudeCode
+```
+
+**Use the `ydc` command:**
+```bash
+# Search the web and news
+ydc search '{"query":"AI developments this past week"}' --client ClaudeCode
+
+# Get comprehensive answers with cited sources
+ydc research '{"input":"What happened in AI this week?","research_effort":"deep"}'
+
+# Extract content from URLs
+ydc contents '{"urls":["https://example.com"],"formats":["markdown"]}'
+
+# Discover available parameters
+ydc search --help
+```
+
+**Pipe JSON via stdin**
+```bash
+echo '{"query":"AI"}' | ydc search
+```
+
+### Programmatic Usage
+
+```typescript
+import { fetchSearchResults } from '@youdotcom-oss/api';
+
+const getUserAgent = () => 'MyApp/1.0.0 (You.com)';
+
+const results = await fetchSearchResults({
+  searchQuery: { query: 'AI developments', livecrawl: 'web' },
+  YDC_API_KEY: process.env.YDC_API_KEY,
+  getUserAgent,
+});
+
+console.log(results.results.web);
 ```
 
 ## CLI Reference
@@ -451,20 +452,25 @@ query=$(jq -n '{
 ydc search "$query" --client ClaudeCode
 ```
 
-## Agent Skills Integration
+## Agent Skills Integrations
 
-This package is designed for agents that support the [Agent Skills Spec](https://agentskills.io/home). The **youdotcom-cli** skill provides guided workflows for agents to integrate You.com capabilities.
+If you'd prefer not to install this package, two zero-dependency alternatives are available as [Agent Skills](https://agentskills.io/home) — that teach your agent how to interact with You.com APIs directly:
 
-### What Agents Get
+### [youdotcom-cli](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli) — no Node.js/Bun required
 
-The [youdotcom-cli skill](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-cli) teaches agents:
+Uses `curl` and `jq` to call You.com APIs. Ideal when your agent environment doesn't have Node.js or Bun available, or you want to avoid any npm dependencies entirely.
 
-- **Schema Discovery** - Use `--schema` and `--help` to discover available parameters
-- **Runtime Setup** - Check for Node.js/Bun, install if needed
-- **API Configuration** - Set up API keys and client tracking
-- **Command Patterns** - Positional JSON input with compact output
-- **Error Handling** - Stdout/stderr separation with exit codes
-- **Advanced Workflows** - Livecrawl, parallel execution, rate limiting
+```bash
+npx skills add youdotcom-oss/agent-skills --skill youdotcom-cli
+```
+
+### [youdotcom-api](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/youdotcom-api) — build your own integration
+
+Tell your agent how to integrate You.com APIs from scratch, directly into your own code (in any language) without wrapping this package. Includes full JSON schemas for all endpoints and runnable examples for each API.
+
+```bash
+npx skills add youdotcom-oss/agent-skills --skill youdotcom-api
+```
 
 ### Compatible Agents
 
@@ -475,15 +481,6 @@ Works with any bash-capable agent supporting Agent Skills:
 - **Codex** - OpenAI's CLI agent
 - **Roo Code** - VS Code extension
 - And more...
-
-### Installation for Agents
-
-```bash
-# Add skill to agent's skills directory
-npx skills add youdotcom-oss/agent-skills --skill youdotcom-cli
-```
-
-**Using the CLI**: See the skill's SKILL.md for complete integration workflow.
 
 ## TypeScript Types
 
