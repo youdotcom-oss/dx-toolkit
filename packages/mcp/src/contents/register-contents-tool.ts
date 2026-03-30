@@ -26,12 +26,11 @@ export const registerContentsTool = ({
       inputSchema: ContentsQuerySchema.shape,
       outputSchema: ContentsStructuredContentSchema.shape,
     },
-    async (toolInput, { sendNotification }) => {
+    async (contentsQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
 
       try {
         // Validate and parse input
-        const contentsQuery = ContentsQuerySchema.parse(toolInput)
         const { urls, formats, format, crawl_timeout } = contentsQuery
 
         // Handle backward compatibility: prefer formats array, fallback to format string, default to ['markdown']
