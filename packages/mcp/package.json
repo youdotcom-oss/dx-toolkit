@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "3.2.0-next.1",
+  "version": "3.2.1",
   "description": "You.com MCP server — web search, AI research, and content extraction via You.com APIs",
   "license": "MIT",
   "engines": {
