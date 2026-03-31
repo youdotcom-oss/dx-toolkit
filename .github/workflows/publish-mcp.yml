@@ -48,7 +48,7 @@ jobs:
     needs: [publish, update-remote-version]
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for remote version update to complete
+      - name: Wait for npm propagation and remote version update
         env:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
           VERSION: ${{ needs.publish.outputs.version }}
