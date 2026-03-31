@@ -53,6 +53,26 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_ADMIN_TOKEN }}
           VERSION: ${{ needs.publish.outputs.version }}
         run: |
+          echo "⏳ Waiting for @youdotcom-oss/mcp@${VERSION} to be available on npm..."
+          npm_attempts=0
+          npm_max=24  # Up to 24 checks (4min total)
+          npm_interval=10  # Check every 10 seconds
+
+          while [ $npm_attempts -lt $npm_max ]; do
+            npm_attempts=$((npm_attempts + 1))
+            if npm view "@youdotcom-oss/mcp@${VERSION}" version >/dev/null 2>&1; then
+              echo "✅ @youdotcom-oss/mcp@${VERSION} is available on npm"
+              break
+            fi
+            echo "Not available yet, retrying in ${npm_interval}s... (${npm_attempts}/${npm_max})"
+            sleep $npm_interval
+          done
+
+          if [ $npm_attempts -ge $npm_max ]; then
+            echo "⚠️ @youdotcom-oss/mcp@${VERSION} not found on npm after $((npm_max * npm_interval))s"
+            exit 1
+          fi
+
           echo "⏳ Waiting for version update to complete on ${{ secrets.DEPLOYMENT_REPO }}..."
           echo "Looking for release: v${VERSION}"
 
