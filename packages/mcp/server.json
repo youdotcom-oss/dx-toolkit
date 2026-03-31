@@ -39,7 +39,7 @@
           "description": "Remote MCP server URL (defaults to https://api.you.com/mcp)",
           "isRequired": false,
           "isSecret": false,
-          "format": "uri"
+          "format": "string"
         }
       ]
     }
