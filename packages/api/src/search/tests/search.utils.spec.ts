@@ -123,12 +123,12 @@ describe('fetchSearchResults', () => {
     { retry: 2 },
   )
 
-  test('rejects include_domains and exclude_domains together', () => {
-    expect(() =>
+  test('rejects include_domains and exclude_domains together', async () => {
+    await expect(
       fetchSearchResults({
         searchQuery: { query: 'test', include_domains: ['you.com'], exclude_domains: ['spam.com'] },
         getUserAgent,
       }),
-    ).toThrow('Cannot combine include_domains and exclude_domains')
+    ).rejects.toThrow('Cannot combine include_domains and exclude_domains')
   })
 })
