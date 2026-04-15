@@ -123,6 +123,21 @@ export const SearchQuerySchema = z.object({
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>
 
+/**
+ * Validate search query beyond what the schema enforces.
+ * Checks mutual exclusivity of include_domains and exclude_domains.
+ *
+ * @param searchQuery - Parsed search query to validate
+ * @throws Error if include_domains and exclude_domains are both provided
+ *
+ * @public
+ */
+export const validateSearchQuery = (searchQuery: SearchQuery): void => {
+  if (searchQuery.include_domains && searchQuery.exclude_domains) {
+    throw new Error('Cannot combine include_domains and exclude_domains')
+  }
+}
+
 const WebResultSchema = z.object({
   url: z.string().describe('URL'),
   title: z.string().describe('Title'),

@@ -231,10 +231,13 @@ describe('SearchQuerySchema conforms to live OpenAPI spec', () => {
     expect(schemaCount.maxValue).toBe(specCount.maximum)
   })
 
-  test('language enum is included in query schema', () => {
+  test('language enum is included in query schema', async () => {
+    const spec = await fetchSearchSpec()
+    const specLanguages = spec.components.schemas.Language.enum
+
     expect(SearchQuerySchema.shape.language).toBeDefined()
     const schemaLanguages = SearchQuerySchema.shape.language.unwrap().options
-    expect(schemaLanguages.length).toBe(51)
+    expect([...schemaLanguages].sort()).toEqual([...specLanguages].sort())
   })
 
   test('include_domains accepts valid arrays', () => {
@@ -245,9 +248,15 @@ describe('SearchQuerySchema conforms to live OpenAPI spec', () => {
     expect(() => SearchQuerySchema.parse({ query: 'test', exclude_domains: ['spam.com'] })).not.toThrow()
   })
 
-  test('crawl_timeout constraints match spec', () => {
+  test('crawl_timeout constraints match spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specCrawlTimeout = spec.components.schemas.CrawlTimeout
+
+    expect(specCrawlTimeout.minimum).toBeDefined()
+    expect(specCrawlTimeout.maximum).toBeDefined()
+
     const schemaCrawlTimeout = SearchQuerySchema.shape.crawl_timeout.unwrap()
-    expect(schemaCrawlTimeout.minValue).toBe(1)
-    expect(schemaCrawlTimeout.maxValue).toBe(60)
+    expect(schemaCrawlTimeout.minValue).toBe(specCrawlTimeout.minimum)
+    expect(schemaCrawlTimeout.maxValue).toBe(specCrawlTimeout.maximum)
   })
 })

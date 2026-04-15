@@ -2,7 +2,7 @@ import { SEARCH_API_URL } from '../shared/api.constants.ts'
 import type { CustomHeaders, GetUserAgent } from '../shared/api.types.ts'
 import { ApiErrorResponseSchema } from '../shared/api-error.schemas.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
-import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
+import { type SearchQuery, SearchResponseSchema, validateSearchQuery } from './search.schemas.ts'
 
 export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
@@ -15,9 +15,7 @@ export const fetchSearchResults = async ({
   getUserAgent: GetUserAgent
   customHeaders?: CustomHeaders
 }) => {
-  if (searchQuery.include_domains && searchQuery.exclude_domains) {
-    throw new Error('Cannot combine include_domains and exclude_domains')
-  }
+  validateSearchQuery(searchQuery)
 
   const options = {
     method: 'POST',
