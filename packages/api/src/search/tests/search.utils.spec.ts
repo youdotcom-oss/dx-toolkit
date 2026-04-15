@@ -74,7 +74,7 @@ describe('fetchSearchResults', () => {
           query: 'python tutorial',
           count: 2,
           livecrawl: 'web',
-          livecrawl_formats: 'markdown',
+          livecrawl_formats: ['markdown'],
         },
         getUserAgent,
       })
@@ -122,4 +122,13 @@ describe('fetchSearchResults', () => {
     },
     { retry: 2 },
   )
+
+  test('rejects include_domains and exclude_domains together', () => {
+    expect(() =>
+      fetchSearchResults({
+        searchQuery: { query: 'test', include_domains: ['you.com'], exclude_domains: ['spam.com'] },
+        getUserAgent,
+      }),
+    ).toThrow('Cannot combine include_domains and exclude_domains')
+  })
 })

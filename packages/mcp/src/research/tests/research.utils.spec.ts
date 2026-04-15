@@ -96,6 +96,20 @@ describe('formatResearchResults', () => {
     expect(result.structuredContent.sources[0]?.snippetCount).toBe(0)
   })
 
+  test('handles source with undefined snippets', () => {
+    const mockResponse: ResearchResponse = {
+      output: {
+        content: 'Answer',
+        content_type: 'text',
+        sources: [{ url: 'https://example.com/no-snippets', title: 'No Snippets' }],
+      },
+    }
+
+    const result = formatResearchResults(mockResponse)
+
+    expect(result.structuredContent.sources[0]?.snippetCount).toBe(0)
+  })
+
   test('handles response with zero sources', () => {
     const mockResponse: ResearchResponse = {
       output: {

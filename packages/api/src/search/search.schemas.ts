@@ -111,7 +111,14 @@ export const SearchQuerySchema = z.object({
     .describe('Country code'),
   safesearch: z.enum(['off', 'moderate', 'strict']).optional().describe('Filter level'),
   livecrawl: z.enum(['web', 'news', 'all']).optional().describe('Live-crawl sections for full content'),
-  livecrawl_formats: z.enum(['html', 'markdown']).optional().describe('Format for crawled content'),
+  livecrawl_formats: z
+    .array(z.enum(['html', 'markdown']))
+    .optional()
+    .describe('Formats for crawled content'),
+  language: LanguageSchema.optional().describe('Language code (BCP 47 format)'),
+  include_domains: z.array(z.string()).max(500).optional().describe('Domains to include in results (up to 500)'),
+  exclude_domains: z.array(z.string()).max(500).optional().describe('Domains to exclude from results (up to 500)'),
+  crawl_timeout: z.number().int().min(1).max(60).optional().describe('Crawl timeout in seconds (1-60)'),
 })
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>

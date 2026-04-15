@@ -45,24 +45,20 @@ export const buildSearchRequest = ({
   getUserAgent: GetUserAgent
   customHeaders?: CustomHeaders
 }): DryRunResult => {
-  // Convert all search query params to query string parameters
-  const queryParams: Record<string, string> = {}
-
-  for (const [name, value] of Object.entries(searchQuery)) {
-    if (value !== undefined && value !== null) {
-      queryParams[name] = `${value}`
-    }
+  if (searchQuery.include_domains && searchQuery.exclude_domains) {
+    throw new Error('Cannot combine include_domains and exclude_domains')
   }
 
   return {
     url: SEARCH_API_URL,
-    method: 'GET',
+    method: 'POST',
     headers: {
       ...customHeaders,
       'X-API-Key': YDC_API_KEY,
+      'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
     },
-    queryParams,
+    body: JSON.stringify(searchQuery),
   }
 }
 

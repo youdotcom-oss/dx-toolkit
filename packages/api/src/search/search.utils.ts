@@ -15,29 +15,22 @@ export const fetchSearchResults = async ({
   getUserAgent: GetUserAgent
   customHeaders?: CustomHeaders
 }) => {
-  const url = new URL(SEARCH_API_URL)
-
-  const searchParams = new URLSearchParams()
-
-  // Append all query parameters
-  for (const [name, value] of Object.entries(searchQuery)) {
-    if (value !== undefined && value !== null) {
-      searchParams.append(name, `${value}`)
-    }
+  if (searchQuery.include_domains && searchQuery.exclude_domains) {
+    throw new Error('Cannot combine include_domains and exclude_domains')
   }
 
-  url.search = searchParams.toString()
-
   const options = {
-    method: 'GET',
+    method: 'POST',
     headers: new Headers({
       ...customHeaders,
       'X-API-Key': YDC_API_KEY || '',
+      'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
     }),
+    body: JSON.stringify(searchQuery),
   }
 
-  const response = await fetch(url, options)
+  const response = await fetch(SEARCH_API_URL, options)
 
   if (!response.ok) {
     const errorCode = response.status
