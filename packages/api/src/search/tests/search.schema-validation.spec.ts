@@ -4,29 +4,17 @@ import { LanguageSchema, SearchQuerySchema } from '../search.schemas.ts'
 const OPENAPI_SPEC_URL = 'https://you.com/specs/openapi_search_v1.yaml'
 
 type OpenApiSpec = {
-  paths: {
-    '/v1/search': {
-      get: {
-        parameters: Array<{
-          name: string
-          schema: {
-            enum?: string[]
-            minimum?: number
-            maximum?: number
-            $ref?: string
-            oneOf?: Array<{ $ref?: string }>
-          }
-        }>
-      }
-    }
-  }
   components: {
     schemas: {
       Country: { enum: string[] }
       Language: { enum: string[] }
       SafeSearch: { enum: string[] }
       LiveCrawl: { enum: string[] }
-      LiveCrawlFormats: { enum: string[] }
+      LiveCrawlFormats: { type: string; items: { enum: string[] } }
+      Count: { type: string; minimum: number; maximum: number }
+      CrawlTimeout: { type: string; minimum: number; maximum: number }
+      IncludeDomains: { type: string; items: { type: string } }
+      ExcludeDomains: { type: string; items: { type: string } }
     }
   }
 }
@@ -43,7 +31,9 @@ describe('SearchQuerySchema OpenAPI validation', () => {
       { query: 'AI' },
       { query: 'test', count: 10, freshness: 'week' },
       { query: 'search', country: 'US', safesearch: 'moderate' },
-      { query: 'livecrawl test', livecrawl: 'web', livecrawl_formats: 'markdown' },
+      { query: 'livecrawl test', livecrawl: 'web', livecrawl_formats: ['markdown'] },
+      { query: 'test', language: 'EN', include_domains: ['you.com'], crawl_timeout: 30 },
+      { query: 'test', exclude_domains: ['spam.com'] },
     ]
 
     for (const validQuery of validQueries) {
@@ -61,6 +51,10 @@ describe('SearchQuerySchema OpenAPI validation', () => {
       { query: 'test', offset: 10 }, // Offset too high
       { query: 'test', safesearch: 'invalid' }, // Invalid safesearch
       { query: 'test', livecrawl: 'invalid' }, // Invalid livecrawl
+      { query: 'test', crawl_timeout: 0 }, // Crawl timeout too low
+      { query: 'test', crawl_timeout: 61 }, // Crawl timeout too high
+      { query: 'test', include_domains: Array(501).fill('a.com') }, // Too many include domains
+      { query: 'test', exclude_domains: Array(501).fill('a.com') }, // Too many exclude domains
     ]
 
     for (const invalidQuery of invalidQueries) {
@@ -219,21 +213,50 @@ describe('SearchQuerySchema conforms to live OpenAPI spec', () => {
 
   test('livecrawl_formats enum matches spec', async () => {
     const spec = await fetchSearchSpec()
-    const specFormats = spec.components.schemas.LiveCrawlFormats.enum
+    const specFormats = spec.components.schemas.LiveCrawlFormats.items.enum
 
-    const schemaFormats = SearchQuerySchema.shape.livecrawl_formats.unwrap().options
+    const schemaFormats = SearchQuerySchema.shape.livecrawl_formats.unwrap().element.options
     expect([...schemaFormats].sort()).toEqual([...specFormats].sort())
   })
 
   test('count constraints match spec', async () => {
     const spec = await fetchSearchSpec()
-    const countParam = spec.paths['/v1/search'].get.parameters.find((p) => p.name === 'count')
+    const specCount = spec.components.schemas.Count
 
-    expect(countParam?.schema.minimum).toBeDefined()
-    expect(countParam?.schema.maximum).toBeDefined()
+    expect(specCount.minimum).toBeDefined()
+    expect(specCount.maximum).toBeDefined()
 
     const schemaCount = SearchQuerySchema.shape.count.unwrap()
-    expect(schemaCount.minValue).toBe(countParam?.schema.minimum)
-    expect(schemaCount.maxValue).toBe(countParam?.schema.maximum)
+    expect(schemaCount.minValue).toBe(specCount.minimum)
+    expect(schemaCount.maxValue).toBe(specCount.maximum)
+  })
+
+  test('language enum is included in query schema', async () => {
+    const spec = await fetchSearchSpec()
+    const specLanguages = spec.components.schemas.Language.enum
+
+    expect(SearchQuerySchema.shape.language).toBeDefined()
+    const schemaLanguages = SearchQuerySchema.shape.language.unwrap().options
+    expect([...schemaLanguages].sort()).toEqual([...specLanguages].sort())
+  })
+
+  test('include_domains accepts valid arrays', () => {
+    expect(() => SearchQuerySchema.parse({ query: 'test', include_domains: ['you.com', 'example.com'] })).not.toThrow()
+  })
+
+  test('exclude_domains accepts valid arrays', () => {
+    expect(() => SearchQuerySchema.parse({ query: 'test', exclude_domains: ['spam.com'] })).not.toThrow()
+  })
+
+  test('crawl_timeout constraints match spec', async () => {
+    const spec = await fetchSearchSpec()
+    const specCrawlTimeout = spec.components.schemas.CrawlTimeout
+
+    expect(specCrawlTimeout.minimum).toBeDefined()
+    expect(specCrawlTimeout.maximum).toBeDefined()
+
+    const schemaCrawlTimeout = SearchQuerySchema.shape.crawl_timeout.unwrap()
+    expect(schemaCrawlTimeout.minValue).toBe(specCrawlTimeout.minimum)
+    expect(schemaCrawlTimeout.maxValue).toBe(specCrawlTimeout.maximum)
   })
 })

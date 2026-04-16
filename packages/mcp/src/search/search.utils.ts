@@ -1,4 +1,4 @@
-import type { NewsResult, SearchResponse } from '@youdotcom-oss/api'
+import type { SearchResponse } from '@youdotcom-oss/api'
 import { formatSearchResultsText } from '../shared/format-search-results-text.ts'
 
 export const formatSearchResults = (response: SearchResponse) => {
@@ -10,14 +10,9 @@ export const formatSearchResults = (response: SearchResponse) => {
     formattedResults += `WEB RESULTS:\n\n${webResults}`
   }
 
-  // Format news results
+  // Format news results using shared utility (consistent with web formatting)
   if (response.results.news?.length) {
-    const newsResults = response.results.news
-      .map(
-        (article: NewsResult) =>
-          `Title: ${article.title}\nURL: ${article.url}\nDescription: ${article.description}\nPublished: ${article.page_age}`,
-      )
-      .join('\n\n---\n\n')
+    const newsResults = formatSearchResultsText(response.results.news)
 
     if (formattedResults) {
       formattedResults += `\n\n${'='.repeat(50)}\n\n`
@@ -27,27 +22,45 @@ export const formatSearchResults = (response: SearchResponse) => {
 
   // Extract fields for structuredContent
   const structuredResults: {
-    web?: Array<{ url: string; title: string; page_age?: string }>
-    news?: Array<{ url: string; title: string; page_age: string }>
+    web?: Array<{
+      url: string
+      title: string
+      page_age?: string
+      snippets?: string[]
+      contents?: { html?: string; markdown?: string }
+    }>
+    news?: Array<{ url: string; title: string; page_age: string; contents?: { html?: string; markdown?: string } }>
   } = {}
 
   if (response.results.web?.length) {
     structuredResults.web = response.results.web.map((result) => {
-      const item: { url: string; title: string; page_age?: string } = {
+      const item: {
+        url: string
+        title: string
+        page_age?: string
+        snippets?: string[]
+        contents?: { html?: string; markdown?: string }
+      } = {
         url: result.url,
         title: result.title,
       }
       if (result.page_age) item.page_age = result.page_age
+      if (result.snippets?.length) item.snippets = result.snippets
+      if (result.contents) item.contents = result.contents ?? undefined
       return item
     })
   }
 
   if (response.results.news?.length) {
-    structuredResults.news = response.results.news.map((article) => ({
-      url: article.url,
-      title: article.title,
-      page_age: article.page_age,
-    }))
+    structuredResults.news = response.results.news.map((article) => {
+      const item: { url: string; title: string; page_age: string; contents?: { html?: string; markdown?: string } } = {
+        url: article.url,
+        title: article.title,
+        page_age: article.page_age,
+      }
+      if (article.contents) item.contents = article.contents ?? undefined
+      return item
+    })
   }
 
   return {

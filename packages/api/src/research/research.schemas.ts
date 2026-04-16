@@ -43,7 +43,10 @@ export type ResearchQuery = z.infer<typeof ResearchQuerySchema>
 const ResearchSourceSchema = z.object({
   url: z.string().describe('Source webpage URL'),
   title: z.string().optional().describe('Source webpage title'),
-  snippets: z.array(z.string()).describe('Relevant excerpts from the source page used in generating the answer'),
+  snippets: z
+    .array(z.string())
+    .optional()
+    .describe('Relevant excerpts from the source page used in generating the answer'),
 })
 
 /**

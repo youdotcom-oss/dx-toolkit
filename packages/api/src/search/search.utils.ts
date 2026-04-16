@@ -2,7 +2,7 @@ import { SEARCH_API_URL } from '../shared/api.constants.ts'
 import type { CustomHeaders, GetUserAgent } from '../shared/api.types.ts'
 import { ApiErrorResponseSchema } from '../shared/api-error.schemas.ts'
 import { checkResponseForErrors } from '../shared/check-response-for-errors.ts'
-import { type SearchQuery, SearchResponseSchema } from './search.schemas.ts'
+import { type SearchQuery, SearchResponseSchema, validateSearchQuery } from './search.schemas.ts'
 
 export const fetchSearchResults = async ({
   YDC_API_KEY = process.env.YDC_API_KEY,
@@ -15,29 +15,20 @@ export const fetchSearchResults = async ({
   getUserAgent: GetUserAgent
   customHeaders?: CustomHeaders
 }) => {
-  const url = new URL(SEARCH_API_URL)
-
-  const searchParams = new URLSearchParams()
-
-  // Append all query parameters
-  for (const [name, value] of Object.entries(searchQuery)) {
-    if (value !== undefined && value !== null) {
-      searchParams.append(name, `${value}`)
-    }
-  }
-
-  url.search = searchParams.toString()
+  validateSearchQuery(searchQuery)
 
   const options = {
-    method: 'GET',
+    method: 'POST',
     headers: new Headers({
       ...customHeaders,
       'X-API-Key': YDC_API_KEY || '',
+      'Content-Type': 'application/json',
       'User-Agent': getUserAgent(),
     }),
+    body: JSON.stringify(searchQuery),
   }
 
-  const response = await fetch(url, options)
+  const response = await fetch(SEARCH_API_URL, options)
 
   if (!response.ok) {
     const errorCode = response.status

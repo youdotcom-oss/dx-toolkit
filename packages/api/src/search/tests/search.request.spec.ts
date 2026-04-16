@@ -6,6 +6,8 @@ describe('buildSearchRequest', () => {
   const getUserAgent = () => 'test-agent'
   const YDC_API_KEY = 'test-key'
 
+  const parseBody = (request: ReturnType<typeof buildSearchRequest>) => JSON.parse(request.body ?? '{}')
+
   test('builds basic search request', () => {
     const request = buildSearchRequest({
       searchQuery: { query: 'AI' },
@@ -14,10 +16,11 @@ describe('buildSearchRequest', () => {
     })
 
     expect(request.url).toBe(SEARCH_API_URL)
-    expect(request.method).toBe('GET')
+    expect(request.method).toBe('POST')
     expect(request.headers['X-API-Key']).toBe('test-key')
     expect(request.headers['User-Agent']).toBe('test-agent')
-    expect(request.queryParams?.query).toBe('AI')
+    expect(request.headers['Content-Type']).toBe('application/json')
+    expect(parseBody(request).query).toBe('AI')
   })
 
   test('passes query with site: operator directly', () => {
@@ -27,7 +30,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('AI site:you.com')
+    expect(parseBody(request).query).toBe('AI site:you.com')
   })
 
   test('passes query with filetype: operator directly', () => {
@@ -37,7 +40,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('tutorial filetype:pdf')
+    expect(parseBody(request).query).toBe('tutorial filetype:pdf')
   })
 
   test('passes query with lang: operator directly', () => {
@@ -47,7 +50,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('search lang:en')
+    expect(parseBody(request).query).toBe('search lang:en')
   })
 
   test('passes query with +term inclusion operator directly', () => {
@@ -57,7 +60,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('search +machine +learning')
+    expect(parseBody(request).query).toBe('search +machine +learning')
   })
 
   test('passes query with -term exclusion operator directly', () => {
@@ -67,7 +70,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('python -django -flask')
+    expect(parseBody(request).query).toBe('python -django -flask')
   })
 
   test('passes query with boolean operators directly', () => {
@@ -77,7 +80,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('(Python OR JavaScript) AND tutorial -deprecated')
+    expect(parseBody(request).query).toBe('(Python OR JavaScript) AND tutorial -deprecated')
   })
 
   test('includes advanced search parameters', () => {
@@ -90,20 +93,21 @@ describe('buildSearchRequest', () => {
         country: 'US',
         safesearch: 'moderate',
         livecrawl: 'web',
-        livecrawl_formats: 'markdown',
+        livecrawl_formats: ['markdown'],
       },
       YDC_API_KEY,
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe('AI')
-    expect(request.queryParams?.count).toBe('10')
-    expect(request.queryParams?.freshness).toBe('week')
-    expect(request.queryParams?.offset).toBe('5')
-    expect(request.queryParams?.country).toBe('US')
-    expect(request.queryParams?.safesearch).toBe('moderate')
-    expect(request.queryParams?.livecrawl).toBe('web')
-    expect(request.queryParams?.livecrawl_formats).toBe('markdown')
+    const body = parseBody(request)
+    expect(body.query).toBe('AI')
+    expect(body.count).toBe(10)
+    expect(body.freshness).toBe('week')
+    expect(body.offset).toBe(5)
+    expect(body.country).toBe('US')
+    expect(body.safesearch).toBe('moderate')
+    expect(body.livecrawl).toBe('web')
+    expect(body.livecrawl_formats).toEqual(['markdown'])
   })
 
   test('combines multiple operators in query string', () => {
@@ -115,7 +119,7 @@ describe('buildSearchRequest', () => {
       getUserAgent,
     })
 
-    expect(request.queryParams?.query).toBe(
+    expect(parseBody(request).query).toBe(
       'machine learning best practices (Python OR PyTorch) -TensorFlow filetype:pdf',
     )
   })
@@ -141,5 +145,47 @@ describe('buildSearchRequest', () => {
 
     expect(request.headers['X-API-Key']).toBe(YDC_API_KEY)
     expect(request.headers['User-Agent']).toBe('test-agent')
+  })
+
+  test('includes new fields in request body', () => {
+    const request = buildSearchRequest({
+      searchQuery: {
+        query: 'AI',
+        language: 'EN',
+        include_domains: ['you.com', 'example.com'],
+        crawl_timeout: 30,
+      },
+      YDC_API_KEY,
+      getUserAgent,
+    })
+
+    const body = parseBody(request)
+    expect(body.language).toBe('EN')
+    expect(body.include_domains).toEqual(['you.com', 'example.com'])
+    expect(body.crawl_timeout).toBe(30)
+  })
+
+  test('includes exclude_domains in request body', () => {
+    const request = buildSearchRequest({
+      searchQuery: {
+        query: 'AI',
+        exclude_domains: ['spam.com'],
+      },
+      YDC_API_KEY,
+      getUserAgent,
+    })
+
+    const body = parseBody(request)
+    expect(body.exclude_domains).toEqual(['spam.com'])
+  })
+
+  test('rejects include_domains and exclude_domains together', () => {
+    expect(() =>
+      buildSearchRequest({
+        searchQuery: { query: 'test', include_domains: ['you.com'], exclude_domains: ['spam.com'] },
+        YDC_API_KEY,
+        getUserAgent,
+      }),
+    ).toThrow('Cannot combine include_domains and exclude_domains')
   })
 })

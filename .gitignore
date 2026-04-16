@@ -107,6 +107,9 @@ config/secrets.json
 .claude/settings.local.json
 .mcp.json
 
+# Factory
+.factory/
+
 
 packages/*/.mcpregistry_registry_token
 packages/*/.mcpregistry_github_token

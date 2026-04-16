@@ -17,7 +17,8 @@ export const registerSearchTool = ({
     'you-search',
     {
       title: 'Web Search',
-      description: 'Web and news search via You.com',
+      description:
+        'Web and news search via You.com. Supports domain filtering, language selection, livecrawl for full page content, and date freshness controls.',
       inputSchema: SearchQuerySchema.shape,
       outputSchema: SearchStructuredContentSchema.shape,
     },

@@ -9,7 +9,13 @@ type GenericSearchResult = {
   snippet?: string
   snippets?: string[]
   page_age?: string
+  contents?: { html?: string; markdown?: string }
 }
+
+/**
+ * Format a character count with locale-aware number formatting
+ */
+const formatCharCount = (count: number): string => count.toLocaleString()
 
 /**
  * Format array of search results into display text
@@ -41,6 +47,20 @@ export const formatSearchResultsText = (results: GenericSearchResult[]): string 
       // Handle single snippet
       else if (result.snippet) {
         parts.push(`Snippet: ${result.snippet}`)
+      }
+
+      // Add contents indicator if livecrawl returned page content
+      if (result.contents) {
+        const formats: string[] = []
+        if (result.contents.markdown) {
+          formats.push(`${formatCharCount(result.contents.markdown.length)} chars (markdown)`)
+        }
+        if (result.contents.html) {
+          formats.push(`${formatCharCount(result.contents.html.length)} chars (html)`)
+        }
+        if (formats.length > 0) {
+          parts.push(`Page content available: ${formats.join(', ')}`)
+        }
       }
 
       return parts.join('\n')

@@ -83,7 +83,7 @@ export const formatResearchResponse = (response: z.infer<typeof ResearchResponse
       parts.push(`\n### ${index + 1}. ${source.title ?? source.url}\n`)
       parts.push(`**URL:** ${source.url}\n`)
 
-      if (source.snippets.length > 0) {
+      if (source.snippets?.length) {
         parts.push('\n**Key Excerpts:**\n')
         for (const snippet of source.snippets) {
           parts.push(`> ${snippet}\n`)

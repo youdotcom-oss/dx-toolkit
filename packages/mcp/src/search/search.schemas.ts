@@ -16,6 +16,14 @@ export const SearchStructuredContentSchema = z.object({
             url: z.string().describe('URL'),
             title: z.string().describe('Title'),
             page_age: z.string().optional().describe('Publication timestamp'),
+            snippets: z.array(z.string()).optional().describe('Content snippets'),
+            contents: z
+              .object({
+                html: z.string().optional().describe('Full HTML content'),
+                markdown: z.string().optional().describe('Full Markdown content'),
+              })
+              .optional()
+              .describe('Livecrawled page content'),
           }),
         )
         .optional()
@@ -26,6 +34,13 @@ export const SearchStructuredContentSchema = z.object({
             url: z.string().describe('URL'),
             title: z.string().describe('Title'),
             page_age: z.string().describe('Publication timestamp'),
+            contents: z
+              .object({
+                html: z.string().optional().describe('Full HTML content'),
+                markdown: z.string().optional().describe('Full Markdown content'),
+              })
+              .optional()
+              .describe('Livecrawled page content'),
           }),
         )
         .optional()

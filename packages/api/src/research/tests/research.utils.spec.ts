@@ -81,7 +81,7 @@ describe('callResearch', () => {
 
       expect(typeof result.output.content).toBe('string')
       expect(result.output.content.length).toBeGreaterThan(0)
-      expect(result.output.content).toMatch(/\[\d+\]/)
+      expect(result.output.content).toMatch(/(?:\[\d+(?:,\s*\d+)*\]|\[\[\d+(?:,\s*\d+)*\]\])/)
     },
     { retry: 2, timeout: 15_000 },
   )
