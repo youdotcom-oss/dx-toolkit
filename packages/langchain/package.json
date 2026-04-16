@@ -59,7 +59,7 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/api": "0.5.1"
+    "@youdotcom-oss/api": "0.5.2"
   },
   "peerDependencies": {
     "langchain": ">=1.0.0"
