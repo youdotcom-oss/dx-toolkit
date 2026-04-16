@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { SearchResponse } from '@youdotcom-oss/api'
-import { SearchQuerySchema } from '@youdotcom-oss/api'
+import * as api from '@youdotcom-oss/api'
+import { registerSearchTool } from '../register-search-tool.ts'
 
 const emptyResponse: SearchResponse = {
   results: { web: [], news: [] },
@@ -28,24 +29,18 @@ const oneResultResponse: SearchResponse = {
 }
 
 let mockFetchResponse: SearchResponse | Error = emptyResponse
-
-mock.module('@youdotcom-oss/api', () => ({
-  fetchSearchResults: async () => {
-    if (mockFetchResponse instanceof Error) throw mockFetchResponse
-    return mockFetchResponse
-  },
-  generateErrorReportLink: () => 'https://example.com/report',
-  SearchQuerySchema,
-}))
-
-// Import after mock so the mock is active
-const { registerSearchTool } = await import('../register-search-tool.ts')
+let fetchSearchResultsSpy: ReturnType<typeof spyOn<typeof api, 'fetchSearchResults'>> | undefined
+let generateErrorReportLinkSpy: ReturnType<typeof spyOn<typeof api, 'generateErrorReportLink'>> | undefined
 
 type Cleanup = () => Promise<void>
 
 const setupMcpClient = async (): Promise<{ client: Client; cleanup: Cleanup }> => {
   const server = new McpServer({ name: 'test', version: '0.0.0' }, { capabilities: { logging: {}, tools: {} } })
-  registerSearchTool({ mcp: server, YDC_API_KEY: 'test-key', getUserAgent: () => 'test-agent' })
+  registerSearchTool({
+    mcp: server,
+    YDC_API_KEY: 'test-key',
+    getUserAgent: () => 'test-agent',
+  })
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
   await server.connect(serverTransport)
@@ -66,6 +61,13 @@ describe('registerSearchTool', () => {
 
   beforeEach(() => {
     mockFetchResponse = emptyResponse
+    fetchSearchResultsSpy = spyOn(api, 'fetchSearchResults').mockImplementation(async () => {
+      if (mockFetchResponse instanceof Error) throw mockFetchResponse
+      return mockFetchResponse
+    })
+    generateErrorReportLinkSpy = spyOn(api, 'generateErrorReportLink').mockImplementation(
+      () => 'https://example.com/report',
+    )
   })
 
   afterEach(async () => {
@@ -73,6 +75,10 @@ describe('registerSearchTool', () => {
       await cleanup()
       cleanup = undefined
     }
+    fetchSearchResultsSpy?.mockRestore()
+    fetchSearchResultsSpy = undefined
+    generateErrorReportLinkSpy?.mockRestore()
+    generateErrorReportLinkSpy = undefined
   })
 
   test('handles empty search results gracefully', async () => {
