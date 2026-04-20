@@ -11,17 +11,14 @@ export const formatContentsResponse = (
   response: ContentsApiResponse,
   formats: string[],
 ): Array<{ type: 'text'; text: string }> => {
-  // Build text content with full extracted content
   const textParts: string[] = [`Successfully extracted content from ${response.length} URL(s):\n`]
   textParts.push(`Formats: ${formats.join(', ')}\n`)
 
   for (const item of response) {
-    // Add header for this item
     textParts.push(`\n## ${item.title || 'Untitled'}`)
     textParts.push(`URL: ${item.url}\n`)
     textParts.push('---\n')
 
-    // Add content based on requested formats
     if (formats.includes('markdown') && item.markdown) {
       textParts.push('\n### Markdown Content\n')
       textParts.push(item.markdown)

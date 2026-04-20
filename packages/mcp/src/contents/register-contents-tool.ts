@@ -22,7 +22,6 @@ export const registerContentsTool = ({
   YDC_API_KEY?: string
   getUserAgent: () => string
 }) => {
-  // Register the tool
   mcp.registerTool(
     'you-contents',
     {
@@ -32,39 +31,30 @@ export const registerContentsTool = ({
       outputSchema: z.object({
         output: ContentsApiResponseSchema,
       }),
-        output: ContentsApiResponseSchema,
-      outputSchema: z.object({
-        output: ContentsApiResponseSchema,
-      }),
     },
     async (contentsQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
 
       try {
-        // Validate and parse input
         const { urls, formats, format, crawl_timeout } = contentsQuery
 
         // Handle backward compatibility: prefer formats array, fallback to format string, default to ['markdown']
         const requestFormats = formats || (format ? [format] : ['markdown'])
 
-        // Log the request
         const timeoutInfo = crawl_timeout ? ` with timeout: ${crawl_timeout}s` : ''
         await logger({
           level: 'info',
           data: `Contents API call initiated for ${urls.length} URL(s) with formats: ${requestFormats.join(', ')}${timeoutInfo}`,
         })
 
-        // Fetch contents from API
         const response = await fetchContents({
           contentsQuery,
           YDC_API_KEY,
           getUserAgent,
         })
 
-        // Format response with full content
         const content = formatContentsResponse(response, requestFormats)
 
-        // Log success
         await logger({
           level: 'info',
           data: `Contents API call successful: extracted ${response.length} page(s)`,
@@ -77,7 +67,6 @@ export const registerContentsTool = ({
           },
         }
       } catch (err: unknown) {
-        // Handle and log errors
         const errorMessage = err instanceof Error ? err.message : String(err)
         const reportLink = generateErrorReportLink({
           errorMessage,
