@@ -2,10 +2,9 @@ import type { ContentsApiResponse } from '@youdotcom-oss/api'
 
 /**
  * Format contents API response for MCP output
- * Returns full content in both text and structured formats
  * @param response - Validated API response
  * @param formats - Formats used for extraction
- * @returns Formatted response with content and structuredContent
+ * @returns Text content blocks for the MCP response
  */
 export const formatContentsResponse = (
   response: ContentsApiResponse,
