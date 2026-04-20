@@ -108,8 +108,9 @@ config/secrets.json
 .mcp.json
 
 # Factory
-.factory/
-
+.factory/settings.json
+.factory/droids/
+.factory/cache/
 
 packages/*/.mcpregistry_registry_token
 packages/*/.mcpregistry_github_token
