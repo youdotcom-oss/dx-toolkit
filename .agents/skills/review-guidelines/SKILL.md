@@ -24,7 +24,7 @@ Additional checks for this codebase:
 
 - `Bun.file()` over `fs.existsSync()` / `readFileSync()`
 - `Bun.write()` over `writeFileSync()`
-- `Bun.\$\`cmd\`` over `child_process.spawn()`
+- `Bun.$\`cmd\`` over `child_process.spawn()`
 - `import.meta.dir` over `process.cwd()`
 - Run commands from repo root with `bun --cwd packages/<name>` — never `cd` into packages
 

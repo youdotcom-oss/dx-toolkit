@@ -65,10 +65,11 @@
     "@youdotcom-oss/api": "0.5.2"
   },
   "peerDependencies": {
-    "ai": "^6.0.83"
+    "ai": "^6.0.168"
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^3.0.42",
-    "ai": "^6.0.83"
+    "@ai-sdk/anthropic": "^3.0.71",
+    "@types/bun": "latest",
+    "ai": "^6.0.168"
   }
 }

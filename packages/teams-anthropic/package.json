@@ -58,12 +58,12 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
-    "@microsoft/teams.ai": "^2.0.5",
-    "@microsoft/teams.common": "^2.0.5"
+    "@anthropic-ai/sdk": "^0.90.0",
+    "@microsoft/teams.ai": "^2.0.8",
+    "@microsoft/teams.common": "^2.0.8"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

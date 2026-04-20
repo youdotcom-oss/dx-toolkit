@@ -1,8 +1,5 @@
-export type { ContentsStructuredContent } from './contents/contents.schemas.ts'
 export { registerContentsTool } from './contents/register-contents-tool.ts'
 export { getMcpServer } from './get-mcp-server.ts'
 export { registerResearchTool } from './research/register-research-tool.ts'
-export type { ResearchStructuredContent } from './research/research.schemas.ts'
 export { registerSearchTool } from './search/register-search-tool.ts'
-export type { SearchStructuredContent } from './search/search.schemas.ts'
 export { useGetClientVersion } from './shared/use-client-version.ts'

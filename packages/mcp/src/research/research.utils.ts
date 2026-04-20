@@ -1,30 +1,12 @@
 import type { ResearchResponse } from '@youdotcom-oss/api'
 import { formatResearchResponse } from '@youdotcom-oss/api'
-import type { ResearchStructuredContent } from './research.schemas.ts'
 
-export const formatResearchResults = (
-  response: ResearchResponse,
-): {
-  content: Array<{ type: 'text'; text: string }>
-  structuredContent: ResearchStructuredContent
-} => {
+export const formatResearchResults = (response: ResearchResponse): Array<{ type: 'text'; text: string }> => {
   const text = formatResearchResponse(response)
-
-  return {
-    content: [
-      {
-        type: 'text',
-        text,
-      },
-    ],
-    structuredContent: {
-      contentType: response.output.content_type,
-      sourceCount: response.output.sources.length,
-      sources: response.output.sources.map((source) => ({
-        url: source.url,
-        title: source.title,
-        snippetCount: source.snippets?.length ?? 0,
-      })),
+  return [
+    {
+      type: 'text',
+      text,
     },
-  }
+  ]
 }

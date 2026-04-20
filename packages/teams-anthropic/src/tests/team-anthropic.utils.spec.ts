@@ -275,6 +275,7 @@ describe('message-transformer', () => {
           service_tier: null,
           inference_geo: null,
         },
+        stop_details: null,
         container: null,
       }
 
@@ -317,6 +318,7 @@ describe('message-transformer', () => {
           service_tier: null,
           inference_geo: null,
         },
+        stop_details: null,
         container: null,
       }
 
@@ -364,6 +366,7 @@ describe('message-transformer', () => {
           service_tier: null,
           inference_geo: null,
         },
+        stop_details: null,
         container: null,
       }
 
@@ -406,6 +409,7 @@ describe('message-transformer', () => {
           service_tier: null,
           inference_geo: null,
         },
+        stop_details: null,
         container: null,
       }
 
@@ -435,6 +439,7 @@ describe('message-transformer', () => {
           service_tier: null,
           inference_geo: null,
         },
+        stop_details: null,
         container: null,
       }
 
