@@ -4,13 +4,11 @@ import { formatSearchResultsText } from '../shared/format-search-results-text.ts
 export const formatSearchResults = (response: SearchResponse) => {
   let formattedResults = ''
 
-  // Format web results using shared utility
   if (response.results.web?.length) {
     const webResults = formatSearchResultsText(response.results.web)
     formattedResults += `WEB RESULTS:\n\n${webResults}`
   }
 
-  // Format news results using shared utility (consistent with web formatting)
   if (response.results.news?.length) {
     const newsResults = formatSearchResultsText(response.results.news)
 
