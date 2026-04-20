@@ -61,7 +61,7 @@
     },
     "packages/mcp": {
       "name": "@youdotcom-oss/mcp",
-      "version": "3.2.3",
+      "version": "3.3.0",
       "bin": "bin/stdio.js",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.28.0",
