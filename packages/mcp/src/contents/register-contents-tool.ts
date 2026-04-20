@@ -31,6 +31,8 @@ export const registerContentsTool = ({
       inputSchema: ContentsQuerySchema.shape,
       outputSchema: z.object({
         output: ContentsApiResponseSchema,
+      }),
+        output: ContentsApiResponseSchema,
       }).shape,
     },
     async (contentsQuery, { sendNotification }) => {
