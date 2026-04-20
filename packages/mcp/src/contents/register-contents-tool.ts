@@ -33,7 +33,9 @@ export const registerContentsTool = ({
         output: ContentsApiResponseSchema,
       }),
         output: ContentsApiResponseSchema,
-      }).shape,
+      outputSchema: z.object({
+        output: ContentsApiResponseSchema,
+      }),
     },
     async (contentsQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
