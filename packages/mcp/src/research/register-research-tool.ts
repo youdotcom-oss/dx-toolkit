@@ -18,7 +18,7 @@ export const registerResearchTool = ({
       title: 'Research',
       description:
         'Research a topic with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive).',
-      inputSchema: ResearchQuerySchema.shape,
+      inputSchema: ResearchQuerySchema,
       outputSchema: ResearchResponseSchema,
     },
     async (researchQuery, { sendNotification }) => {

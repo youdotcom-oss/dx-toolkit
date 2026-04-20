@@ -28,10 +28,10 @@ export const registerContentsTool = ({
     {
       title: 'Extract Web Page Contents',
       description: 'Extract page content in markdown or HTML',
-      inputSchema: ContentsQuerySchema.shape,
+      inputSchema: ContentsQuerySchema,
       outputSchema: z.object({
         output: ContentsApiResponseSchema,
-      }).shape,
+      }),
     },
     async (contentsQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)

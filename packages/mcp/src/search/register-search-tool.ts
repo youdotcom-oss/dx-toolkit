@@ -23,7 +23,7 @@ export const registerSearchTool = ({
       title: 'Web Search',
       description:
         'Web and news search via You.com. Supports domain filtering, language selection, livecrawl for full page content, and date freshness controls.',
-      inputSchema: SearchQuerySchema.shape,
+      inputSchema: SearchQuerySchema,
       outputSchema: SearchResponseSchema,
     },
     async (searchQuery, { sendNotification }) => {
