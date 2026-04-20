@@ -1,7 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { fetchSearchResults, generateErrorReportLink, SearchQuerySchema } from '@youdotcom-oss/api'
+import {
+  fetchSearchResults,
+  generateErrorReportLink,
+  SearchQuerySchema,
+  SearchResponseSchema,
+} from '@youdotcom-oss/api'
 import { getLogger } from '../shared/get-logger.ts'
-import { SearchStructuredContentSchema } from './search.schemas.ts'
 import { formatSearchResults } from './search.utils.ts'
 
 export const registerSearchTool = ({
@@ -20,7 +24,7 @@ export const registerSearchTool = ({
       description:
         'Web and news search via You.com. Supports domain filtering, language selection, livecrawl for full page content, and date freshness controls.',
       inputSchema: SearchQuerySchema.shape,
-      outputSchema: SearchStructuredContentSchema.shape,
+      outputSchema: SearchResponseSchema,
     },
     async (searchQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
@@ -42,13 +46,7 @@ export const registerSearchTool = ({
 
           return {
             content: [{ type: 'text' as const, text: 'No results found.' }],
-            structuredContent: {
-              resultCounts: {
-                web: 0,
-                news: 0,
-                total: 0,
-              },
-            },
+            structuredContent: response,
           }
         }
 
@@ -57,8 +55,8 @@ export const registerSearchTool = ({
           data: `Search successful for query: "${searchQuery.query}" - ${webCount} web results, ${newsCount} news results (${webCount + newsCount} total)`,
         })
 
-        const { content, structuredContent } = formatSearchResults(response)
-        return { content, structuredContent }
+        const content = formatSearchResults(response)
+        return { content, structuredContent: response }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err)
         const reportLink = generateErrorReportLink({

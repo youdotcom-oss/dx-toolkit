@@ -1,7 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { callResearch, generateErrorReportLink, ResearchQuerySchema } from '@youdotcom-oss/api'
+import { callResearch, generateErrorReportLink, ResearchQuerySchema, ResearchResponseSchema } from '@youdotcom-oss/api'
 import { getLogger } from '../shared/get-logger.ts'
-import { ResearchStructuredContentSchema } from './research.schemas.ts'
 import { formatResearchResults } from './research.utils.ts'
 
 export const registerResearchTool = ({
@@ -20,7 +19,7 @@ export const registerResearchTool = ({
       description:
         'Research a topic with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive).',
       inputSchema: ResearchQuerySchema.shape,
-      outputSchema: ResearchStructuredContentSchema.shape,
+      outputSchema: ResearchResponseSchema,
     },
     async (researchQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
@@ -38,8 +37,8 @@ export const registerResearchTool = ({
           data: `Research for "${researchQuery.input.substring(0, 100)}" complete: ${sourceCount} source(s)`,
         })
 
-        const { content, structuredContent } = formatResearchResults(response)
-        return { content, structuredContent }
+        const content = formatResearchResults(response)
+        return { content, structuredContent: response }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err)
         const reportLink = generateErrorReportLink({

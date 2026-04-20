@@ -1,5 +1,4 @@
 import type { ContentsApiResponse } from '@youdotcom-oss/api'
-import type { ContentsStructuredContent } from './contents.schemas.ts'
 
 /**
  * Format contents API response for MCP output
@@ -11,15 +10,10 @@ import type { ContentsStructuredContent } from './contents.schemas.ts'
 export const formatContentsResponse = (
   response: ContentsApiResponse,
   formats: string[],
-): {
-  content: Array<{ type: 'text'; text: string }>
-  structuredContent: ContentsStructuredContent
-} => {
+): Array<{ type: 'text'; text: string }> => {
   // Build text content with full extracted content
   const textParts: string[] = [`Successfully extracted content from ${response.length} URL(s):\n`]
   textParts.push(`Formats: ${formats.join(', ')}\n`)
-
-  const items: ContentsStructuredContent['items'] = []
 
   for (const item of response) {
     // Add header for this item
@@ -58,28 +52,12 @@ export const formatContentsResponse = (
     }
 
     textParts.push('\n---\n')
-
-    // Add to structured content
-    items.push({
-      url: item.url,
-      title: item.title ?? undefined,
-      markdown: item.markdown ?? undefined,
-      html: item.html ?? undefined,
-      metadata: item.metadata ?? undefined,
-    })
   }
 
-  return {
-    content: [
-      {
-        type: 'text',
-        text: textParts.join('\n'),
-      },
-    ],
-    structuredContent: {
-      count: response.length,
-      formats,
-      items,
+  return [
+    {
+      type: 'text',
+      text: textParts.join('\n'),
     },
-  }
+  ]
 }

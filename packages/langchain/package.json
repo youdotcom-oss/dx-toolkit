@@ -68,6 +68,7 @@
     "@langchain/anthropic": "^1.0.0",
     "@langchain/core": "^1.1.26",
     "@langchain/langgraph": "^1.2.1",
+    "@types/bun": "latest",
     "langchain": "^1.2.24"
   }
 }

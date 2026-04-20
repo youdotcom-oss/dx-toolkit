@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "devDependencies": {
-    "@ai-sdk/anthropic": "^3.0.42",
+    "@ai-sdk/anthropic": "^3.0.71",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "@youdotcom-oss/ai-sdk-plugin": "workspace:*",
     "@youdotcom-oss/api": "workspace:*"

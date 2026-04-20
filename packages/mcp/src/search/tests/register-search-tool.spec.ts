@@ -88,9 +88,7 @@ describe('registerSearchTool', () => {
     const toolResult = await result.client.callTool({ name: 'you-search', arguments: { query: 'nonexistent' } })
 
     expect(toolResult.content).toEqual([{ type: 'text', text: 'No results found.' }])
-    expect(toolResult.structuredContent).toEqual({
-      resultCounts: { web: 0, news: 0, total: 0 },
-    })
+    expect(toolResult.structuredContent).toEqual(emptyResponse)
   })
 
   test('returns formatted results for successful search', async () => {
@@ -104,9 +102,7 @@ describe('registerSearchTool', () => {
     expect(text).toContain('Example')
     expect(text).toContain('https://example.com')
 
-    const structured = toolResult.structuredContent as Record<string, unknown>
-    expect(structured).toHaveProperty('resultCounts')
-    expect((structured as { resultCounts: { total: number } }).resultCounts.total).toBe(1)
+    expect(toolResult.structuredContent).toEqual(oneResultResponse)
   })
 
   test('returns error when API call fails', async () => {

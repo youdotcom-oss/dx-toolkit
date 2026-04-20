@@ -1,7 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { ContentsQuerySchema, fetchContents, generateErrorReportLink } from '@youdotcom-oss/api'
+import {
+  ContentsApiResponseSchema,
+  ContentsQuerySchema,
+  fetchContents,
+  generateErrorReportLink,
+} from '@youdotcom-oss/api'
+import * as z from 'zod'
 import { getLogger } from '../shared/get-logger.ts'
-import { ContentsStructuredContentSchema } from './contents.schemas.ts'
 import { formatContentsResponse } from './contents.utils.ts'
 
 /**
@@ -24,7 +29,9 @@ export const registerContentsTool = ({
       title: 'Extract Web Page Contents',
       description: 'Extract page content in markdown or HTML',
       inputSchema: ContentsQuerySchema.shape,
-      outputSchema: ContentsStructuredContentSchema.shape,
+      outputSchema: z.object({
+        output: ContentsApiResponseSchema,
+      }).shape,
     },
     async (contentsQuery, { sendNotification }) => {
       const logger = getLogger(sendNotification)
@@ -51,7 +58,7 @@ export const registerContentsTool = ({
         })
 
         // Format response with full content
-        const { content, structuredContent } = formatContentsResponse(response, requestFormats)
+        const content = formatContentsResponse(response, requestFormats)
 
         // Log success
         await logger({
@@ -61,7 +68,9 @@ export const registerContentsTool = ({
 
         return {
           content,
-          structuredContent,
+          structuredContent: {
+            output: response,
+          },
         }
       } catch (err: unknown) {
         // Handle and log errors
