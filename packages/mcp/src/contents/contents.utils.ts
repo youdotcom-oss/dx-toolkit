@@ -25,7 +25,7 @@ export const formatContentsResponse = (
     }
 
     if (formats.includes('html') && item.html) {
-      // Text output is a brief preview only — full HTML is in structuredContent.items[].html
+      // Text output is a brief preview only — full HTML is in structuredContent.output[].html
       textParts.push('\n### HTML Content\n')
       textParts.push(`Length: ${item.html.length} characters\n`)
       textParts.push(item.html.substring(0, 500))
