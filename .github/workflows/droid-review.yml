@@ -57,6 +57,7 @@ jobs:
           automatic_review: true
           automatic_security_review: true
           review_model: glm-5.1
+          allowed_bots: "claude[bot],github-advanced-security[bot],semgrep-dotnet[bot]"
 
       - name: Checkout PR branch
         if: github.event_name == 'workflow_dispatch'
