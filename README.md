@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/youdotcom-oss-dx-toolkit-badge.png)](https://mseep.ai/app/youdotcom-oss-dx-toolkit)
+
 # You.com DX Toolkit
 
 **Open-source monorepo for AI-powered development - npm packages and development skills for building with You.com's AI capabilities.**
