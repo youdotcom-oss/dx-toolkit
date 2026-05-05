@@ -62,13 +62,13 @@
     "@youdotcom-oss/api": "0.5.2"
   },
   "peerDependencies": {
-    "langchain": ">=1.0.0"
+    "langchain": ">=1.3.5"
   },
   "devDependencies": {
-    "@langchain/anthropic": "^1.0.0",
-    "@langchain/core": "^1.1.26",
+    "@langchain/anthropic": "^1.3.28",
+    "@langchain/core": "^1.1.44",
     "@langchain/langgraph": "^1.2.1",
-    "@types/bun": "latest",
-    "langchain": "^1.2.24"
+    "@types/bun": "1.3.13",
+    "langchain": "^1.3.5"
   }
 }

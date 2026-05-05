@@ -32,15 +32,15 @@
     ]
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.12",
-    "@commitlint/cli": "^20.4.1",
-    "@commitlint/config-conventional": "^20.4.1",
+    "@biomejs/biome": "2.4.14",
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@plaited/development-skills": "0.8.1",
-    "@types/bun": "latest",
+    "@types/bun": "1.3.13",
     "format-package": "^7.0.0",
     "lint-staged": "^16.2.7",
     "typescript": "6.0.3",
     "typescript-language-server": "5.1.3",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   }
 }
