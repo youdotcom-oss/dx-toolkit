@@ -20,17 +20,36 @@ npx @youdotcom-oss/mcp
 
 - `YDC_API_KEY`
   Optional. Sent as `Authorization: Bearer <key>`.
-- `MCP_SERVER_URL`
+- `YDC_SERVER_URL`
   Optional. Defaults to `https://api.you.com/mcp`.
 
-## Hosted tools
+## Tool exposure
 
-The remote MCP surface currently exposes:
+The hosted MCP capability surface includes:
 
 - `you-contents`
 - `you-finance`
 - `you-research`
 - `you-search`
+
+The default hosted MCP URL exposes the default tool set:
+
+- `you-search`
+- `you-research`
+- `you-contents`
+
+`you-finance` is not included in the default tool set. Request it explicitly with `tools`.
+
+`tools` scopes the visible tool set.
+
+Today, `profile=free` is a search-only mode. It overrides `tools` and does not expose `you-research`, `you-contents`, `you-finance`, or livecrawl.
+
+Examples:
+
+- Default tool set: `https://api.you.com/mcp`
+- Finance only: `https://api.you.com/mcp?tools=you-finance`
+- Search plus finance: `https://api.you.com/mcp?tools=you-search,you-finance`
+- Free search profile: `https://api.you.com/mcp?profile=free`
 
 ## Example client config
 

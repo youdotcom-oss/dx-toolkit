@@ -13,15 +13,48 @@ class MultiServerMCPClientMock {
   }
 }
 
-mock.module('@langchain/mcp-adapters', () => ({
-  MultiServerMCPClient: MultiServerMCPClientMock,
-}))
+const assertNonEmptySearchResult = (value: unknown) => {
+  expect(value).toBeDefined()
 
-const { youTools } = await import('../main.ts')
+  if (typeof value === 'string') {
+    expect(value.length).toBeGreaterThan(0)
+
+    try {
+      const parsed = JSON.parse(value) as unknown
+      assertNonEmptySearchResult(parsed)
+    } catch {
+      expect(value.trim().length).toBeGreaterThan(0)
+    }
+
+    return
+  }
+
+  if (Array.isArray(value)) {
+    expect(value.length).toBeGreaterThan(0)
+    return
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    expect(Object.keys(value).length).toBeGreaterThan(0)
+    return
+  }
+
+  throw new Error(`Unexpected search result type: ${typeof value}`)
+}
 
 describe('youTools', () => {
   const originalApiKey = process.env.YDC_API_KEY
   const originalServerUrl = process.env.MCP_SERVER_URL
+
+  const loadMockedYouTools = async () => {
+    mock.module('@langchain/mcp-adapters', () => ({
+      MultiServerMCPClient: MultiServerMCPClientMock,
+    }))
+
+    return (await import(`../main.ts?mocked=${Date.now()}-${Math.random()}`)).youTools
+  }
+
+  const loadRealYouTools = async () => (await import(`../main.ts?e2e=${Date.now()}-${Math.random()}`)).youTools
 
   afterEach(() => {
     getToolsMock.mockClear()
@@ -38,11 +71,28 @@ describe('youTools', () => {
     }
   })
 
+  test('executes you-search against the hosted MCP server', async () => {
+    const liveYouTools = await loadRealYouTools()
+    const tools = await liveYouTools({
+      profile: 'free',
+    })
+    const searchTool = tools.find((tool: { name: string }) => tool.name === 'you-search')
+
+    expect(searchTool).toBeDefined()
+
+    const result = await searchTool?.invoke({
+      query: 'OpenAI',
+    })
+
+    assertNonEmptySearchResult(result)
+  })
+
   test('creates a hosted MCP client scoped to the requested tools and returns LangChain tools', async () => {
+    const mockedYouTools = await loadMockedYouTools()
     const tools: unknown = [{ name: 'you-search' }, { name: 'you-research' }, { name: 'you-contents' }]
     getToolsMock.mockResolvedValueOnce(tools)
 
-    const result = (await youTools({
+    const result = (await mockedYouTools({
       apiKey: 'config-key',
       tools: ['you-search', 'you-contents'],
     })) as unknown
@@ -65,10 +115,11 @@ describe('youTools', () => {
   })
 
   test('uses the hosted MCP base URL even when MCP_SERVER_URL is set in the environment', async () => {
+    const mockedYouTools = await loadMockedYouTools()
     process.env.YDC_API_KEY = 'env-key'
     process.env.MCP_SERVER_URL = 'https://env.example.com/mcp'
 
-    await youTools({
+    await mockedYouTools({
       tools: 'you-search',
     })
 
@@ -88,9 +139,10 @@ describe('youTools', () => {
   })
 
   test('uses the profile query parameter instead of tools when a profile is provided', async () => {
+    const mockedYouTools = await loadMockedYouTools()
     process.env.YDC_API_KEY = 'env-key'
 
-    await youTools({
+    await mockedYouTools({
       profile: 'free',
       tools: ['you-search', 'you-contents'],
     })
@@ -111,9 +163,10 @@ describe('youTools', () => {
   })
 
   test('omits Authorization when no API key is available', async () => {
+    const mockedYouTools = await loadMockedYouTools()
     delete process.env.YDC_API_KEY
 
-    await youTools({
+    await mockedYouTools({
       tools: 'you-search',
     })
 

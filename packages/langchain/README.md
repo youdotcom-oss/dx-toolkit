@@ -1,6 +1,6 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `youTools()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns LangChain-compatible tools for search, research, and content extraction.
+Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `youTools()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns LangChain-compatible tools for search, research, and content extraction. By default, `youTools()` returns the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
 
 ## Features
 
@@ -91,6 +91,8 @@ const result = await agent.invoke({
 console.log(result.structuredResponse);
 ```
 
+`youTools()` returns the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`.
+
 Set your You.com API key as an environment variable:
 
 ```bash
@@ -157,6 +159,24 @@ const tools = await youTools({
 });
 ```
 
+`you-finance` is not included in the default tool set. Request it explicitly with `tools`.
+
+Lead with the smallest explicit form when you only want finance:
+
+```typescript
+const financeTools = await youTools({
+  tools: 'you-finance',
+});
+```
+
+If you want the default tools plus finance, request all of them explicitly:
+
+```typescript
+const tools = await youTools({
+  tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
+});
+```
+
 Use `profile` when you want the hosted server to resolve tools through a named profile instead:
 
 ```typescript
@@ -175,7 +195,27 @@ export type YouToolsConfig = {
 };
 ```
 
-The package always connects to `https://api.you.com/mcp`. If `profile` is provided, it is sent instead of `tools`.
+### Tool selection
+
+The package always connects to `https://api.you.com/mcp`.
+
+The default hosted tool set is:
+
+- `you-search`
+- `you-research`
+- `you-contents`
+
+Optional tools:
+
+- `you-finance`
+
+`you-finance` is not included in the default tool set. Request it explicitly with `tools`.
+
+`tools` scopes the visible tool set.
+
+`profile` selects a hosted server profile. `tools` scopes which tools are visible. If `profile` is provided, it takes precedence over `tools`.
+
+Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-research`, `you-contents`, `you-finance`, or livecrawl.
 
 ### Using different model providers
 
@@ -221,11 +261,15 @@ console.log(result);
 
 ## Available tools
 
-This package returns the hosted MCP tool list, including:
+Default tools:
 
 - `you-search`
 - `you-research`
 - `you-contents`
+
+Optional tools:
+
+- `you-finance`
 
 ---
 

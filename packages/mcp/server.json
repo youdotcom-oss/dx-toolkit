@@ -35,7 +35,7 @@
           "format": "string"
         },
         {
-          "name": "MCP_SERVER_URL",
+          "name": "YDC_SERVER_URL",
           "description": "Remote MCP server URL (defaults to https://api.you.com/mcp)",
           "isRequired": false,
           "isSecret": false,

@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js'
 import { createBridge } from '../bridge.ts'
 
@@ -18,6 +20,41 @@ const createMockTransport = (): MockTransport => ({
 const flushMicrotasks = async () => {
   await Promise.resolve()
   await Promise.resolve()
+}
+
+const packageRoot = `${import.meta.dir}/../..`
+const inheritedEnv = Object.fromEntries(
+  Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+)
+
+const assertNonEmptySearchResult = (value: unknown) => {
+  expect(value).toBeDefined()
+
+  if (Array.isArray(value)) {
+    expect(value.length).toBeGreaterThan(0)
+    return
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    if ('isError' in value) {
+      expect(value.isError).not.toBe(true)
+    }
+
+    if ('content' in value && Array.isArray(value.content)) {
+      expect(value.content.length).toBeGreaterThan(0)
+      return
+    }
+
+    expect(Object.keys(value).length).toBeGreaterThan(0)
+    return
+  }
+
+  if (typeof value === 'string') {
+    expect(value.length).toBeGreaterThan(0)
+    return
+  }
+
+  throw new Error(`Unexpected search result type: ${typeof value}`)
 }
 
 describe('createBridge', () => {
@@ -132,5 +169,45 @@ describe('createBridge', () => {
     expect(mockedExit).toHaveBeenCalledTimes(1)
     expect(mockedExit).toHaveBeenCalledWith(0)
     expect(mockedStderrWrite).not.toHaveBeenCalled()
+  })
+})
+
+describe('stdio bridge e2e', () => {
+  let client: Client | undefined
+  let transport: StdioClientTransport | undefined
+
+  afterEach(async () => {
+    await Promise.allSettled([client?.close(), transport?.close()])
+  })
+
+  test('executes you-search against the hosted MCP server', async () => {
+    transport = new StdioClientTransport({
+      args: ['./src/stdio-bridge.ts'],
+      command: 'bun',
+      cwd: packageRoot,
+      env: {
+        ...inheritedEnv,
+        YDC_SERVER_URL: 'https://api.you.com/mcp?profile=free',
+      },
+      stderr: 'pipe',
+    })
+    client = new Client({
+      name: 'mcp-e2e-test',
+      version: '1.0.0',
+    })
+
+    await client.connect(transport)
+
+    const tools = await client.listTools()
+    expect(tools.tools.some(({ name }) => name === 'you-search')).toBe(true)
+
+    const result = await client.callTool({
+      arguments: {
+        query: 'OpenAI',
+      },
+      name: 'you-search',
+    })
+
+    assertNonEmptySearchResult(result)
   })
 })
