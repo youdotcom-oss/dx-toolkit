@@ -86,15 +86,11 @@ if (command === 'schema') {
   }
 }
 
-if (command && getTool(command)) {
-  const tool = getTool(command)
+const tool = command ? getTool(command) : undefined
+
+if (command && tool) {
   const rawInput = args[1] ?? (await new Response(Bun.stdin.stream()).text()).trim()
   const parsedFlags = parseExecutionFlags(args.slice(2))
-
-  if (!tool) {
-    console.error(`Unknown tool: ${command}`)
-    process.exit(1)
-  }
 
   if (!rawInput) {
     console.error(`Missing JSON input for tool: ${command}`)
@@ -220,6 +216,17 @@ function parseExecutionFlags(rawFlags: string[]) {
   let dryRun = false
   let profile: string | undefined
 
+  const getFlagValue = (flag: string, index: number) => {
+    const value = rawFlags[index + 1]
+
+    if (!value || value.startsWith('--')) {
+      console.error(`Missing value for ${flag}`)
+      process.exit(1)
+    }
+
+    return value
+  }
+
   for (let index = 0; index < rawFlags.length; index += 1) {
     const flag = rawFlags[index]
 
@@ -229,13 +236,13 @@ function parseExecutionFlags(rawFlags: string[]) {
     }
 
     if (flag === '--api-key') {
-      apiKey = rawFlags[index + 1]
+      apiKey = getFlagValue(flag, index)
       index += 1
       continue
     }
 
     if (flag === '--profile') {
-      profile = rawFlags[index + 1]
+      profile = getFlagValue(flag, index)
       index += 1
     }
   }

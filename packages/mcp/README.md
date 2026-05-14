@@ -20,8 +20,12 @@ npx @youdotcom-oss/mcp
 
 - `YDC_API_KEY`
   Optional. Sent as `Authorization: Bearer <key>`.
-- `YDC_SERVER_URL`
-  Optional. Defaults to `https://api.you.com/mcp`.
+- `YDC_PROFILE`
+  Optional. When set to `free`, routes the bridge to `https://api.you.com/mcp?profile=free`.
+- `YDC_ALLOWED_TOOLS`
+  Optional. Comma-separated hosted tool ids to expose through `https://api.you.com/mcp?tools=...`.
+
+`YDC_PROFILE` takes precedence over `YDC_ALLOWED_TOOLS`.
 
 ## Tool exposure
 
@@ -60,7 +64,8 @@ Examples:
       "command": "npx",
       "args": ["@youdotcom-oss/mcp"],
       "env": {
-        "YDC_API_KEY": "<your-api-key>"
+        "YDC_API_KEY": "<your-api-key>",
+        "YDC_ALLOWED_TOOLS": "you-search,you-finance"
       }
     }
   }

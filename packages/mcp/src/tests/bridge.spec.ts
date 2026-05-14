@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { randomUUID } from 'node:crypto'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js'
@@ -180,14 +183,31 @@ describe('stdio bridge e2e', () => {
     await Promise.allSettled([client?.close(), transport?.close()])
   })
 
-  test('executes you-search against the hosted MCP server', async () => {
+  test('executes you-search against the configured MCP route and forwards the scoped tools query', async () => {
+    const traceFile = join(tmpdir(), `${randomUUID()}.jsonl`)
+
     transport = new StdioClientTransport({
-      args: ['./src/stdio-bridge.ts'],
+      args: ['--preload', '../cli/src/tests/mcp-fetch.preload.ts', './src/stdio-bridge.ts'],
       command: 'bun',
       cwd: packageRoot,
       env: {
         ...inheritedEnv,
-        YDC_SERVER_URL: 'https://api.you.com/mcp?profile=free',
+        YDC_ALLOWED_TOOLS: 'you-search',
+        YDC_TEST_MCP_TOOLS: JSON.stringify([
+          {
+            inputSchema: {
+              properties: {
+                query: {
+                  type: 'string',
+                },
+              },
+              required: ['query'],
+              type: 'object',
+            },
+            name: 'you-search',
+          },
+        ]),
+        YDC_TEST_MCP_TRACE_FILE: traceFile,
       },
       stderr: 'pipe',
     })
@@ -209,5 +229,25 @@ describe('stdio bridge e2e', () => {
     })
 
     assertNonEmptySearchResult(result)
+
+    const trace = await readTrace(traceFile)
+    expect(trace.length).toBeGreaterThan(0)
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?tools=you-search')).toBe(true)
   })
 })
+
+const readTrace = async (traceFile: string) => {
+  const file = Bun.file(traceFile)
+
+  if (!(await file.exists())) {
+    return []
+  }
+
+  const content = await file.text()
+
+  return content
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as { headers: Record<string, string>; method: string; url: string })
+}

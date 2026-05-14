@@ -3,11 +3,17 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createBridge } from './bridge.ts'
 
-const url = new URL(process.env.YDC_SERVER_URL || 'https://api.you.com/mcp')
+const url = new URL('https://api.you.com/mcp')
 const headers: Record<string, string> = {}
 
 if (process.env.YDC_API_KEY) {
   headers.Authorization = `Bearer ${process.env.YDC_API_KEY}`
+}
+
+if (process.env?.YDC_PROFILE === 'free') {
+  url.searchParams.set('profile', process.env?.YDC_PROFILE)
+} else if (process.env?.YDC_ALLOWED_TOOLS) {
+  url.searchParams.set('tools', process.env.YDC_ALLOWED_TOOLS)
 }
 
 try {

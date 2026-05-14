@@ -35,8 +35,15 @@
           "format": "string"
         },
         {
-          "name": "YDC_SERVER_URL",
-          "description": "Remote MCP server URL (defaults to https://api.you.com/mcp)",
+          "name": "YDC_PROFILE",
+          "description": "Hosted MCP profile to expose through the STDIO bridge (currently supports free)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "YDC_ALLOWED_TOOLS",
+          "description": "Comma-separated hosted tool ids to expose through the STDIO bridge",
           "isRequired": false,
           "isSecret": false,
           "format": "string"

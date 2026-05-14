@@ -424,6 +424,44 @@ describe('ydc tool execution', () => {
     })
   })
 
+  test('rejects --profile when the value is missing', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--profile'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('Missing value for --profile')
+  })
+
+  test('rejects --api-key when the next token is another flag', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--api-key', '--dry-run'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('Missing value for --api-key')
+  })
+
   test('rejects --profile for tools that do not support the free profile', async () => {
     const child = Bun.spawn({
       cmd: ['bun', './src/cli.ts', 'you-research', '{"query":"DX Toolkit"}', '--profile', 'free'],
