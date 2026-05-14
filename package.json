@@ -35,7 +35,6 @@
     "@biomejs/biome": "2.4.12",
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
-    "@plaited/development-skills": "0.8.1",
     "@types/bun": "latest",
     "format-package": "^7.0.0",
     "lint-staged": "^16.2.7",

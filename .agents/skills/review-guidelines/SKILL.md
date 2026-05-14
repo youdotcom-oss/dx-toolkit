@@ -1,3 +1,11 @@
+---
+name: review-guidelines
+description: Additional code review guidelines specific to this codebase. Auto-loaded by the review agent during PR reviews to enforce project conventions.
+user-invocable: false
+---
+
+# Review Guidelines
+
 Additional checks for this codebase:
 
 ## Code Quality
@@ -27,13 +35,6 @@ Additional checks for this codebase:
 - `Bun.$\`cmd\`` over `child_process.spawn()`
 - `import.meta.dir` over `process.cwd()`
 - Run commands from repo root with `bun --cwd packages/<name>` — never `cd` into packages
-
-## Monorepo Specifics
-
-- Use relative paths within packages, not workspace aliases
-- Cross-package deps must use exact versions (no `^` or `~`)
-- Only root `bun.lock` is committed
-- Package directory name must match npm name after `@youdotcom-oss/`
 
 ## Security
 
