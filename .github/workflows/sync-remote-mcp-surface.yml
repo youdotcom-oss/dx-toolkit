@@ -73,7 +73,6 @@ jobs:
       - name: Validate repo
         env:
           YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           bun test
           bun run check

@@ -2,6 +2,71 @@ import { describe, expect, test } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 import { TOOL_CONTRACT } from '../tools.ts'
 
+const youSearchInputSchema = {
+  additionalProperties: false,
+  properties: {
+    num_web_results: {
+      minimum: 0,
+      type: 'number',
+    },
+    query: {
+      description: 'The search query to execute.',
+      type: 'string',
+    },
+    safesearch: {
+      enum: ['off', 'moderate', 'strict'],
+      type: 'string',
+    },
+  },
+  required: ['query'],
+  type: 'object',
+} as const
+
+const youSearchOutputSchema = {
+  additionalProperties: true,
+  properties: {
+    hits: {
+      items: {
+        additionalProperties: true,
+        properties: {
+          title: {
+            type: 'string',
+          },
+          url: {
+            type: 'string',
+          },
+        },
+        required: ['title', 'url'],
+        type: 'object',
+      },
+      type: 'array',
+    },
+  },
+  required: ['hits'],
+  type: 'object',
+} as const
+
+const assertNonEmptySearchResult = (value: unknown) => {
+  expect(value).toBeDefined()
+
+  if (Array.isArray(value)) {
+    expect(value.length).toBeGreaterThan(0)
+    return
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    expect(Object.keys(value).length).toBeGreaterThan(0)
+    return
+  }
+
+  if (typeof value === 'string') {
+    expect(value.length).toBeGreaterThan(0)
+    return
+  }
+
+  throw new Error(`Unexpected search result type: ${typeof value}`)
+}
+
 describe('ydc tools', () => {
   test('prints the offline generated tool contract as JSON', async () => {
     const process = Bun.spawn({
@@ -78,16 +143,7 @@ describe('ydc help and command validation', () => {
 })
 
 describe('ydc schema', () => {
-  test('prints the remote input schema for an allowlisted tool', async () => {
-    const inputSchema = {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-        },
-      },
-      required: ['query'],
-    }
+  test('prints the full remote input schema for an allowlisted tool', async () => {
     const child = Bun.spawn({
       cmd: ['bun', '--preload', './src/tests/mcp-fetch.preload.ts', './src/cli.ts', 'schema', 'you-search'],
       cwd: `${import.meta.dir}/../..`,
@@ -95,8 +151,9 @@ describe('ydc schema', () => {
         ...process.env,
         YDC_TEST_MCP_TOOLS: JSON.stringify([
           {
-            inputSchema,
+            inputSchema: youSearchInputSchema,
             name: 'you-search',
+            outputSchema: youSearchOutputSchema,
           },
         ]),
       },
@@ -112,20 +169,40 @@ describe('ydc schema', () => {
 
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
-    expect(JSON.parse(stdout)).toEqual(inputSchema)
+    expect(JSON.parse(stdout)).toEqual(youSearchInputSchema)
+  })
+
+  test('prints the remote output schema for an allowlisted tool', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', '--preload', './src/tests/mcp-fetch.preload.ts', './src/cli.ts', 'schema', 'you-search', 'output'],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_TEST_MCP_TOOLS: JSON.stringify([
+          {
+            inputSchema: youSearchInputSchema,
+            name: 'you-search',
+            outputSchema: youSearchOutputSchema,
+          },
+        ]),
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout)).toEqual(youSearchOutputSchema)
   })
 
   test('uses profile routing and strips auth for free search schema requests', async () => {
     const traceFile = `/private/tmp/${randomUUID()}.jsonl`
-    const inputSchema = {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-        },
-      },
-      required: ['query'],
-    }
     const child = Bun.spawn({
       cmd: [
         'bun',
@@ -144,8 +221,9 @@ describe('ydc schema', () => {
         ...process.env,
         YDC_TEST_MCP_TOOLS: JSON.stringify([
           {
-            inputSchema,
+            inputSchema: youSearchInputSchema,
             name: 'you-search',
+            outputSchema: youSearchOutputSchema,
           },
         ]),
         YDC_TEST_MCP_TRACE_FILE: traceFile,
@@ -163,7 +241,7 @@ describe('ydc schema', () => {
 
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
-    expect(JSON.parse(stdout)).toEqual(inputSchema)
+    expect(JSON.parse(stdout)).toEqual(youSearchInputSchema)
     expect(trace.length).toBeGreaterThan(0)
     expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?profile=free')).toBe(true)
     expect(trace.every(({ headers }) => !('authorization' in headers))).toBe(true)
@@ -341,6 +419,46 @@ describe('ydc tool execution', () => {
     expect(exitCode).toBe(1)
     expect(stdout).toBe('')
     expect(stderr).toContain('--profile is only supported for you-search')
+  })
+
+  test('executes you-search against the hosted MCP server', async () => {
+    let stdout = ''
+    let stderr = ''
+    let exitCode = 1
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const child = Bun.spawn({
+        cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"OpenAI"}', '--profile', 'free'],
+        cwd: `${import.meta.dir}/../..`,
+        stderr: 'pipe',
+        stdout: 'pipe',
+      })
+
+      ;[stdout, stderr, exitCode] = await Promise.all([
+        new Response(child.stdout).text(),
+        new Response(child.stderr).text(),
+        child.exited,
+      ])
+
+      if (exitCode === 0) {
+        break
+      }
+
+      if (!stderr.includes('Unable to connect') && !stderr.includes('ConnectionRefused')) {
+        break
+      }
+
+      await Bun.sleep(250)
+    }
+
+    if (stderr.includes('Unable to connect') || stderr.includes('ConnectionRefused')) {
+      return
+    }
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+
+    assertNonEmptySearchResult(JSON.parse(stdout) as unknown)
   })
 })
 
