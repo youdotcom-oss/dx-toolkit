@@ -1,6 +1,6 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** with structured tools. Search current content, research topics with cited sources, and extract live web pages—all through `DynamicStructuredTool` with full Zod schema validation. Built for [LangChain.js](https://js.langchain.com/), this package brings **You.com's search, research, and content extraction directly into your LangChain agents** with zero server setup.
+Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns the underlying LangChain MCP client. By default, `await client.getTools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
 
 ## Features
 
@@ -8,9 +8,9 @@ Build LangChain agents that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
 - **Research** - Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Extract any webpage** - Pull full content in markdown or HTML format
-- **Structured tool inputs** - Full Zod schema validation via `DynamicStructuredTool`
 - **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
-- **Type-safe** - Full TypeScript support with Zod schema validation
+- **Hosted MCP transport** - Connects directly to the You.com hosted MCP server
+- **Type-safe** - Full TypeScript support for async tool initialization
 - **Production-ready** - Built on You.com's enterprise search API
 
 ## AI Agent Skills
@@ -49,26 +49,17 @@ yarn add @youdotcom-oss/langchain langchain
 
 ### 3. Add tools to your agent
 
-Import the tools and add them to your LangChain agent:
+Import `createYouClient()`, await the MCP-backed client, then resolve tools from that client for your LangChain agent:
 
 ```typescript
-import { getEnvironmentVariable } from '@langchain/core/utils/env';
 import { createAgent, initChatModel } from 'langchain';
 import * as z from 'zod';
-import { youSearch, youResearch, youContents } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-// Fetch the You.com API key as an environment variable
-// Get a free API key with credits at https://you.com/platform
-const apiKey = getEnvironmentVariable('YDC_API_KEY') ?? '';
-
-// youSearch — web search with titles, URLs, snippets, and news articles
-const searchTool = youSearch({ apiKey });
-
-// youResearch — comprehensive answers with cited sources, configurable effort
-const researchTool = youResearch({ apiKey });
-
-// youContents — extract full page content from URLs in markdown or HTML
-const contentsTool = youContents({ apiKey });
+const client = await createYouClient({
+  apiKey: process.env.YDC_API_KEY,
+});
+const tools = await client.getTools();
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -89,7 +80,7 @@ const responseFormat = z.object({
 // Create an agent with all three tools — it picks the right one automatically
 const agent = createAgent({
   model,
-  tools: [searchTool, researchTool, contentsTool],
+  tools,
   systemPrompt,
   responseFormat,
 });
@@ -101,12 +92,15 @@ const result = await agent.invoke({
 console.log(result.structuredResponse);
 ```
 
-Set your API keys as environment variables:
+`createYouClient()` returns the underlying MCP client. Call `await client.getTools()` to resolve the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`, and call `await client.close()` when finished.
+
+Set your You.com API key as an environment variable:
 
 ```bash
 export YDC_API_KEY=your-api-key-here
-export ANTHROPIC_API_KEY=your-anthropic-api-key-here
 ```
+
+Set your model provider credentials separately for whichever provider you use.
 
 ### 4. Test your setup
 
@@ -153,25 +147,84 @@ export YDC_API_KEY=your-api-key-here
 <details>
 <summary>Advanced configuration options</summary>
 
-### Passing API key directly
+### Passing configuration directly
 
-You can configure tools individually instead of using environment variables:
+You can override the API key, request a specific hosted MCP profile, or scope the request to specific tool ids:
 
 ```typescript
-import { youSearch } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-const searchTool = youSearch({
-  apiKey: 'your-api-key-here', // Override YDC_API_KEY environment variable
+const client = await createYouClient({
+  apiKey: 'your-api-key-here',
+  tools: ['you-search', 'you-contents'],
 });
+
+const tools = await client.getTools();
+```
+
+`you-finance` is not included in the default tool set. Request it explicitly with `tools`.
+
+Lead with the smallest explicit form when you only want finance:
+
+```typescript
+const client = await createYouClient({
+  tools: 'you-finance',
+});
+
+const financeTools = await client.getTools();
+```
+
+If you want the default tools plus finance, request all of them explicitly:
+
+```typescript
+const client = await createYouClient({
+  tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
+});
+
+const tools = await client.getTools();
+```
+
+Use `profile` when you want the hosted server to resolve tools through a named profile instead:
+
+```typescript
+const client = await createYouClient({
+  profile: 'free',
+});
+
+const tools = await client.getTools();
 ```
 
 ### Configuration type
 
 ```typescript
-export type YouToolsConfig = {
-  apiKey?: string;  // You.com API key (defaults to YDC_API_KEY env var)
+export type YouClientConfig = {
+  apiKey?: string;           // Defaults to YDC_API_KEY
+  tools?: string | string[]; // Added as ?tools=...
+  profile?: string;          // Added as ?profile=...
 };
 ```
+
+### Tool selection
+
+The package always connects to `https://api.you.com/mcp`.
+
+The default hosted tool set is:
+
+- `you-search`
+- `you-research`
+- `you-contents`
+
+Optional tools:
+
+- `you-finance`
+
+`you-finance` is not included in the default tool set. Request it explicitly with `tools`.
+
+`tools` scopes the visible tool set.
+
+`profile` selects a hosted server profile. `tools` scopes which tools are visible. If `profile` is provided, it takes precedence over `tools`.
+
+Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-research`, `you-contents`, `you-finance`, or livecrawl.
 
 ### Using different model providers
 
@@ -179,71 +232,64 @@ These tools work with any LangChain-compatible model via `initChatModel`:
 
 ```typescript
 import { createAgent, initChatModel } from 'langchain';
-import { youSearch } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
+
+const client = await createYouClient();
+const tools = await client.getTools();
 
 // Anthropic Claude
 const agent = createAgent({
   model: await initChatModel('claude-haiku-4-5'),
-  tools: [youSearch()],
+  tools,
   systemPrompt: 'You are a helpful assistant.',
 });
 
 // OpenAI
+const searchClient = await createYouClient({
+  tools: 'you-search',
+});
+const searchTools = await searchClient.getTools();
+
 const agent = createAgent({
   model: await initChatModel('gpt-4'),
-  tools: [youSearch()],
+  tools: searchTools,
   systemPrompt: 'You are a helpful assistant.',
 });
 ```
 
-### Direct tool invocation
+### Direct tool usage
 
-You can also invoke tools directly without an agent:
+You can also await the tool list and invoke a specific tool directly:
 
 ```typescript
-import { youSearch } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-const searchTool = youSearch();
-const result = await searchTool.invoke({ query: 'AI news', count: 5 });
-console.log(result); // Search results
+const client = await createYouClient({
+  tools: 'you-search',
+});
+const tools = await client.getTools();
+const searchTool = tools.find((tool) => tool.name === 'you-search');
+const result = await searchTool?.invoke({ query: 'AI news', count: 5 });
+console.log(result);
 ```
 
 </details>
 
 ## Available tools
 
-This package provides three tools that your LangChain agents can use automatically:
+Default tools:
 
-### youSearch()
+- `you-search`
+- `you-research`
+- `you-contents`
 
-Comprehensive web and news search with advanced filtering capabilities. Perfect for finding current information, research articles, documentation, and news stories.
+Optional tools:
 
-**When your agent will use this:**
-- Searching for current information or news
-- Finding specific content with filters (dates, sites, file types)
-- Research queries requiring multiple results
-
-### youResearch()
-
-Research with comprehensive answers and cited sources. Configurable effort levels (lite, standard, deep, exhaustive) let you trade speed for thoroughness.
-
-**When your agent will use this:**
-- Complex questions requiring in-depth analysis
-- Research reports needing cited sources
-- Thorough comparisons or detailed explanations
-
-### youContents()
-
-Extract full page content from URLs in markdown or HTML format. Useful for documentation analysis, content processing, and batch URL extraction.
-
-**When your agent will use this:**
-- Extracting content from specific URLs
-- Processing multiple pages in batch
-- Analyzing webpage content for further processing
+- `you-finance`
 
 ---
 
-**Note**: Your LangChain agent automatically selects the right tool based on the user's request. The `DynamicStructuredTool` provides full Zod schema validation for tool inputs, ensuring type-safe interactions.
+**Note**: Your LangChain agent automatically selects the right tool based on the user's request. Tool metadata and schemas come from the hosted MCP server at runtime.
 
 ## Troubleshooting
 
@@ -258,7 +304,8 @@ export YDC_API_KEY=your-api-key-here
 Or pass it directly when creating tools:
 
 ```typescript
-const searchTool = youSearch({ apiKey: 'your-api-key-here' });
+const client = await createYouClient({ apiKey: 'your-api-key-here' });
+const tools = await client.getTools();
 ```
 
 ### Problem: Agent isn't using the tools
@@ -267,11 +314,14 @@ const searchTool = youSearch({ apiKey: 'your-api-key-here' });
 
 ```typescript
 import { createAgent, initChatModel } from 'langchain';
-import { youSearch } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
+
+const client = await createYouClient();
+const tools = await client.getTools();
 
 const agent = createAgent({
   model: await initChatModel('claude-haiku-4-5'),
-  tools: [youSearch()],
+  tools,
   systemPrompt: 'You are a helpful assistant.',
 });
 ```

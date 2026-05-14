@@ -1,7 +1,7 @@
 {
   "name": "@youdotcom-oss/ai-sdk-plugin",
   "version": "2.2.3",
-  "description": "Vercel AI SDK plugin for You.com web search, AI agents, and content extraction via MCP",
+  "description": "Vercel AI SDK tools for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {
     "node": ">=18",
@@ -62,7 +62,8 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@youdotcom-oss/api": "0.5.2"
+    "@ai-sdk/mcp": "^1.0.42",
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "peerDependencies": {
     "ai": "^6.0.168"

@@ -3,7 +3,7 @@ name: typescript-lsp
 description: Search TypeScript SYMBOLS (functions, types, classes) - NOT text. Use Glob to find files, Grep for text search, LSP for symbol search. Provides type-aware results that understand imports, exports, and relationships.
 license: ISC
 compatibility: Requires bun
-allowed-tools: Bash
+allowed-tools: Bash, Read, Glob, Grep
 metadata:
   file-triggers: "*.ts,*.tsx,*.js,*.jsx"
 ---
@@ -25,23 +25,23 @@ Use these tools to:
 
 ## When to Use Each Tool
 
-| Tool | Purpose |
-|------|---------|
-| **Glob** | Find files by pattern |
-| **Grep** | Search text content |
-| **lsp-find** | Search TypeScript symbols |
-| **lsp-hover** | Get type info + TSDoc documentation |
-| **lsp-refs** | Find all references to a symbol |
-| **lsp-analyze** | Batch analysis of file structure |
+| Tool | LSP Method | Purpose |
+|------|-----------|---------|
+| **Glob** | — | Find files by pattern |
+| **Grep** | — | Search text content |
+| `workspace/symbol` | symbol search | Find a TypeScript symbol by name across the workspace |
+| `textDocument/hover` | hover | Get type signature + TSDoc at a position |
+| `textDocument/references` | references | Find all usages of a symbol |
+| `textDocument/documentSymbol` | doc symbols | List all symbols in a file |
 
 ### LSP vs Grep/Glob
 
 | Task | Use LSP | Use Grep/Glob |
 |------|---------|---------------|
-| Find all usages of a function/type | ✅ `lsp-refs` | ❌ Misses re-exports, aliases |
-| Search for a symbol by name | ✅ `lsp-find` | ❌ Matches strings, comments |
-| Get type signature + TSDoc | ✅ `lsp-hover` | ❌ Not possible |
-| Understand file exports | ✅ `lsp-analyze --exports` | ❌ Doesn't resolve re-exports |
+| Find all usages of a function/type | ✅ `textDocument/references` | ❌ Misses re-exports, aliases |
+| Search for a symbol by name | ✅ `workspace/symbol` | ❌ Matches strings, comments |
+| Get type signature + TSDoc | ✅ `textDocument/hover` | ❌ Not possible |
+| List all symbols in a file | ✅ `textDocument/documentSymbol` | ❌ Doesn't resolve re-exports |
 | Find files by pattern | ❌ | ✅ `Glob` |
 | Search non-TS files (md, json) | ❌ | ✅ `Grep` |
 | Search for text in comments/strings | ❌ | ✅ `Grep` |
@@ -49,200 +49,112 @@ Use these tools to:
 ## When to Use
 
 **Exploring code (prefer LSP):**
-- Run `lsp-find` to search for symbols across the workspace
-- Run `lsp-symbols` to get an overview of file structure
-- Run `lsp-analyze --exports` to see what a module provides
+- `workspace/symbol` to search for a symbol by name across the workspace
+- `textDocument/documentSymbol` to get an overview of all symbols in a file
+- `textDocument/hover` to get the exact type signature at a position
 
 **Before editing code:**
-- Run `lsp-references` to find all usages of a symbol you plan to modify
-- Run `lsp-hover` to verify current type signatures
+- `textDocument/references` to find all usages of a symbol you plan to modify
+- `textDocument/hover` to verify current type signatures
 
 **Before writing code:**
-- Run `lsp-find` to search for similar patterns or related symbols
-- Run `lsp-hover` on APIs you plan to use
+- `workspace/symbol` to find similar patterns or related symbols
+- `textDocument/hover` on APIs you plan to use
 
-## Path Resolution
+## Server Invocation
 
-All scripts accept three types of file paths:
-- **Absolute paths**: `/Users/name/project/src/file.ts`
-- **Relative paths**: `./src/file.ts` or `../other/file.ts`
-- **Package export paths**: `my-package/src/module.ts` (resolved via `Bun.resolve()`)
-
-Package export paths are recommended for portability and consistency with the package's exports field.
-
-## Scripts
-
-### Individual Scripts
-
-#### lsp-hover
-Get type information at a specific position.
+The TypeScript Language Server is available locally and started via:
 
 ```bash
-bunx @plaited/development-skills lsp-hover <file> <line> <char>
+bun typescript-language-server --stdio
 ```
 
-**Arguments:**
-- `file`: Path to TypeScript/JavaScript file
-- `line`: Line number (0-indexed)
-- `char`: Character position (0-indexed)
+This launches the LSP server communicating over stdin/stdout using the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) — JSON-RPC messages with a `Content-Length` header followed by a newline-separated JSON body.
 
-**Example:**
-```bash
-bunx @plaited/development-skills lsp-hover src/utils/parser.ts 42 10
+## Protocol
+
+Each message is framed as:
+
+```
+Content-Length: <byte-length>\r\n
+\r\n
+<json-body>
 ```
 
-#### lsp-symbols
-List all symbols in a file.
+### Initialization (required first)
 
-```bash
-bunx @plaited/development-skills lsp-symbols <file>
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":"file:///absolute/path/to/project","capabilities":{}}}
 ```
 
-**Example:**
-```bash
-bunx @plaited/development-skills lsp-symbols src/utils/parser.ts
+Follow with:
+
+```json
+{"jsonrpc":"2.0","method":"initialized","params":{}}
 ```
 
-#### lsp-references
-Find all references to a symbol.
+### Open a document
 
-```bash
-bunx @plaited/development-skills lsp-refs <file> <line> <char>
+```json
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///absolute/path/to/file.ts","languageId":"typescript","version":1,"text":"<file contents>"}}}
 ```
 
-**Example:**
-```bash
-bunx @plaited/development-skills lsp-refs src/utils/parser.ts 42 10
+### Hover (type info at position)
+
+```json
+{"jsonrpc":"2.0","id":2,"method":"textDocument/hover","params":{"textDocument":{"uri":"file:///absolute/path/to/file.ts"},"position":{"line":42,"character":10}}}
 ```
 
-#### lsp-find
-Search for symbols across the workspace.
+Line and character are **0-indexed**.
 
-```bash
-bunx @plaited/development-skills lsp-find <query> [context-file]
+### References (all usages of a symbol)
+
+```json
+{"jsonrpc":"2.0","id":3,"method":"textDocument/references","params":{"textDocument":{"uri":"file:///absolute/path/to/file.ts"},"position":{"line":42,"character":10},"context":{"includeDeclaration":true}}}
 ```
 
-**Arguments:**
-- `query`: Symbol name or partial name
-- `context-file`: Optional file to open for project context
+### Document symbols (all symbols in a file)
 
-**Example:**
-```bash
-bunx @plaited/development-skills lsp-find parseConfig
-bunx @plaited/development-skills lsp-find validateInput src/lib/validator.ts
+```json
+{"jsonrpc":"2.0","id":4,"method":"textDocument/documentSymbol","params":{"textDocument":{"uri":"file:///absolute/path/to/file.ts"}}}
 ```
 
-### Batch Script
+### Workspace symbol search (find symbol by name)
 
-#### lsp-analyze
-Perform multiple analyses in a single session for efficiency.
-
-```bash
-bunx @plaited/development-skills lsp-analyze <file> [options]
+```json
+{"jsonrpc":"2.0","id":5,"method":"workspace/symbol","params":{"query":"parseConfig"}}
 ```
 
-**Options:**
-- `--symbols, -s`: List all symbols
-- `--exports, -e`: List only exported symbols
-- `--hover <line:char>`: Get type info (repeatable)
-- `--refs <line:char>`: Find references (repeatable)
-- `--all`: Run symbols + exports analysis
+### Shutdown
 
-**Examples:**
-```bash
-# Get file overview
-bunx @plaited/development-skills lsp-analyze src/utils/parser.ts --all
-
-# Check multiple positions
-bunx @plaited/development-skills lsp-analyze src/utils/parser.ts --hover 50:10 --hover 75:5
-
-# Before refactoring: find all references
-bunx @plaited/development-skills lsp-analyze src/utils/parser.ts --refs 42:10
+```json
+{"jsonrpc":"2.0","id":99,"method":"shutdown","params":null}
+{"jsonrpc":"2.0","method":"exit","params":null}
 ```
 
 ## Common Workflows
 
-### Understanding a File
+### Understanding a file
 
-```bash
-# 1. Get exports overview
-bunx @plaited/development-skills lsp-analyze path/to/file.ts --exports
+1. Initialize the server with the project root
+2. `textDocument/didOpen` with the file's full text
+3. `textDocument/documentSymbol` to list all symbols
+4. `textDocument/hover` at positions of interest for type signatures
 
-# 2. For specific type info, hover on interesting symbols
-bunx @plaited/development-skills lsp-hover path/to/file.ts <line> <char>
-```
+### Before modifying an export
 
-### Before Modifying an Export
+1. `textDocument/hover` to confirm the current type signature
+2. `textDocument/references` to find every call site
+3. Review the response locations before making changes
 
-```bash
-# 1. Find all references first
-bunx @plaited/development-skills lsp-refs path/to/file.ts <line> <char>
+### Finding a symbol across the workspace
 
-# 2. Check what depends on it
-# Review the output to understand impact
-```
-
-### Finding Patterns
-
-```bash
-# Search for similar implementations
-bunx @plaited/development-skills lsp-find handleRequest
-bunx @plaited/development-skills lsp-find parseConfig
-```
-
-### Pre-Implementation Verification
-
-```bash
-# Before writing code that uses an API, verify its signature
-bunx @plaited/development-skills lsp-hover path/to/api.ts <line> <char>
-```
-
-## Output Format
-
-All scripts output JSON to stdout. Errors go to stderr.
-
-**Hover output:**
-```json
-{
-  "contents": {
-    "kind": "markdown",
-    "value": "```typescript\nconst parseConfig: (options: Options) => Config\n```"
-  },
-  "range": { "start": {...}, "end": {...} }
-}
-```
-
-**Symbols output:**
-```json
-[
-  {
-    "name": "symbolName",
-    "kind": 13,
-    "range": { "start": {...}, "end": {...} }
-  }
-]
-```
-
-**Analyze output:**
-```json
-{
-  "file": "path/to/file.ts",
-  "exports": [
-    { "name": "exportName", "kind": "Constant", "line": 139 }
-  ]
-}
-```
+1. Initialize with project root (tsconfig resolution depends on this)
+2. `workspace/symbol` with the symbol name as the query
 
 ## Performance
 
-Each script invocation:
-1. Starts TypeScript Language Server (~300-500ms)
-2. Initializes LSP connection
-3. Opens document
-4. Performs query
-5. Closes and stops
-
-For multiple queries on the same file, use `lsp-analyze` to batch operations in a single session.
+A single `bun typescript-language-server --stdio` process handles the full session. Start it once, send all requests, then shutdown. Starting a new process per query costs ~300–500ms for server init each time.
 
 ## Related Skills
 

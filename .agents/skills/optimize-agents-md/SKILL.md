@@ -1,187 +1,134 @@
 ---
 name: optimize-agents-md
-description: Optimize AGENTS.md and rules for token efficiency. Auto-invoked when user asks about improving agent instructions, compressing AGENTS.md, or making rules more effective.
+description: Review and improve AGENTS.md or scoped agent instructions in this repo. Use when asked to compress, clarify, reorganize, or harden agent workflow rules.
 license: ISC
 ---
 
 # Optimize AGENTS.md
 
-Apply Boris Cherny's compression principles to AGENTS.md and rules files.
+## Purpose
 
-**Target**: ~2.5k tokens (most are 10k+ unnecessarily)
+Improve `AGENTS.md` and scoped agent instruction files without weakening the
+repo's operational contract.
 
-## When to Use
+Use this skill when the user asks to:
 
-- User wants to improve their AGENTS.md or CLAUDE.md
-- Agent instructions feel verbose or redundant
-- Rules exist but lack verification patterns
-- Setting up a new project's agent configuration
+- reduce instruction bloat
+- clarify confusing workflow rules
+- add a lesson learned from a recent mistake
+- remove stale or duplicate guidance
+- reorganize agent instructions for better retrieval
+- update commit, PR, validation, skill, or evidence-collection rules
 
-## Anti-Patterns to Fix
+Do not optimize by chasing a fixed token target. Preserve rules that encode
+repo-specific safety, validation, or workflow constraints even when they are
+verbose.
 
-| Anti-Pattern | Problem | Fix |
-|--------------|---------|-----|
-| Context stuffing | Repeating info agents already know | Delete obvious instructions |
-| Static memory | No learnings section | Add `## Learnings` with dates |
-| Format drift | Inconsistent structure | Use consistent headers |
-| Missing verification | No way to check work | Add `*Verify:*` patterns to rules |
-| Verbose rules | Paragraphs instead of patterns | Compress to pattern + verify + fix |
+## Authority
+
+Before editing instructions, collect current evidence:
+
+```bash
+git log --oneline -20
+git diff main...HEAD --stat
+git log --oneline -- AGENTS.md
+find .agents/skills -name 'SKILL.md' | sort
+```
+
+When sources conflict, use the repo hierarchy:
+
+1. `src/` code and executable behavior
+2. git history
+3. `AGENTS.md` by scope
+4. docs and skills
+
+Update stale prose rather than making code conform to stale docs.
+
+## Editing Rules
+
+- Keep concrete rules that prevent real failures, even if they cost tokens.
+- Prefer one precise rule over several overlapping reminders.
+- Preserve current repo conventions: Bun-first workflow, `gh` for GitHub,
+  conventional commits, scoped validation, directory boundaries, module naming,
+  and skill-trigger guidance.
+- Remove references to retired surfaces only after verifying with `rg`.
+- Do not introduce a public validation CLI unless it exists in the repo.
+- Do not replace operational rules with generic advice agents already know.
+- Do not add broad "always run everything" gates when AGENTS.md already requires
+  area-aware validation.
 
 ## Workflow
 
-### Phase 1: Analyze Current State
+1. Identify the target scope:
+   - root `AGENTS.md`
+   - nested `AGENTS.md`
+   - skill-local instructions
+   - all of the above
+
+2. Search before changing:
 
 ```bash
-# Count tokens (rough estimate: words × 1.3)
-wc -w AGENTS.md
-
-# Find redundancy with project files
-grep -l "bun test" AGENTS.md package.json
+rg -n "stale-term|removed-command|old-path" AGENTS.md docs skills src package.json
+git log --oneline -- AGENTS.md
 ```
 
-Look for:
-- Instructions duplicating package.json scripts
-- Explanations of common tools (git, npm, bun)
-- Verbose descriptions that could be tables
-- Rules without verification patterns
+3. Classify each candidate edit:
+   - `remove`: stale, duplicated, or generic instruction
+   - `merge`: repeated project-specific rule
+   - `clarify`: correct rule that caused confusion
+   - `add`: recent failure mode or missing project constraint
 
-### Phase 2: Compress AGENTS.md
+4. Edit narrowly. Keep related docs in sync when instruction changes affect
+   docs, skills, PR workflow, commit workflow, or validation policy.
 
-**Structure target:**
+5. Verify:
 
-```markdown
-# AGENTS.md
-
-## Overview
-[1-2 sentences: what this project is]
-
-## Capabilities  
-[Bullet list of key features/commands]
-
-## Structure
-[Brief file tree of key paths]
-
-## Commands
-[Essential commands only - not everything in package.json]
-
-## Verification
-[How to check work is correct]
-
-## Workflow
-[Key constraints: plan first, verify incrementally]
-
-## Rules
-[Links to rule files or inline compressed rules]
-
-## Learnings
-[Dated entries from actual issues encountered]
-```
-
-**Compression techniques:**
-- Tables over paragraphs
-- Bullets over sentences
-- Delete anything in package.json
-- Delete tool explanations (agents know git, npm, bun)
-- Merge related sections
-
-### Phase 3: Optimize Rules
-
-Transform verbose rules into verification patterns:
-
-**Before (verbose):**
-```markdown
-## Type Aliases Over Interfaces
-
-In this codebase, we prefer using TypeScript type aliases 
-instead of interfaces. This provides better consistency 
-and flexibility when working with unions and intersections.
-
-Example:
-// Good
-type User = { name: string }
-
-// Bad  
-interface User { name: string }
-```
-
-**After (compressed with verification):**
-```markdown
-**Type over interface** - `type User = {` instead of `interface User {`
-*Verify:* `grep 'interface [A-Z]' src/`
-*Fix:* Replace `interface X {` with `type X = {`
-```
-
-**Pattern format:**
-```
-**Rule name** - Brief description with example
-*Verify:* Command or tool to check compliance
-*Fix:* How to resolve violations
-```
-
-### Phase 4: Add Living Document Features
-
-**Learnings section:**
-```markdown
-## Learnings
-- 2024-01-15: Skills use CLI tools, never duplicate logic
-- 2024-01-20: Rules need verification patterns for self-checking
-```
-
-**Update trigger:** Add learnings when:
-- A mistake required correction
-- A pattern was discovered
-- A constraint was clarified
-
-## Verification
-
-After optimization:
-
-1. **Token count**: `wc -w AGENTS.md` × 1.3 ≈ tokens (target: <2.5k)
-2. **No redundancy**: `grep` for duplicated info in package.json
-3. **Rules have patterns**: Each rule has `*Verify:*` line
-4. **Learnings exist**: `## Learnings` section present
-
-## Example Transformations
-
-### Commands Section
-
-**Before (340 words):**
-```markdown
-## Development Commands
-
-To install dependencies, run the following command...
-[lengthy explanation of bun install]
-
-To run tests, you can use...
-[explanation of test runner]
-```
-
-**After (40 words):**
-```markdown
-## Commands
 ```bash
-bun install    # Setup
-bun run check  # Lint/format
-bun test       # Unit tests
-```
+git diff --check -- AGENTS.md
+rg -n "removed-command|old-path" AGENTS.md docs skills src package.json
 ```
 
-### Capability Description
+For docs-only instruction edits, executable validation is usually unnecessary.
+State that explicitly in the final response. If the edit changes scripts, skill
+contracts, schemas, or runtime guidance with executable effects, run the
+affected targeted tests.
 
-**Before:**
+## Compression Patterns
+
+Prefer compact, testable instructions:
+
 ```markdown
-This package provides TypeScript Language Server Protocol 
-integration that allows you to get type information, find 
-symbols across your workspace, locate references to symbols,
-and perform batch analysis of files.
+**Commit messages** - Use conventional commits. For multi-line bodies, prefer
+`git commit -F /tmp/message.txt`; keep body lines <=100 chars.
 ```
 
-**After:**
+Avoid vague compression:
+
 ```markdown
-**LSP** (`lsp-*`): Type-aware hover, symbol search, references, batch analysis
+Be concise and commit correctly.
 ```
 
-## Related Skills
+Use tables only when they make scanning easier. Long tables with dense prose are
+not an improvement.
 
-- **scaffold-rules** - Install optimized rules with verification patterns
-- **validate-skill** - Validate skill structure
+## Learning Updates
+
+Add or refine rules when a concrete failure occurs, such as:
+
+- a commitlint rejection
+- a stale command path surviving cleanup
+- a validation gap found during review
+- a tool behavior misunderstanding
+- a repo boundary violation
+
+Write the rule as an actionable constraint, not a diary entry. Include the
+verification command when one exists.
+
+## Final Response
+
+Report:
+
+- files changed
+- rules clarified or removed
+- stale-reference checks run
+- validation run or why executable validation was skipped
