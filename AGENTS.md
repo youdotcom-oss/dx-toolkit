@@ -59,11 +59,10 @@ say why. Before trusting repo docs, verify the current state with `rg`, `find`,
 
 ### Current Packages
 
-- `packages/api`
+- `packages/cli`
 - `packages/mcp`
 - `packages/ai-sdk-plugin`
 - `packages/langchain`
-- `packages/teams-anthropic`
 
 ### Skill Surface
 
@@ -91,8 +90,7 @@ cp .env.example .env
 source .env
 ```
 
-`.env` commonly needs `YDC_API_KEY`. Some integration paths also require
-`ANTHROPIC_API_KEY`.
+`.env` commonly needs `YDC_API_KEY`.
 
 ### Workspace Commands
 
@@ -114,10 +112,10 @@ into a package directory for local development commands.
 ```bash
 bun --cwd packages/mcp test
 bun --cwd packages/mcp check
-bun --cwd packages/api test
+bun --cwd packages/cli test
+bun --cwd packages/cli check
 bun --cwd packages/ai-sdk-plugin build
 bun --cwd packages/langchain test
-bun --cwd packages/teams-anthropic check
 ```
 
 ---
@@ -167,13 +165,11 @@ gh issue view <number>
 - `semgrep-ci.yml` runs security scanning
 - `publish-*.yml` workflows publish individual packages through
   `_publish-package.yml`
-- `weekly-performance.yml` and `weekly-schema-validation.yml` run scheduled
-  maintenance checks
 
 ### Publishing Rules
 
 - Package releases are triggered through package-specific workflows such as
-  `publish-api.yml` or `publish-mcp.yml`.
+  `publish-cli.yml` or `publish-mcp.yml`.
 - `_publish-package.yml` computes the next version, updates the target
   `package.json`, updates dependent workspace packages, publishes to npm, and
   creates a GitHub release tag in the form `{package}@v{version}`.
@@ -203,5 +199,4 @@ repo first.
 - 2026-02-23: Run package commands from the repo root with
   `bun --cwd packages/<name> ...`; do not `cd` into package directories for
   local development commands.
-- 2026-02-23: Source `.env` before tests when they need `YDC_API_KEY` or
-  `ANTHROPIC_API_KEY`.
+- 2026-02-23: Source `.env` before tests when they need `YDC_API_KEY`.
