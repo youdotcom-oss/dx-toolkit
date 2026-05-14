@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { randomUUID } from 'node:crypto'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { TOOL_CONTRACT } from '../tools.ts'
 
 const youSearchInputSchema = {
@@ -202,7 +204,7 @@ describe('ydc schema', () => {
   })
 
   test('uses profile routing and strips auth for free search schema requests', async () => {
-    const traceFile = `/private/tmp/${randomUUID()}.jsonl`
+    const traceFile = join(tmpdir(), `${randomUUID()}.jsonl`)
     const child = Bun.spawn({
       cmd: [
         'bun',
@@ -290,6 +292,26 @@ describe('ydc tool execution', () => {
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual({ ok: true })
+  })
+
+  test('rejects malformed JSON input with a plain error message', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('Invalid JSON input for tool: you-search')
+    expect(stderr).not.toContain('SyntaxError')
   })
 
   test('prints sanitized dry-run details for a scoped tool call', async () => {

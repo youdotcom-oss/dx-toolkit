@@ -1,6 +1,6 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `youTools()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns LangChain-compatible tools for search, research, and content extraction. By default, `youTools()` returns the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
+Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns the underlying LangChain MCP client. By default, `await client.getTools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
 
 ## Features
 
@@ -49,16 +49,17 @@ yarn add @youdotcom-oss/langchain langchain
 
 ### 3. Add tools to your agent
 
-Import `youTools()`, await the MCP-backed tool list, and pass those tools into your LangChain agent:
+Import `createYouClient()`, await the MCP-backed client, then resolve tools from that client for your LangChain agent:
 
 ```typescript
 import { createAgent, initChatModel } from 'langchain';
 import * as z from 'zod';
-import { youTools } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-const tools = await youTools({
+const client = await createYouClient({
   apiKey: process.env.YDC_API_KEY,
 });
+const tools = await client.getTools();
 
 // Create a chat model
 const model = await initChatModel('claude-haiku-4-5', {
@@ -91,7 +92,7 @@ const result = await agent.invoke({
 console.log(result.structuredResponse);
 ```
 
-`youTools()` returns the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`.
+`createYouClient()` returns the underlying MCP client. Call `await client.getTools()` to resolve the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`, and call `await client.close()` when finished.
 
 Set your You.com API key as an environment variable:
 
@@ -151,12 +152,14 @@ export YDC_API_KEY=your-api-key-here
 You can override the API key, request a specific hosted MCP profile, or scope the request to specific tool ids:
 
 ```typescript
-import { youTools } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-const tools = await youTools({
+const client = await createYouClient({
   apiKey: 'your-api-key-here',
   tools: ['you-search', 'you-contents'],
 });
+
+const tools = await client.getTools();
 ```
 
 `you-finance` is not included in the default tool set. Request it explicitly with `tools`.
@@ -164,31 +167,37 @@ const tools = await youTools({
 Lead with the smallest explicit form when you only want finance:
 
 ```typescript
-const financeTools = await youTools({
+const client = await createYouClient({
   tools: 'you-finance',
 });
+
+const financeTools = await client.getTools();
 ```
 
 If you want the default tools plus finance, request all of them explicitly:
 
 ```typescript
-const tools = await youTools({
+const client = await createYouClient({
   tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
 });
+
+const tools = await client.getTools();
 ```
 
 Use `profile` when you want the hosted server to resolve tools through a named profile instead:
 
 ```typescript
-const tools = await youTools({
+const client = await createYouClient({
   profile: 'free',
 });
+
+const tools = await client.getTools();
 ```
 
 ### Configuration type
 
 ```typescript
-export type YouToolsConfig = {
+export type YouClientConfig = {
   apiKey?: string;           // Defaults to YDC_API_KEY
   tools?: string | string[]; // Added as ?tools=...
   profile?: string;          // Added as ?profile=...
@@ -223,21 +232,27 @@ These tools work with any LangChain-compatible model via `initChatModel`:
 
 ```typescript
 import { createAgent, initChatModel } from 'langchain';
-import { youTools } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
+
+const client = await createYouClient();
+const tools = await client.getTools();
 
 // Anthropic Claude
 const agent = createAgent({
   model: await initChatModel('claude-haiku-4-5'),
-  tools: await youTools(),
+  tools,
   systemPrompt: 'You are a helpful assistant.',
 });
 
 // OpenAI
+const searchClient = await createYouClient({
+  tools: 'you-search',
+});
+const searchTools = await searchClient.getTools();
+
 const agent = createAgent({
   model: await initChatModel('gpt-4'),
-  tools: await youTools({
-    tools: 'you-search',
-  }),
+  tools: searchTools,
   systemPrompt: 'You are a helpful assistant.',
 });
 ```
@@ -247,11 +262,12 @@ const agent = createAgent({
 You can also await the tool list and invoke a specific tool directly:
 
 ```typescript
-import { youTools } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
 
-const tools = await youTools({
+const client = await createYouClient({
   tools: 'you-search',
 });
+const tools = await client.getTools();
 const searchTool = tools.find((tool) => tool.name === 'you-search');
 const result = await searchTool?.invoke({ query: 'AI news', count: 5 });
 console.log(result);
@@ -288,7 +304,8 @@ export YDC_API_KEY=your-api-key-here
 Or pass it directly when creating tools:
 
 ```typescript
-const tools = await youTools({ apiKey: 'your-api-key-here' });
+const client = await createYouClient({ apiKey: 'your-api-key-here' });
+const tools = await client.getTools();
 ```
 
 ### Problem: Agent isn't using the tools
@@ -297,11 +314,14 @@ const tools = await youTools({ apiKey: 'your-api-key-here' });
 
 ```typescript
 import { createAgent, initChatModel } from 'langchain';
-import { youTools } from '@youdotcom-oss/langchain';
+import { createYouClient } from '@youdotcom-oss/langchain';
+
+const client = await createYouClient();
+const tools = await client.getTools();
 
 const agent = createAgent({
   model: await initChatModel('claude-haiku-4-5'),
-  tools: await youTools(),
+  tools,
   systemPrompt: 'You are a helpful assistant.',
 });
 ```

@@ -3,9 +3,11 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 const getToolsMock = mock(
   async (): Promise<unknown> => [{ name: 'you-search' }, { name: 'you-research' }, { name: 'you-contents' }],
 )
+const closeMock = mock(async (): Promise<void> => {})
 const constructorCalls: unknown[] = []
 
 class MultiServerMCPClientMock {
+  close = closeMock
   getTools = getToolsMock
 
   constructor(config: unknown) {
@@ -42,21 +44,23 @@ const assertNonEmptySearchResult = (value: unknown) => {
   throw new Error(`Unexpected search result type: ${typeof value}`)
 }
 
-describe('youTools', () => {
+describe('createYouClient', () => {
   const originalApiKey = process.env.YDC_API_KEY
   const originalServerUrl = process.env.MCP_SERVER_URL
 
-  const loadMockedYouTools = async () => {
+  const loadMockedCreateYouClient = async () => {
     mock.module('@langchain/mcp-adapters', () => ({
       MultiServerMCPClient: MultiServerMCPClientMock,
     }))
 
-    return (await import(`../main.ts?mocked=${Date.now()}-${Math.random()}`)).youTools
+    return (await import(`../main.ts?mocked=${Date.now()}-${Math.random()}`)).createYouClient
   }
 
-  const loadRealYouTools = async () => (await import(`../main.ts?e2e=${Date.now()}-${Math.random()}`)).youTools
+  const loadRealCreateYouClient = async () =>
+    (await import(`../main.ts?e2e=${Date.now()}-${Math.random()}`)).createYouClient
 
   afterEach(() => {
+    closeMock.mockClear()
     getToolsMock.mockClear()
     constructorCalls.length = 0
     delete process.env.YDC_API_KEY
@@ -72,10 +76,11 @@ describe('youTools', () => {
   })
 
   test('executes you-search against the hosted MCP server', async () => {
-    const liveYouTools = await loadRealYouTools()
-    const tools = await liveYouTools({
+    const createYouClient = await loadRealCreateYouClient()
+    const client = await createYouClient({
       profile: 'free',
     })
+    const tools = (await client.getTools()) as Array<{ invoke: (input: unknown) => Promise<unknown>; name: string }>
     const searchTool = tools.find((tool: { name: string }) => tool.name === 'you-search')
 
     expect(searchTool).toBeDefined()
@@ -85,14 +90,13 @@ describe('youTools', () => {
     })
 
     assertNonEmptySearchResult(result)
+    await client.close()
   })
 
-  test('creates a hosted MCP client scoped to the requested tools and returns LangChain tools', async () => {
-    const mockedYouTools = await loadMockedYouTools()
-    const tools: unknown = [{ name: 'you-search' }, { name: 'you-research' }, { name: 'you-contents' }]
-    getToolsMock.mockResolvedValueOnce(tools)
+  test('creates and returns a hosted MCP client scoped to the requested tools', async () => {
+    const createYouClient = await loadMockedCreateYouClient()
 
-    const result = (await mockedYouTools({
+    const result = (await createYouClient({
       apiKey: 'config-key',
       tools: ['you-search', 'you-contents'],
     })) as unknown
@@ -110,16 +114,15 @@ describe('youTools', () => {
         },
       },
     ])
-    expect(getToolsMock).toHaveBeenCalledTimes(1)
-    expect(result).toBe(tools)
+    expect(result).toBeInstanceOf(MultiServerMCPClientMock)
   })
 
   test('uses the hosted MCP base URL even when MCP_SERVER_URL is set in the environment', async () => {
-    const mockedYouTools = await loadMockedYouTools()
+    const createYouClient = await loadMockedCreateYouClient()
     process.env.YDC_API_KEY = 'env-key'
     process.env.MCP_SERVER_URL = 'https://env.example.com/mcp'
 
-    await mockedYouTools({
+    await createYouClient({
       tools: 'you-search',
     })
 
@@ -139,10 +142,10 @@ describe('youTools', () => {
   })
 
   test('uses the profile query parameter instead of tools when a profile is provided', async () => {
-    const mockedYouTools = await loadMockedYouTools()
+    const createYouClient = await loadMockedCreateYouClient()
     process.env.YDC_API_KEY = 'env-key'
 
-    await mockedYouTools({
+    await createYouClient({
       profile: 'free',
       tools: ['you-search', 'you-contents'],
     })
@@ -163,10 +166,10 @@ describe('youTools', () => {
   })
 
   test('omits Authorization when no API key is available', async () => {
-    const mockedYouTools = await loadMockedYouTools()
+    const createYouClient = await loadMockedCreateYouClient()
     delete process.env.YDC_API_KEY
 
-    await mockedYouTools({
+    await createYouClient({
       tools: 'you-search',
     })
 

@@ -1,19 +1,19 @@
 import { MultiServerMCPClient } from '@langchain/mcp-adapters'
 
-export type YouToolsConfig = {
+export type YouClientConfig = {
   apiKey?: string
   tools?: string | string[]
   profile?: string
 }
 
-export const youTools = async ({ apiKey = process.env.YDC_API_KEY, tools, profile }: YouToolsConfig = {}) => {
+export const createYouClient = async ({ apiKey = process.env.YDC_API_KEY, tools, profile }: YouClientConfig = {}) => {
   const url = new URL('https://api.you.com/mcp')
   if (profile) {
     url.searchParams.set('profile', profile)
   } else if (tools) {
     url.searchParams.set('tools', Array.isArray(tools) ? tools.join(',') : tools)
   }
-  const client = new MultiServerMCPClient({
+  return new MultiServerMCPClient({
     mcpServers: {
       you: {
         headers: apiKey
@@ -26,6 +26,4 @@ export const youTools = async ({ apiKey = process.env.YDC_API_KEY, tools, profil
       },
     },
   })
-
-  return await client.getTools()
 }

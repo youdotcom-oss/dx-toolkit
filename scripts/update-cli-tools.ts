@@ -12,58 +12,61 @@ type ToolContractPayload = {
   tools: ToolContractEntry[]
 }
 
-const payloadPath = process.argv[2]
+const getValidatedPayload = (payload: Partial<ToolContractPayload>) => {
+  if (!payload.surfaceVersion || typeof payload.surfaceVersion !== 'string') {
+    throw new Error('client_payload.surfaceVersion must be a string')
+  }
 
-if (!payloadPath) {
-  throw new Error('Usage: bun scripts/update-cli-tools.ts <payload.json>')
+  if (!Array.isArray(payload.tools) || payload.tools.length === 0) {
+    throw new Error('client_payload.tools must be a non-empty array')
+  }
+
+  const tools = [...payload.tools]
+    .map((tool) => {
+      if (!tool || typeof tool.name !== 'string' || typeof tool.supportsFreeProfile !== 'boolean') {
+        throw new Error('Each tool must include string name and boolean supportsFreeProfile')
+      }
+
+      return {
+        name: tool.name,
+        supportsFreeProfile: tool.supportsFreeProfile,
+      }
+    })
+    .sort((left, right) => left.name.localeCompare(right.name))
+
+  const uniqueToolNames = new Set(tools.map(({ name }) => name))
+
+  if (uniqueToolNames.size !== tools.length) {
+    throw new Error('Tool names must be unique')
+  }
+
+  return {
+    surfaceVersion: payload.surfaceVersion,
+    tools,
+  }
 }
 
-const payload = JSON.parse(readFileSync(payloadPath, 'utf8')) as Partial<ToolContractPayload>
+export const renderToolContract = (payload: Partial<ToolContractPayload>) => {
+  const validatedPayload = getValidatedPayload(payload)
+  const contractHash = createHash('sha256')
+    .update(
+      JSON.stringify({
+        tools: validatedPayload.tools,
+      }),
+    )
+    .digest('hex')
 
-if (!payload.surfaceVersion || typeof payload.surfaceVersion !== 'string') {
-  throw new Error('client_payload.surfaceVersion must be a string')
-}
+  const toTypeScriptString = (value: string) => `'${JSON.stringify(value).slice(1, -1).replaceAll("'", "\\'")}'`
 
-if (!Array.isArray(payload.tools) || payload.tools.length === 0) {
-  throw new Error('client_payload.tools must be a non-empty array')
-}
-
-const tools = [...payload.tools]
-  .map((tool) => {
-    if (!tool || typeof tool.name !== 'string' || typeof tool.supportsFreeProfile !== 'boolean') {
-      throw new Error('Each tool must include string name and boolean supportsFreeProfile')
-    }
-
-    return {
-      name: tool.name,
-      supportsFreeProfile: tool.supportsFreeProfile,
-    }
-  })
-  .sort((left, right) => left.name.localeCompare(right.name))
-
-const uniqueToolNames = new Set(tools.map(({ name }) => name))
-
-if (uniqueToolNames.size !== tools.length) {
-  throw new Error('Tool names must be unique')
-}
-
-const contractHash = createHash('sha256')
-  .update(
-    JSON.stringify({
-      tools,
-    }),
-  )
-  .digest('hex')
-
-const output = `// This file is generated. Do not edit by hand.
+  return `// This file is generated. Do not edit by hand.
 export const TOOL_CONTRACT = {
-  contractHash: '${contractHash}',
-  surfaceVersion: '${payload.surfaceVersion}',
+  contractHash: ${toTypeScriptString(contractHash)},
+  surfaceVersion: ${toTypeScriptString(validatedPayload.surfaceVersion)},
   tools: [
-${tools
+${validatedPayload.tools
   .map(
     ({ name, supportsFreeProfile }) => `    {
-      name: '${name}',
+      name: ${toTypeScriptString(name)},
       supportsFreeProfile: ${supportsFreeProfile},
     },`,
   )
@@ -71,7 +74,17 @@ ${tools
   ],
 } as const
 `
+}
 
-const outputPath = resolve(import.meta.dir, '..', 'packages', 'cli', 'src', 'tools.ts')
+if (import.meta.main) {
+  const payloadPath = process.argv[2]
 
-await Bun.write(outputPath, output)
+  if (!payloadPath) {
+    throw new Error('Usage: bun scripts/update-cli-tools.ts <payload.json>')
+  }
+
+  const payload = JSON.parse(readFileSync(payloadPath, 'utf8')) as Partial<ToolContractPayload>
+  const outputPath = resolve(import.meta.dir, '..', 'packages', 'cli', 'src', 'tools.ts')
+
+  await Bun.write(outputPath, renderToolContract(payload))
+}

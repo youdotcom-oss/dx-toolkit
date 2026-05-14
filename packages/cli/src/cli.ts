@@ -106,7 +106,15 @@ if (command && getTool(command)) {
     process.exit(1)
   }
 
-  const input = JSON.parse(rawInput) as Record<string, unknown>
+  let input: Record<string, unknown>
+
+  try {
+    input = JSON.parse(rawInput) as Record<string, unknown>
+  } catch {
+    console.error(`Invalid JSON input for tool: ${command}`)
+    process.exit(1)
+  }
+
   const headers =
     parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(parsedFlags.apiKey ?? process.env.YDC_API_KEY)
   const url = buildToolUrl(command, parsedFlags.profile)

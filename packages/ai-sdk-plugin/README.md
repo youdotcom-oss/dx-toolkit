@@ -1,6 +1,6 @@
 # Vercel AI SDK Plugin for You.com
 
-Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `youTools()` helper that connects to `https://api.you.com/mcp` and returns AI SDK-compatible tools for search, research, and content extraction. By default, `youTools()` returns the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
+Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` and returns the underlying AI SDK MCP client. By default, `await client.tools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
 
 ## Features
 
@@ -53,33 +53,39 @@ yarn add @youdotcom-oss/ai-sdk-plugin ai
 
 ### 3. Add tools to your application
 
-Import `youTools()`, await the MCP-backed tool set, and pass the returned tools into your AI SDK call:
+Import `createYouClient()`, await the MCP-backed client, then resolve tools from that client for your AI SDK call:
 
 ```typescript
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, stepCountIs } from 'ai';
-import { youTools } from '@youdotcom-oss/ai-sdk-plugin';
+import { createYouClient } from '@youdotcom-oss/ai-sdk-plugin';
 
 // Create your AI model provider
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const tools = await youTools({
+const client = await createYouClient({
   apiKey: process.env.YDC_API_KEY,
 });
 
-const result = await generateText({
-  model: anthropic('claude-sonnet-4-5-20250929'),
-  tools,
-  stopWhen: stepCountIs(5),  // Required for tool result processing
-  prompt: 'Search for the latest developments in quantum computing',
-});
+try {
+  const tools = await client.tools();
 
-console.log(result.text);
+  const result = await generateText({
+    model: anthropic('claude-sonnet-4-5-20250929'),
+    tools,
+    stopWhen: stepCountIs(5),  // Required for tool result processing
+    prompt: 'Search for the latest developments in quantum computing',
+  });
+
+  console.log(result.text);
+} finally {
+  await client.close();
+}
 ```
 
-`youTools()` returns the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`.
+`createYouClient()` returns the underlying MCP client. Call `await client.tools()` to resolve the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`, and call `await client.close()` when finished.
 
 Set your You.com API key as an environment variable:
 
@@ -153,12 +159,14 @@ export YDC_API_KEY=your-api-key-here
 You can override the API key, request a specific hosted MCP profile, or scope the request to specific tool ids:
 
 ```typescript
-import { youTools } from '@youdotcom-oss/ai-sdk-plugin';
+import { createYouClient } from '@youdotcom-oss/ai-sdk-plugin';
 
-const tools = await youTools({
+const client = await createYouClient({
   apiKey: 'your-api-key-here',
   tools: ['you-search', 'you-contents'],
 });
+
+const tools = await client.tools();
 ```
 
 `you-finance` is not included in the default tool set. Request it explicitly with `tools`.
@@ -166,31 +174,37 @@ const tools = await youTools({
 Lead with the smallest explicit form when you only want finance:
 
 ```typescript
-const financeTools = await youTools({
+const client = await createYouClient({
   tools: 'you-finance',
 });
+
+const financeTools = await client.tools();
 ```
 
 If you want the default tools plus finance, request all of them explicitly:
 
 ```typescript
-const tools = await youTools({
+const client = await createYouClient({
   tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
 });
+
+const tools = await client.tools();
 ```
 
 Use `profile` when you want the hosted server to resolve tools through a named profile instead:
 
 ```typescript
-const tools = await youTools({
+const client = await createYouClient({
   profile: 'free',
 });
+
+const tools = await client.tools();
 ```
 
 ### Configuration type
 
 ```typescript
-export type YouToolsConfig = {
+export type YouClientConfig = {
   apiKey?: string;           // Defaults to YDC_API_KEY
   tools?: string | string[]; // Added as ?tools=...
   profile?: string;          // Added as ?profile=...
@@ -233,9 +247,12 @@ const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const client = await createYouClient();
+const tools = await client.tools();
+
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
-  tools: await youTools(),
+  tools,
   stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
@@ -247,11 +264,14 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const searchClient = await createYouClient({
+  tools: 'you-search',
+});
+const searchTools = await searchClient.tools();
+
 const result = await generateText({
   model: openai('gpt-4'),
-  tools: await youTools({
-    tools: 'you-search',
-  }),
+  tools: searchTools,
   stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
@@ -263,11 +283,14 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
+const googleClient = await createYouClient({
+  tools: 'you-search',
+});
+const googleTools = await googleClient.tools();
+
 const result = await generateText({
   model: google('gemini-2.0-flash-exp'),
-  tools: await youTools({
-    tools: 'you-search',
-  }),
+  tools: googleTools,
   stopWhen: stepCountIs(3),
   prompt: 'Search for AI news',
 });
@@ -338,7 +361,8 @@ export YDC_API_KEY=your-api-key-here
 Or pass it directly when creating tools:
 
 ```typescript
-const tools = await youTools({ apiKey: 'your-api-key-here' });
+const client = await createYouClient({ apiKey: 'your-api-key-here' });
+const tools = await client.tools();
 ```
 
 ### Problem: AI isn't using the tools
@@ -353,9 +377,12 @@ const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const client = await createYouClient();
+const tools = await client.tools();
+
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
-  tools: await youTools(),
+  tools,
   stopWhen: stepCountIs(3),  // Required: enables tool result processing
   prompt: 'Search for recent AI news',
 });
@@ -371,9 +398,12 @@ const result = await generateText({
 import { generateText, stepCountIs } from 'ai';
 
 // ❌ WRONG - tools execute but results aren't integrated
+const client = await createYouClient();
+const tools = await client.tools();
+
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
-  tools: await youTools(),
+  tools,
   maxSteps: 5,  // Don't use this!
   prompt: 'Search for AI news',
 });
@@ -381,7 +411,7 @@ const result = await generateText({
 // ✅ CORRECT - tool results properly integrated
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
-  tools: await youTools(),
+  tools,
   stopWhen: stepCountIs(3),  // Use this instead
   prompt: 'Search for AI news',
 });
@@ -418,9 +448,12 @@ const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const client = await createYouClient();
+const tools = await client.tools();
+
 const result = await generateText({
   model: anthropic('claude-sonnet-4-5-20250929'),
-  tools: await youTools(),
+  tools,
   prompt: 'Search for AI news',
 });
 

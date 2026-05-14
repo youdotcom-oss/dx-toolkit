@@ -1,12 +1,12 @@
 import { createMCPClient } from '@ai-sdk/mcp'
 
-export type YouToolsConfig = {
+export type YouClientConfig = {
   apiKey?: string
   tools?: string | string[]
   profile?: string
 }
 
-export const youTools = async ({ apiKey = process.env.YDC_API_KEY, tools, profile }: YouToolsConfig = {}) => {
+export const createYouClient = async ({ apiKey = process.env.YDC_API_KEY, tools, profile }: YouClientConfig = {}) => {
   const url = new URL('https://api.you.com/mcp')
   if (profile) {
     url.searchParams.set('profile', profile)
@@ -14,7 +14,7 @@ export const youTools = async ({ apiKey = process.env.YDC_API_KEY, tools, profil
     url.searchParams.set('tools', Array.isArray(tools) ? tools.join(',') : tools)
   }
 
-  const client = await createMCPClient({
+  return await createMCPClient({
     transport: {
       headers: apiKey
         ? {
@@ -25,6 +25,4 @@ export const youTools = async ({ apiKey = process.env.YDC_API_KEY, tools, profil
       url: url.href,
     },
   })
-
-  return await client.tools()
 }
