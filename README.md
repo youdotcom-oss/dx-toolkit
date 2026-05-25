@@ -64,10 +64,10 @@ Authenticated (all default tools):
 
 ```bash
 # Free tier
-claude mcp add you -- npx @youdotcom-oss/mcp -e YDC_PROFILE=free
+claude mcp add you -e YDC_PROFILE=free -- npx @youdotcom-oss/mcp
 
 # Authenticated
-claude mcp add you -- npx @youdotcom-oss/mcp -e YDC_API_KEY=<your-key>
+claude mcp add you -e YDC_API_KEY=<your-key> -- npx @youdotcom-oss/mcp
 ```
 
 ### Cursor
