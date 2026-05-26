@@ -28,7 +28,7 @@ If your client supports remote MCP, point it at `https://api.you.com/mcp?profile
 
 ## Quick start
 
-Every snippet below works against the free tier. To unlock `you-research`, `you-contents`, and `you-finance`, drop the `YDC_PROFILE` line and set `YDC_API_KEY` to a key from [you.com/platform/api-keys](https://you.com/platform/api-keys).
+Every snippet below works against the free tier. To unlock `you-research` and `you-contents`, drop the `YDC_PROFILE` line and set `YDC_API_KEY` to a key from [you.com/platform/api-keys](https://you.com/platform/api-keys). `you-finance` is opt-in — pass `?tools=you-finance` on the URL or set `YDC_ALLOWED_TOOLS=you-finance`.
 
 ### Claude Desktop
 
