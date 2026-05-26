@@ -201,7 +201,7 @@ console.log(result);
 
 - API keys: [you.com/platform/api-keys](https://you.com/platform/api-keys)
 - Platform docs: [documentation.you.com](https://documentation.you.com)
-- MCP registry listing: [`io.github.youdotcom-oss/mcp`](https://github.com/modelcontextprotocol/registry)
+- MCP registry listing: [`io.github.youdotcom-oss/mcp`](https://registry.modelcontextprotocol.io/?q=io.github.youdotcom-oss%2Fmcp)
 - Issues: [github.com/youdotcom-oss/dx-toolkit/issues](https://github.com/youdotcom-oss/dx-toolkit/issues)
 - Support: support@you.com
 
