@@ -22,7 +22,7 @@ If your client supports remote MCP, point it at `https://api.you.com/mcp?profile
 
 - **Real web index** — backed by You.com's production search infrastructure, not a scraper.
 - **Free tier, no signup** — `?profile=free` exposes `you-search` to any MCP client with zero auth.
-- **Listed in the official Anthropic MCP registry** as [`io.github.youdotcom-oss/mcp`](https://github.com/modelcontextprotocol/registry).
+- **Listed in the official MCP registry** as [`io.github.youdotcom-oss/mcp`](https://registry.modelcontextprotocol.io/?q=io.github.youdotcom-oss%2Fmcp).
 - **Works with every major agent stack** — Claude, Cursor, Windsurf, VS Code, Vercel AI SDK, LangChain.
 - **One hosted endpoint** — all packages here are thin clients over `https://api.you.com/mcp`.
 
