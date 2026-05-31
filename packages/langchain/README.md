@@ -1,6 +1,8 @@
 # LangChain.js Tools for You.com
 
-Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns the underlying LangChain MCP client. By default, `await client.getTools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
+Give your LangChain agents **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` via `@langchain/mcp-adapters` and returns the underlying LangChain MCP client.
+
+By default, `await client.getTools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`. To use `you-finance`, request it explicitly in the `tools` parameter.
 
 ## Features
 
@@ -8,23 +10,22 @@ Build LangChain agents that can:
 - **Search the web in real-time** - Access current information with advanced filtering (dates, sites, file types)
 - **Research** - Comprehensive answers with cited sources, configurable effort (lite to exhaustive)
 - **Extract any webpage** - Pull full content in markdown or HTML format
-- **Zero configuration** - Works with any LangChain-compatible model (Anthropic, OpenAI, Google, and more)
+- **Zero configuration** - Works with any LangChain-compatible model provider (Anthropic, OpenAI, Google, Fireworks and more)
 - **Hosted MCP transport** - Connects directly to the You.com hosted MCP server
 - **Type-safe** - Full TypeScript support for async tool initialization
-- **Production-ready** - Built on You.com's enterprise search API
+- **Production-ready** - Built on You.com's enterprise APIs
 
-## AI Agent Skills
+## Build your first LangChain agent in a few seconds
 
-**For LangChain.js Integration**: Use the [ydc-langchain-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-langchain-integration) skill to quickly integrate You.com tools with your LangChain.js applications.
+Use the [ydc-langchain-integration](https://github.com/youdotcom-oss/agent-skills/tree/main/skills/ydc-langchain-integration) skill to quickly integrate You.com tools with your LangChain.js application. This is the easiest and fastest way to get started. Install the skill and run it with your favorite coding agent.
 
 ```bash
-# Install the LangChain.js integration skill
 npx skills add youdotcom-oss/agent-skills --skill ydc-langchain-integration
 ```
 
-Once installed, ask your AI agent: **"Integrate LangChain.js with You.com tools"**
+Once installed, run the skill directly or ask your AI agent: **"Integrate LangChain.js with You.com tools"**
 
-## Getting started
+## Build your first LangChain agent manually instead
 
 Get up and running in 4 quick steps:
 
@@ -108,7 +109,8 @@ Ask your agent something that needs real-time information:
 
 - "What are the latest developments in quantum computing?"
 - "Research the pros and cons of WebAssembly vs JavaScript"
-- "Extract and analyze the content from https://anthropic.com"
+- "Extract and analyze the content from [https://anthropic.com](https://anthropic.com)"
+- "Compare the free cash flow of Apple, Microsoft, and Alphabet"
 
 Your agent will automatically choose the right tool and return up-to-date, accurate answers.
 
@@ -129,8 +131,8 @@ Your LangChain agents can now handle requests like these:
 ### Content analysis & extraction
 
 **Documentation analysis:**
-- "Extract and summarize the main points from https://docs.example.com"
-- "Get the pricing information from https://competitor.com/pricing"
+- "Extract and summarize the main points from [https://docs.example.com](https://docs.example.com)"
+- "Get the pricing information from [https://competitor.com/pricing](https://competitor.com/pricing)"
 
 **Multi-page research:**
 - "Extract content from these 3 blog posts and compare their approaches"
@@ -237,23 +239,16 @@ import { createYouClient } from '@youdotcom-oss/langchain';
 const client = await createYouClient();
 const tools = await client.getTools();
 
-// Anthropic Claude
+// Anthropic
 const agent = createAgent({
   model: await initChatModel('claude-haiku-4-5'),
   tools,
-  systemPrompt: 'You are a helpful assistant.',
 });
 
 // OpenAI
-const searchClient = await createYouClient({
-  tools: 'you-search',
-});
-const searchTools = await searchClient.getTools();
-
 const agent = createAgent({
-  model: await initChatModel('gpt-4'),
-  tools: searchTools,
-  systemPrompt: 'You are a helpful assistant.',
+  model: await initChatModel('gpt-5-nano'),
+  tools,
 });
 ```
 
@@ -343,7 +338,7 @@ Get a new API key at [you.com/platform/api-keys](https://you.com/platform/api-ke
 ### Need more help?
 
 - **GitHub Issues**: [Report bugs](https://github.com/youdotcom-oss/dx-toolkit/issues)
-- **Email Support**: support@you.com
+- **Email Support**: [support@you.com](mailto:support@you.com)
 
 ## For contributors
 
@@ -363,4 +358,4 @@ Interested in contributing? We'd love your help!
 
 **License**: MIT - see [LICENSE](../../LICENSE) for details
 
-**Author**: You.com (https://you.com)
+**Author**: You.com ([https://you.com](https://you.com))
