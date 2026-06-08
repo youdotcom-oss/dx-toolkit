@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/langchain",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "LangChain.js tools for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {
