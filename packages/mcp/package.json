@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/mcp",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "You.com MCP STDIO bridge for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {
