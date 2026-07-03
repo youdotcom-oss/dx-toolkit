@@ -1,268 +1,76 @@
 #!/usr/bin/env node
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import packageJson from '../package.json' with { type: 'json' }
-import { TOOL_CONTRACT } from './tools.ts'
+import {
+  type CommandName,
+  runFetch,
+  runFinanceResearch,
+  runRaw,
+  runResearch,
+  runSchema,
+  runSearch,
+  runTools,
+} from './commands.ts'
 
-const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
-type McpToolResult = Awaited<ReturnType<Client['callTool']>>
-const args = process.argv.slice(2)
-const command = args[0]
-const usage = `Usage: ydc tools
-       ydc schema <tool> [input|output]
-       ydc <tool> <json> [flags]`
+const USAGE = `Usage: ydc <command> [args] [flags]
 
-if (command === 'tools') {
-  console.log(
-    JSON.stringify({
-      contractHash: TOOL_CONTRACT.contractHash,
-      surfaceVersion: TOOL_CONTRACT.surfaceVersion,
-      tools: TOOL_CONTRACT.tools.map(({ name }) => name),
-    }),
-  )
-  process.exit(0)
+Primary commands:
+  search <query>                Web and news search (you-search)
+  fetch <url> [<url>...]        Extract page content (you-contents)
+  research <input>              Deep research with citations (you-research)
+  finance-research <input>      Deep finance research (you-finance)
+
+Utilities:
+  tools                         Print the local tool contract and command map
+  schema <tool> [input|output]  Print remote JSON Schema for a tool
+  raw <tool> [<json>]           Call a remote tool with raw JSON arguments
+
+Global flags:
+  --api-key <key>               API key (overrides YDC_API_KEY)
+  -o, --output <file>           Write JSON output to file
+  --pretty                      Pretty-print JSON output
+  --dry-run                     Print resolved request without executing
+  -h, --help                    Show help
+  -V, --version                 Show version
+
+Per-command help:
+  ydc <command> --help`
+
+type Command = CommandName | 'tools' | 'schema' | 'raw'
+
+const HANDLERS: Record<Command, (argv: string[]) => Promise<void>> = {
+  fetch: runFetch,
+  'finance-research': runFinanceResearch,
+  raw: runRaw,
+  research: runResearch,
+  schema: runSchema,
+  search: runSearch,
+  tools: runTools,
 }
 
-if (command === 'schema') {
-  const toolName = args[1]
-  const tool = toolName ? getTool(toolName) : undefined
-  const hasExplicitTarget = args[2] === 'input' || args[2] === 'output'
-  const schemaTarget = hasExplicitTarget ? args[2] : 'input'
-  const parsedFlags = parseExecutionFlags(args.slice(hasExplicitTarget ? 3 : 2))
+const isCommand = (value: string): value is Command => value in HANDLERS
 
-  if (!toolName || !tool) {
-    console.error(`Unknown tool: ${toolName ?? '<missing>'}`)
-    process.exit(1)
-  }
+const main = async (): Promise<void> => {
+  const argv = process.argv.slice(2)
+  const [command, ...rest] = argv
 
-  if (schemaTarget !== 'input' && schemaTarget !== 'output') {
-    console.error(`Unknown schema target: ${schemaTarget}`)
-    process.exit(1)
-  }
-
-  if (parsedFlags.profile && !tool.supportsFreeProfile) {
-    console.error('--profile is only supported for you-search')
-    process.exit(1)
-  }
-
-  const headers =
-    parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(parsedFlags.apiKey ?? process.env.YDC_API_KEY)
-  const transport = new StreamableHTTPClientTransport(
-    buildToolUrl(toolName, parsedFlags.profile),
-    headers
-      ? {
-          requestInit: {
-            headers,
-          },
-        }
-      : undefined,
-  )
-  const client = new Client({
-    name: 'ydc',
-    version: packageJson.version,
-  })
-
-  try {
-    await client.connect(transport)
-    const result = await client.listTools()
-    const tool = result.tools.find(({ name }) => name === toolName)
-
-    if (!tool) {
-      console.error(`Tool ${toolName} is in the local contract but was not advertised by the remote MCP server`)
-      process.exit(1)
-    }
-
-    const schema = schemaTarget === 'input' ? tool.inputSchema : tool.outputSchema
-
-    if (!schema) {
-      console.error(`Tool ${toolName} has no advertised ${schemaTarget} schema`)
-      process.exit(1)
-    }
-
-    console.log(JSON.stringify(schema))
-    process.exit(0)
-  } finally {
-    await Promise.allSettled([client.close(), transport.close()])
-  }
-}
-
-const tool = command ? getTool(command) : undefined
-
-if (command && tool) {
-  const rawInput = args[1] ?? (await new Response(Bun.stdin.stream()).text()).trim()
-  const parsedFlags = parseExecutionFlags(args.slice(2))
-
-  if (!rawInput) {
-    console.error(`Missing JSON input for tool: ${command}`)
-    process.exit(1)
-  }
-
-  if (parsedFlags.profile && !tool.supportsFreeProfile) {
-    console.error('--profile is only supported for you-search')
-    process.exit(1)
-  }
-
-  let input: Record<string, unknown>
-
-  try {
-    input = JSON.parse(rawInput) as Record<string, unknown>
-  } catch {
-    console.error(`Invalid JSON input for tool: ${command}`)
-    process.exit(1)
-  }
-
-  const headers =
-    parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(parsedFlags.apiKey ?? process.env.YDC_API_KEY)
-  const url = buildToolUrl(command, parsedFlags.profile)
-
-  if (parsedFlags.dryRun) {
-    console.log(
-      JSON.stringify({
-        arguments: input,
-        headers: sanitizeHeaders(headers),
-        tool: command,
-        url: url.toString(),
-      }),
-    )
+  if (!command || command === '--help' || command === '-h') {
+    console.log(USAGE)
     process.exit(0)
   }
 
-  const transport = new StreamableHTTPClientTransport(
-    url,
-    headers
-      ? {
-          requestInit: {
-            headers,
-          },
-        }
-      : undefined,
-  )
-  const client = new Client({
-    name: 'ydc',
-    version: packageJson.version,
-  })
-
-  try {
-    await client.connect(transport)
-    const result = await client.callTool({
-      arguments: input,
-      name: command,
-    })
-
-    console.log(JSON.stringify(normalizeToolResult(result)))
+  if (command === '--version' || command === '-V') {
+    console.log(packageJson.version)
     process.exit(0)
-  } finally {
-    await Promise.allSettled([client.close(), transport.close()])
   }
+
+  if (!isCommand(command)) {
+    console.error(`Unknown command: ${command}`)
+    console.error('')
+    console.error(USAGE)
+    process.exit(1)
+  }
+
+  await HANDLERS[command](rest)
 }
 
-if (!command || command === '--help') {
-  console.log(usage)
-  process.exit(0)
-}
-
-console.error(`Unknown command: ${command}`)
-process.exit(1)
-
-function normalizeToolResult(result: McpToolResult) {
-  if (result.structuredContent !== undefined) {
-    return result.structuredContent
-  }
-
-  if ('toolResult' in result) {
-    return result.toolResult
-  }
-
-  const firstText = result.content.find(
-    (item): item is { text: string; type: 'text' } => item.type === 'text' && 'text' in item,
-  )
-
-  if (!firstText) {
-    return result
-  }
-
-  try {
-    return JSON.parse(firstText.text)
-  } catch {
-    return result
-  }
-}
-
-function buildToolUrl(toolName: string, profile?: string) {
-  const url = new URL(BASE_MCP_SERVER_URL)
-
-  if (profile) {
-    url.searchParams.set('profile', profile)
-    return url
-  }
-
-  url.searchParams.set('tools', toolName)
-
-  return url
-}
-
-function getAuthorizationHeaders(apiKey?: string) {
-  if (!apiKey) {
-    return undefined
-  }
-
-  return {
-    Authorization: `Bearer ${apiKey}`,
-  }
-}
-
-function parseExecutionFlags(rawFlags: string[]) {
-  let apiKey: string | undefined
-  let dryRun = false
-  let profile: string | undefined
-
-  const getFlagValue = (flag: string, index: number) => {
-    const value = rawFlags[index + 1]
-
-    if (!value || value.startsWith('--')) {
-      console.error(`Missing value for ${flag}`)
-      process.exit(1)
-    }
-
-    return value
-  }
-
-  for (let index = 0; index < rawFlags.length; index += 1) {
-    const flag = rawFlags[index]
-
-    if (flag === '--dry-run') {
-      dryRun = true
-      continue
-    }
-
-    if (flag === '--api-key') {
-      apiKey = getFlagValue(flag, index)
-      index += 1
-      continue
-    }
-
-    if (flag === '--profile') {
-      profile = getFlagValue(flag, index)
-      index += 1
-    }
-  }
-
-  return { apiKey, dryRun, profile }
-}
-
-function sanitizeHeaders(headers?: Record<string, string>) {
-  if (!headers) {
-    return {}
-  }
-
-  return Object.fromEntries(
-    Object.entries(headers).map(([key, value]) => [
-      key,
-      key.toLowerCase() === 'authorization' ? 'Bearer [REDACTED]' : value,
-    ]),
-  )
-}
-
-function getTool(toolName: string) {
-  return TOOL_CONTRACT.tools.find((tool) => tool.name === toolName)
-}
+await main()
