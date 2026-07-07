@@ -8,9 +8,35 @@ const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 type McpToolResult = Awaited<ReturnType<Client['callTool']>>
 const args = process.argv.slice(2)
 const command = args[0]
-const usage = `Usage: ydc tools
-       ydc schema <tool> [input|output]
-       ydc <tool> <json> [flags]`
+
+const buildHelp = () =>
+  [
+    'Usage: ydc tools',
+    '       ydc schema <tool> [input|output]',
+    "       ydc <tool> '<json>' [flags]",
+    "       echo '<json>' | ydc <tool>",
+    '',
+    'Agent-first CLI bridge for the hosted You.com MCP server.',
+    '',
+    'Commands:',
+    '  tools                          List the locally allowlisted tool ids',
+    '  schema <tool> [input|output]   Fetch the raw remote schema for a tool',
+    "  <tool> '<json>'                Execute a remote tool with JSON input",
+    '',
+    'Tools:',
+    `  ${TOOL_CONTRACT.tools.map(({ name }) => name).join(', ')}`,
+    '',
+    'Flags:',
+    '  --api-key <key>   Use this API key instead of YDC_API_KEY',
+    '  --dry-run         Print resolved URL, tool id, sanitized headers, and JSON arguments',
+    '  --profile free    Route to ?profile=free and strip auth (you-search only)',
+    '  -h, --help        Show this help message',
+    '',
+    'Environment:',
+    '  YDC_API_KEY       Optional default API key',
+  ].join('\n')
+
+const isHelpRequest = command === '--help' || command === '-h'
 
 if (command === 'tools') {
   console.log(
@@ -156,8 +182,13 @@ if (command && tool) {
   }
 }
 
-if (!command || command === '--help') {
-  console.log(usage)
+if (!command) {
+  console.error(buildHelp())
+  process.exit(1)
+}
+
+if (isHelpRequest) {
+  console.log(buildHelp())
   process.exit(0)
 }
 

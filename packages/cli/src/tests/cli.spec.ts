@@ -124,6 +124,81 @@ describe('ydc help and command validation', () => {
     expect(stdout).toContain('Usage: ydc tools')
   })
 
+  test('prints the same help for the -h short flag', async () => {
+    const longChild = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', '--help'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+    const shortChild = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', '-h'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [longOut, , longExit] = await Promise.all([
+      new Response(longChild.stdout).text(),
+      new Response(longChild.stderr).text(),
+      longChild.exited,
+    ])
+    const [shortOut, shortErr, shortExit] = await Promise.all([
+      new Response(shortChild.stdout).text(),
+      new Response(shortChild.stderr).text(),
+      shortChild.exited,
+    ])
+
+    expect(longExit).toBe(0)
+    expect(shortExit).toBe(0)
+    expect(shortErr).toBe('')
+    expect(shortOut).toBe(longOut)
+  })
+
+  test('lists every allowlisted tool and flag in the help output', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', '--help'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    for (const { name } of TOOL_CONTRACT.tools) {
+      expect(stdout).toContain(name)
+    }
+    expect(stdout).toContain('--api-key')
+    expect(stdout).toContain('--dry-run')
+    expect(stdout).toContain('--profile')
+    expect(stdout).toContain('-h, --help')
+  })
+
+  test('prints help to stderr and exits non-zero when no command is given', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts'],
+      cwd: `${import.meta.dir}/../..`,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('Usage: ydc tools')
+  })
+
   test('rejects unknown commands immediately', async () => {
     const child = Bun.spawn({
       cmd: ['bun', './src/cli.ts', 'you-missing'],

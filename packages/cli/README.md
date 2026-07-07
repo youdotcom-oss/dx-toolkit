@@ -12,14 +12,24 @@ It does not contain local per-tool REST logic or local schema validation.
 
 ## Install
 
+**Bun**
 ```bash
 bun add -g @youdotcom-oss/cli
+```
+**Node**
+```bash
+npm add -g @youdotcom-oss/cli
 ```
 
 Or run it without installing:
 
+**Bun**
 ```bash
 bunx @youdotcom-oss/cli tools
+```
+**Node**
+```bash
+npx @youdotcom-oss/cli tools
 ```
 
 ## Commands
@@ -52,6 +62,8 @@ echo '{"query":"latest bun release"}' | ydc you-search
   Prints the resolved URL, tool id, sanitized headers, and JSON arguments.
 - `--profile free`
   Supported only for `you-search`. In this mode the CLI routes to `?profile=free` and strips auth headers.
+- `-h, --help`
+  Prints usage, available commands, tools, and flags, then exits.
 
 ## Environment
 
