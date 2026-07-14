@@ -1,0 +1,64 @@
+{
+  "name": "@youdotcom-oss/api",
+  "version": "0.6.0",
+  "description": "Minimal TypeScript API wrapper for the hosted You.com MCP server",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">= 1.2.21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youdotcom-oss/dx-toolkit.git",
+    "directory": "packages/api"
+  },
+  "bugs": {
+    "url": "https://github.com/youdotcom-oss/dx-toolkit/issues"
+  },
+  "homepage": "https://github.com/youdotcom-oss/dx-toolkit/tree/main/packages/api#readme",
+  "author": "You.com (https://you.com)",
+  "keywords": [
+    "you.com",
+    "api",
+    "mcp",
+    "search",
+    "research",
+    "content-extraction",
+    "ai-agents"
+  ],
+  "type": "module",
+  "main": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun run build:bundle && bun run build:types",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @modelcontextprotocol/sdk",
+    "build:types": "tsc --project tsconfig.build.json --declaration --emitDeclarationOnly --noEmit false",
+    "check": "bun run check:biome && bun run check:types && bun run check:package",
+    "check:biome": "biome check",
+    "check:package": "format-package --check",
+    "check:types": "tsc --noEmit",
+    "check:write": "biome check --write && bun run format:package",
+    "format:package": "format-package --write",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "types": "./dist/main.d.ts",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

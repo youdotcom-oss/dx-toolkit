@@ -1,0 +1,218 @@
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { randomUUID } from 'node:crypto'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
+import { createYouApi } from '../main.ts'
+
+const testTools = [
+  {
+    inputSchema: {
+      properties: {
+        query: {
+          type: 'string',
+        },
+      },
+      required: ['query'],
+      type: 'object',
+    },
+    name: 'you-search',
+    outputSchema: {
+      properties: {
+        ok: {
+          type: 'boolean',
+        },
+      },
+      type: 'object',
+    },
+  },
+]
+
+const transports = new Map<
+  string,
+  {
+    server: Server
+    transport: WebStandardStreamableHTTPServerTransport
+  }
+>()
+
+let originalFetch: typeof fetch
+let tempDir: string
+let traceFile: string
+let receivedToolInputs: unknown[]
+
+describe('createYouApi', () => {
+  const originalApiKey = process.env.YDC_API_KEY
+  const originalAllowedTools = process.env.YDC_ALLOWED_TOOLS
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch
+    tempDir = mkdtempSync(join(tmpdir(), 'you-api-'))
+    traceFile = join(tempDir, 'trace.jsonl')
+    receivedToolInputs = []
+    globalThis.fetch = createMockedFetch(traceFile)
+  })
+
+  afterEach(async () => {
+    globalThis.fetch = originalFetch
+    delete process.env.YDC_API_KEY
+    delete process.env.YDC_ALLOWED_TOOLS
+
+    if (originalApiKey) {
+      process.env.YDC_API_KEY = originalApiKey
+    }
+
+    if (originalAllowedTools) {
+      process.env.YDC_ALLOWED_TOOLS = originalAllowedTools
+    }
+
+    await Promise.allSettled(
+      [...transports.values()].map(({ server, transport }) => Promise.all([server.close(), transport.close()])),
+    )
+    transports.clear()
+    rmSync(tempDir, { force: true, recursive: true })
+  })
+
+  test('calls a hosted MCP tool through the configured allowed tool set', async () => {
+    const you = await createYouApi({
+      allowedTools: ['you-search', 'you-research'],
+      apiKey: 'config-key',
+    })
+
+    const result = await you.call('you-search', { query: 'AI' })
+
+    expect(result).toEqual({ input: { query: 'AI' }, ok: true })
+    expect(receivedToolInputs).toEqual([{ query: 'AI' }])
+    const trace = readTrace()
+    expect(trace.length).toBeGreaterThan(0)
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?tools=you-search%2Cyou-research')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
+    await you.close()
+  })
+
+  test('uses YDC_ALLOWED_TOOLS when an environment API key is available', async () => {
+    process.env.YDC_API_KEY = 'env-key'
+    process.env.YDC_ALLOWED_TOOLS = 'you-search,you-finance'
+
+    const you = await createYouApi()
+
+    await you.call('you-search', { query: 'AI' })
+
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?tools=you-search%2Cyou-finance')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer env-key')).toBe(true)
+    await you.close()
+  })
+
+  test('returns advertised tool schemas by tool name', async () => {
+    const you = await createYouApi({
+      allowedTools: 'you-search',
+      apiKey: 'config-key',
+    })
+
+    const schema = await you.schema('you-search')
+
+    expect(schema).toEqual(testTools[0]?.inputSchema)
+    await you.close()
+  })
+})
+
+const createTestServer = () => {
+  const server = new Server(
+    {
+      name: 'test-api-mcp-server',
+      version: '1.0.0',
+    },
+    {
+      capabilities: {
+        tools: {
+          listChanged: false,
+        },
+      },
+    },
+  )
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: testTools,
+  }))
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    receivedToolInputs.push(request.params.arguments)
+
+    return {
+      content: [],
+      structuredContent: {
+        input: request.params.arguments,
+        ok: true,
+      },
+    }
+  })
+
+  return server
+}
+
+const createMockedFetch = (activeTraceFile: string): typeof fetch =>
+  Object.assign(
+    async (input: string | URL | Request, init?: RequestInit | BunFetchRequestInit) => {
+      const request =
+        input instanceof Request
+          ? new Request(input, init)
+          : new Request(input instanceof URL ? input.toString() : input, init)
+      const sessionId = request.headers.get('mcp-session-id')
+
+      await Bun.write(
+        activeTraceFile,
+        `${readExistingTrace(activeTraceFile)}${JSON.stringify({
+          headers: Object.fromEntries(request.headers.entries()),
+          method: request.method,
+          url: request.url,
+        })}\n`,
+      )
+
+      if (sessionId) {
+        const activeTransport = transports.get(sessionId)?.transport
+
+        if (activeTransport) {
+          return activeTransport.handleRequest(request)
+        }
+      }
+
+      const server = createTestServer()
+      let transport!: WebStandardStreamableHTTPServerTransport
+
+      transport = new WebStandardStreamableHTTPServerTransport({
+        enableJsonResponse: true,
+        onsessionclosed: (closedSessionId) => {
+          transports.delete(closedSessionId)
+        },
+        onsessioninitialized: (initializedSessionId) => {
+          transports.set(initializedSessionId, { server, transport })
+        },
+        sessionIdGenerator: () => randomUUID(),
+      })
+
+      await server.connect(transport)
+
+      return transport.handleRequest(request)
+    },
+    {
+      preconnect: globalThis.fetch.preconnect.bind(globalThis.fetch),
+    },
+  )
+
+const readExistingTrace = (activeTraceFile: string) => {
+  try {
+    return readFileSync(activeTraceFile, 'utf8')
+  } catch {
+    return ''
+  }
+}
+
+const readTrace = () =>
+  readExistingTrace(traceFile)
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as { headers: Record<string, string>; method: string; url: string })

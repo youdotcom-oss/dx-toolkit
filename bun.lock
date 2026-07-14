@@ -32,6 +32,16 @@
         "ai": "^6.0.168",
       },
     },
+    "packages/api": {
+      "name": "@youdotcom-oss/api",
+      "version": "0.6.0",
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
     "packages/cli": {
       "name": "@youdotcom-oss/cli",
       "version": "1.0.0",
@@ -311,6 +321,8 @@
     "@vercel/oidc": ["@vercel/oidc@3.2.0", "", {}, "sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug=="],
 
     "@youdotcom-oss/ai-sdk-plugin": ["@youdotcom-oss/ai-sdk-plugin@workspace:packages/ai-sdk-plugin"],
+
+    "@youdotcom-oss/api": ["@youdotcom-oss/api@workspace:packages/api"],
 
     "@youdotcom-oss/cli": ["@youdotcom-oss/cli@workspace:packages/cli"],
 

@@ -65,9 +65,12 @@ const mockedFetch: typeof fetch = Object.assign(
     const sessionId = request.headers.get('mcp-session-id')
 
     if (traceFile) {
+      const body = parseJsonBody(await request.clone().text())
+
       appendFileSync(
         traceFile,
         `${JSON.stringify({
+          body,
           headers: Object.fromEntries(request.headers.entries()),
           method: request.method,
           url: request.url,
@@ -107,3 +110,15 @@ const mockedFetch: typeof fetch = Object.assign(
 )
 
 globalThis.fetch = mockedFetch
+
+function parseJsonBody(value: string): unknown {
+  if (!value) {
+    return undefined
+  }
+
+  try {
+    return JSON.parse(value) as unknown
+  } catch {
+    return undefined
+  }
+}

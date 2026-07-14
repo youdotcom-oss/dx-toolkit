@@ -233,6 +233,14 @@ describe('stdio bridge e2e', () => {
     const trace = await readTrace(traceFile)
     expect(trace.length).toBeGreaterThan(0)
     expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?tools=you-search')).toBe(true)
+    expect(
+      trace.some(
+        ({ body }) =>
+          body?.method === 'initialize' &&
+          body.params?.clientInfo?.name === 'mcp-e2e-test' &&
+          body.params.clientInfo.version === '1.0.0',
+      ),
+    ).toBe(true)
   })
 })
 
@@ -249,5 +257,21 @@ const readTrace = async (traceFile: string) => {
     .trim()
     .split('\n')
     .filter(Boolean)
-    .map((line) => JSON.parse(line) as { headers: Record<string, string>; method: string; url: string })
+    .map(
+      (line) =>
+        JSON.parse(line) as {
+          body?: {
+            method?: string
+            params?: {
+              clientInfo?: {
+                name?: string
+                version?: string
+              }
+            }
+          }
+          headers: Record<string, string>
+          method: string
+          url: string
+        },
+    )
 }

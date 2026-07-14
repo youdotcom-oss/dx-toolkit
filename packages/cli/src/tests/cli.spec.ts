@@ -420,6 +420,38 @@ describe('ydc tool execution', () => {
     })
   })
 
+  test('uses YDC_ALLOWED_TOOLS for authenticated dry-runs when set', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--dry-run', '--api-key', 'secret-key'],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_ALLOWED_TOOLS: 'you-search,you-finance',
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout)).toEqual({
+      arguments: {
+        query: 'DX Toolkit',
+      },
+      headers: {
+        Authorization: 'Bearer [REDACTED]',
+      },
+      tool: 'you-search',
+      url: 'https://api.you.com/mcp?tools=you-search%2Cyou-finance',
+    })
+  })
+
   test('reads JSON input from stdin when the positional JSON argument is omitted', async () => {
     const child = Bun.spawn({
       cmd: ['bun', '--preload', './src/tests/mcp-fetch.preload.ts', './src/cli.ts', 'you-search'],

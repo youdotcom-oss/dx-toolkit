@@ -33,7 +33,8 @@ const buildHelp = () =>
     '  -h, --help        Show this help message',
     '',
     'Environment:',
-    '  YDC_API_KEY       Optional default API key',
+    '  YDC_API_KEY          Optional default API key',
+    '  YDC_ALLOWED_TOOLS    Optional comma-separated hosted tool ids when authenticated',
   ].join('\n')
 
 const isHelpRequest = command === '--help' || command === '-h'
@@ -71,10 +72,14 @@ if (command === 'schema') {
     process.exit(1)
   }
 
-  const headers =
-    parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(parsedFlags.apiKey ?? process.env.YDC_API_KEY)
+  const apiKey = parsedFlags.apiKey ?? process.env.YDC_API_KEY
+  const headers = parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(apiKey)
   const transport = new StreamableHTTPClientTransport(
-    buildToolUrl(toolName, parsedFlags.profile),
+    buildToolUrl({
+      apiKey,
+      profile: parsedFlags.profile,
+      toolName,
+    }),
     headers
       ? {
           requestInit: {
@@ -84,7 +89,7 @@ if (command === 'schema') {
       : undefined,
   )
   const client = new Client({
-    name: 'ydc',
+    name: packageJson.name,
     version: packageJson.version,
   })
 
@@ -137,9 +142,13 @@ if (command && tool) {
     process.exit(1)
   }
 
-  const headers =
-    parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(parsedFlags.apiKey ?? process.env.YDC_API_KEY)
-  const url = buildToolUrl(command, parsedFlags.profile)
+  const apiKey = parsedFlags.apiKey ?? process.env.YDC_API_KEY
+  const headers = parsedFlags.profile === 'free' ? undefined : getAuthorizationHeaders(apiKey)
+  const url = buildToolUrl({
+    apiKey,
+    profile: parsedFlags.profile,
+    toolName: command,
+  })
 
   if (parsedFlags.dryRun) {
     console.log(
@@ -164,7 +173,7 @@ if (command && tool) {
       : undefined,
   )
   const client = new Client({
-    name: 'ydc',
+    name: packageJson.name,
     version: packageJson.version,
   })
 
@@ -219,7 +228,7 @@ function normalizeToolResult(result: McpToolResult) {
   }
 }
 
-function buildToolUrl(toolName: string, profile?: string) {
+function buildToolUrl({ apiKey, profile, toolName }: { apiKey?: string; profile?: string; toolName: string }) {
   const url = new URL(BASE_MCP_SERVER_URL)
 
   if (profile) {
@@ -227,7 +236,7 @@ function buildToolUrl(toolName: string, profile?: string) {
     return url
   }
 
-  url.searchParams.set('tools', toolName)
+  url.searchParams.set('tools', apiKey && process.env.YDC_ALLOWED_TOOLS ? process.env.YDC_ALLOWED_TOOLS : toolName)
 
   return url
 }
