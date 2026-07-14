@@ -1,0 +1,73 @@
+name: "API: schema drift"
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+jobs:
+  update-api-schemas:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Update API schemas
+        id: schemas
+        env:
+          YDC_API_KEY: ${{ secrets.YDC_API_KEY }}
+        run: |
+          level=$(bun scripts/classify-api-schema-change.ts)
+          echo "level=${level}" >> "$GITHUB_OUTPUT"
+          bun scripts/update-api-schemas.ts
+
+          if git diff --quiet -- packages/api/src/tool-schemas.ts; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate generated API schemas
+        if: steps.schemas.outputs.changed == 'true' && steps.schemas.outputs.level != 'major'
+        run: |
+          bun --cwd packages/api check
+          bun --cwd packages/api test
+
+      - name: Commit schema update
+        if: steps.schemas.outputs.changed == 'true' && steps.schemas.outputs.level != 'major'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@github.com"
+          git add packages/api/src/tool-schemas.ts
+          git commit -m "chore(api): update generated tool schemas [skip ci]"
+          git push
+
+      - name: Publish schema update
+        if: steps.schemas.outputs.changed == 'true' && steps.schemas.outputs.level != 'major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run publish-api.yml -f bump="${{ steps.schemas.outputs.level }}"
+
+      - name: Escalate major schema change
+        if: steps.schemas.outputs.changed == 'true' && steps.schemas.outputs.level == 'major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Major API schema change requires maintainer review" \
+            --label "maintenance" \
+            --body "The hosted You.com MCP schemas changed in a way classified as major. Review the generated diff locally with \`bun scripts/update-api-schemas.ts\`, decide the next package version, and publish manually if accepted."
+          exit 1

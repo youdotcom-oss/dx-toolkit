@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
+import type { YouSearchInput, YouSearchOutput } from '../main.ts'
 import { createYouApi } from '../main.ts'
 
 const testTools = [
@@ -110,12 +111,14 @@ describe('createYouApi', () => {
   })
 
   test('calls a hosted MCP tool through the configured allowed tool set', async () => {
+    assertSearchTypes({ query: 'AI' }, { metadata: {}, results: {} })
+
     const you = await createYouApi({
       allowedTools: ['you-search', 'you-research'],
       apiKey: 'config-key',
     })
 
-    const result = await you.call('you-search', { query: 'AI' })
+    const result = await you.call<{ input: { query: string }; ok: boolean }>('you-search' as string, { query: 'AI' })
 
     expect(result).toEqual({ input: { query: 'AI' }, ok: true })
     expect(receivedToolInputs).toEqual([{ query: 'AI' }])
@@ -276,3 +279,5 @@ const readTrace = () =>
     .split('\n')
     .filter(Boolean)
     .map((line) => JSON.parse(line) as { headers: Record<string, string>; method: string; url: string })
+
+const assertSearchTypes = (_input: YouSearchInput, _output: YouSearchOutput) => {}

@@ -1,6 +1,20 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import packageJson from '../package.json' with { type: 'json' }
+import type { KnownToolInput, KnownToolName, KnownToolOutput } from './tool-schemas.ts'
+
+export type {
+  KnownToolInput,
+  KnownToolName,
+  KnownToolOutput,
+  YouContentsInput,
+  YouContentsOutput,
+  YouResearchInput,
+  YouResearchOutput,
+  YouSearchInput,
+  YouSearchOutput,
+} from './tool-schemas.ts'
+export { API_TOOL_SCHEMA_HASH, API_TOOL_SCHEMAS } from './tool-schemas.ts'
 
 const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 
@@ -12,8 +26,42 @@ export type YouApiConfig = {
   profile?: string
 }
 
+const buildMcpUrl = ({ allowedTools, apiKey, profile }: Pick<YouApiConfig, 'allowedTools' | 'apiKey' | 'profile'>) => {
+  const url = new URL(BASE_MCP_SERVER_URL)
+
+  if (profile) {
+    url.searchParams.set('profile', profile)
+    return url
+  }
+
+  const tools = Array.isArray(allowedTools)
+    ? allowedTools.length > 0
+      ? allowedTools.join(',')
+      : undefined
+    : allowedTools || (apiKey ? process.env.YDC_ALLOWED_TOOLS : undefined)
+
+  if (tools) {
+    url.searchParams.set('tools', tools)
+  }
+
+  return url
+}
+
+const getAuthorizationHeaders = (apiKey?: string, profile?: string) => {
+  if (!apiKey || profile === 'free') {
+    return undefined
+  }
+
+  return {
+    Authorization: `Bearer ${apiKey}`,
+  }
+}
+
 export type YouApi = {
-  call: <Result = unknown>(tool: string, input?: Record<string, unknown>) => Promise<Result>
+  call: {
+    <Tool extends KnownToolName>(tool: Tool, input: KnownToolInput<Tool>): Promise<KnownToolOutput<Tool>>
+    <Result = unknown>(tool: string, input?: Record<string, unknown>): Promise<Result>
+  }
   close: () => Promise<void>
   schema: (tool: string, target?: SchemaTarget) => Promise<unknown>
   tools: () => ReturnType<Client['listTools']>
@@ -64,36 +112,5 @@ export const createYouApi = async ({
       return schema
     },
     tools: () => client.listTools(),
-  }
-}
-
-const buildMcpUrl = ({ allowedTools, apiKey, profile }: Pick<YouApiConfig, 'allowedTools' | 'apiKey' | 'profile'>) => {
-  const url = new URL(BASE_MCP_SERVER_URL)
-
-  if (profile) {
-    url.searchParams.set('profile', profile)
-    return url
-  }
-
-  const tools = Array.isArray(allowedTools)
-    ? allowedTools.length > 0
-      ? allowedTools.join(',')
-      : undefined
-    : allowedTools || (apiKey ? process.env.YDC_ALLOWED_TOOLS : undefined)
-
-  if (tools) {
-    url.searchParams.set('tools', tools)
-  }
-
-  return url
-}
-
-const getAuthorizationHeaders = (apiKey?: string, profile?: string) => {
-  if (!apiKey || profile === 'free') {
-    return undefined
-  }
-
-  return {
-    Authorization: `Bearer ${apiKey}`,
   }
 }

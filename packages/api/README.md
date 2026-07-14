@@ -36,6 +36,19 @@ try {
 
 `you.call()` passes structured input to the remote MCP tool and returns the tool's structured output when available.
 
+Known hosted tools also have generated TypeScript types:
+
+```typescript
+import type { YouSearchInput, YouSearchOutput } from '@youdotcom-oss/api'
+
+const input: YouSearchInput = {
+  query: 'latest AI research',
+}
+
+const output = await you.call('you-search', input)
+// output is typed as YouSearchOutput
+```
+
 ## Discover tools and schemas
 
 ```typescript
@@ -52,7 +65,7 @@ try {
 }
 ```
 
-The package does not ship local schemas. Schema discovery comes from the hosted MCP server, so newly exposed tools can be used without updating this package.
+The package ships generated type snapshots for the default hosted tools and still exposes live schema discovery from the hosted MCP server.
 
 ## Scope tools
 
