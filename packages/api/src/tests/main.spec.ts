@@ -12,6 +12,39 @@ const testTools = [
   {
     inputSchema: {
       properties: {
+        urls: {
+          items: {
+            type: 'string',
+          },
+          type: 'array',
+        },
+      },
+      required: ['urls'],
+      type: 'object',
+    },
+    name: 'you-contents',
+    outputSchema: {
+      type: 'object',
+    },
+  },
+  {
+    inputSchema: {
+      properties: {
+        input: {
+          type: 'string',
+        },
+      },
+      required: ['input'],
+      type: 'object',
+    },
+    name: 'you-research',
+    outputSchema: {
+      type: 'object',
+    },
+  },
+  {
+    inputSchema: {
+      properties: {
         query: {
           type: 'string',
         },
@@ -107,6 +140,20 @@ describe('createYouApi', () => {
     await you.close()
   })
 
+  test('returns the default authenticated hosted tools when no scope is provided', async () => {
+    const you = await createYouApi({
+      apiKey: 'config-key',
+    })
+
+    const tools = await you.tools()
+
+    expect(tools.tools.map(({ name }) => name)).toEqual(['you-contents', 'you-research', 'you-search'])
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
+    await you.close()
+  })
+
   test('returns advertised tool schemas by tool name', async () => {
     const you = await createYouApi({
       allowedTools: 'you-search',
@@ -115,7 +162,7 @@ describe('createYouApi', () => {
 
     const schema = await you.schema('you-search')
 
-    expect(schema).toEqual(testTools[0]?.inputSchema)
+    expect(schema).toEqual(testTools.find(({ name }) => name === 'you-search')?.inputSchema)
     await you.close()
   })
 })
