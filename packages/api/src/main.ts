@@ -85,13 +85,18 @@ export const createYouApi = async ({
   await client.connect(transport)
 
   return {
-    call: async <Result = unknown>(tool: string, input: Record<string, unknown> = {}) =>
-      (
-        await client.callTool({
-          arguments: input,
-          name: tool,
-        })
-      ).structuredContent as Result,
+    call: async <Result = unknown>(tool: string, input: Record<string, unknown> = {}) => {
+      const result = await client.callTool({
+        arguments: input,
+        name: tool,
+      })
+
+      if (result.structuredContent === undefined) {
+        throw new Error(`Tool ${tool} did not return structured content`)
+      }
+
+      return result.structuredContent as Result
+    },
     close: async () => {
       await Promise.allSettled([client.close(), transport.close()])
     },
