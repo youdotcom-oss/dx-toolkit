@@ -14,7 +14,7 @@
   "scripts": {
     "build": "bun run --filter '*' build",
     "check": "bun run check:workspace-deps && bun run --filter '*' check",
-    "check:workspace-deps": "bash scripts/check-workspace-deps.sh",
+    "check:workspace-deps": "bun scripts/check-workspace-deps.ts",
     "check:write": "bun run --filter '*' check:write",
     "prepare": "git config core.hooksPath .hooks",
     "test": "bun test",
