@@ -4,7 +4,6 @@ import packageJson from '../package.json' with { type: 'json' }
 
 const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 
-type McpToolResult = Awaited<ReturnType<Client['callTool']>>
 type SchemaTarget = 'input' | 'output'
 
 export type YouApiConfig = {
@@ -39,12 +38,12 @@ export const createYouApi = async ({
 
   return {
     call: async <Result = unknown>(tool: string, input: Record<string, unknown> = {}) =>
-      normalizeToolResult<Result>(
+      (
         await client.callTool({
           arguments: input,
           name: tool,
-        }),
-      ),
+        })
+      ).structuredContent as Result,
     close: async () => {
       await Promise.allSettled([client.close(), transport.close()])
     },
@@ -76,10 +75,14 @@ const buildMcpUrl = ({ allowedTools, apiKey, profile }: Pick<YouApiConfig, 'allo
     return url
   }
 
-  const tools = allowedTools ?? (apiKey ? process.env.YDC_ALLOWED_TOOLS : undefined)
+  const tools = Array.isArray(allowedTools)
+    ? allowedTools.length > 0
+      ? allowedTools.join(',')
+      : undefined
+    : allowedTools || (apiKey ? process.env.YDC_ALLOWED_TOOLS : undefined)
 
   if (tools) {
-    url.searchParams.set('tools', Array.isArray(tools) ? tools.join(',') : tools)
+    url.searchParams.set('tools', tools)
   }
 
   return url
@@ -93,12 +96,4 @@ const getAuthorizationHeaders = (apiKey?: string, profile?: string) => {
   return {
     Authorization: `Bearer ${apiKey}`,
   }
-}
-
-function normalizeToolResult<Result>(result: McpToolResult): Result {
-  if (result.structuredContent !== undefined) {
-    return result.structuredContent as Result
-  }
-
-  return result as Result
 }

@@ -154,6 +154,19 @@ describe('createYouApi', () => {
     await you.close()
   })
 
+  test('treats an empty allowed tools array as no scope', async () => {
+    const you = await createYouApi({
+      allowedTools: [],
+      apiKey: 'config-key',
+    })
+
+    await you.tools()
+
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp')).toBe(true)
+    await you.close()
+  })
+
   test('returns advertised tool schemas by tool name', async () => {
     const you = await createYouApi({
       allowedTools: 'you-search',
