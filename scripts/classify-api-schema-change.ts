@@ -143,7 +143,7 @@ const classifyObjectSchemaChange = (
         return 'major'
       }
 
-      changeLevel = 'minor'
+      changeLevel = maxChangeLevel(changeLevel, 'minor')
     }
   }
 
@@ -159,12 +159,12 @@ const classifyJsonSchemaChange = (
     return 'patch'
   }
 
-  if (isEnumWidening(previousSchema, nextSchema)) {
-    return 'minor'
-  }
-
   if (previousSchema.type !== nextSchema.type) {
     return 'major'
+  }
+
+  if (isEnumWidening(previousSchema, nextSchema)) {
+    return 'minor'
   }
 
   if (
@@ -198,11 +198,14 @@ export const classifySchemaChange = (
     if (!nextTools.has(toolName)) return 'major'
   }
 
+  let changeLevel: ChangeLevel = 'patch'
+
   for (const [toolName, nextTool] of Object.entries(nextPayload)) {
     const previousTool = previousPayload[toolName]
 
     if (!previousTool) {
-      return 'minor'
+      changeLevel = maxChangeLevel(changeLevel, 'minor')
+      continue
     }
 
     const inputChange = classifyJsonSchemaChange(
@@ -216,24 +219,136 @@ export const classifySchemaChange = (
       'output',
     )
 
-    if (inputChange === 'major' || outputChange === 'major') return 'major'
-    if (inputChange === 'minor' || outputChange === 'minor') return 'minor'
+    changeLevel = maxChangeLevel(changeLevel, maxChangeLevel(inputChange, outputChange))
+
+    if (changeLevel === 'major') return 'major'
   }
 
-  return 'patch'
+  return changeLevel
 }
 
-const readCurrentPayload = (schemaPath: string): ToolSchemaPayload | undefined => {
+export const readCurrentPayload = (schemaPath: string): ToolSchemaPayload | undefined => {
   try {
     const source = readFileSync(schemaPath, 'utf8')
     const match = source.match(/export const API_TOOL_SCHEMAS = ([\s\S]*?) as const\n/)
 
     if (!match?.[1]) return undefined
 
-    return Function(`"use strict"; return (${match[1]});`)() as ToolSchemaPayload
+    return JSON.parse(toJsonObjectLiteral(match[1])) as ToolSchemaPayload
   } catch {
     return undefined
   }
+}
+
+const toJsonObjectLiteral = (source: string) =>
+  convertSingleQuotedStrings(quoteUnquotedKeys(source)).replace(/,\s*([}\]])/g, '$1')
+
+const quoteUnquotedKeys = (source: string) => {
+  let output = ''
+  let index = 0
+
+  while (index < source.length) {
+    const character = source[index]
+
+    if (character === "'") {
+      const { nextIndex, text } = readSingleQuotedString(source, index)
+
+      output += text
+      index = nextIndex
+      continue
+    }
+
+    if (character !== '{' && character !== ',') {
+      output += character
+      index += 1
+      continue
+    }
+
+    output += character
+    index += 1
+
+    while (/\s/.test(source[index] ?? '')) {
+      output += source[index]
+      index += 1
+    }
+
+    if (!/[$A-Z_a-z]/.test(source[index] ?? '')) {
+      continue
+    }
+
+    const keyStart = index
+    index += 1
+
+    while (/[$\w]/.test(source[index] ?? '')) {
+      index += 1
+    }
+
+    const key = source.slice(keyStart, index)
+    let whitespace = ''
+
+    while (/\s/.test(source[index] ?? '')) {
+      whitespace += source[index]
+      index += 1
+    }
+
+    if (source[index] === ':') {
+      output += `${JSON.stringify(key)}${whitespace}`
+      continue
+    }
+
+    output += `${key}${whitespace}`
+  }
+
+  return output
+}
+
+const convertSingleQuotedStrings = (source: string) => {
+  let output = ''
+
+  for (let index = 0; index < source.length; index += 1) {
+    if (source[index] !== "'") {
+      output += source[index]
+      continue
+    }
+
+    const { nextIndex, rawString } = readSingleQuotedString(source, index)
+    index = nextIndex - 1
+
+    const jsonString = `"${rawString.replaceAll('"', '\\"').replaceAll("\\'", "'")}"`
+    output += JSON.stringify(JSON.parse(jsonString))
+  }
+
+  return output
+}
+
+const readSingleQuotedString = (source: string, startIndex: number) => {
+  let rawString = ''
+  let text = "'"
+  let index = startIndex + 1
+
+  for (; index < source.length; index += 1) {
+    const character = source[index]
+
+    if (character === '\\') {
+      const escapedCharacter = source[index + 1] ?? ''
+
+      rawString += `${character}${escapedCharacter}`
+      text += `${character}${escapedCharacter}`
+      index += 1
+      continue
+    }
+
+    text += character
+
+    if (character === "'") {
+      index += 1
+      break
+    }
+
+    rawString += character
+  }
+
+  return { nextIndex: index, rawString, text }
 }
 
 const getValidatedPayload = (payload: ToolSchemaPayload) => {

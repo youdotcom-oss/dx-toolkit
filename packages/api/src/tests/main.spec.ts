@@ -141,6 +141,16 @@ describe('createYouApi', () => {
     await you.close()
   })
 
+  test('throws when a hosted MCP tool returns an error result', async () => {
+    const you = await createYouApi({
+      allowedTools: 'you-search',
+      apiKey: 'config-key',
+    })
+
+    await expect(you.call('you-search', { query: 'tool-error' })).rejects.toThrow('Tool you-search returned an error')
+    await you.close()
+  })
+
   test('uses YDC_ALLOWED_TOOLS when an environment API key is available', async () => {
     process.env.YDC_API_KEY = 'env-key'
     process.env.YDC_ALLOWED_TOOLS = 'you-search,you-finance'
@@ -219,6 +229,16 @@ const createTestServer = () => {
     if (request.params.arguments?.query === 'missing-structured-content') {
       return {
         content: [],
+      }
+    }
+
+    if (request.params.arguments?.query === 'tool-error') {
+      return {
+        content: [],
+        isError: true,
+        structuredContent: {
+          message: 'Tool failed',
+        },
       }
     }
 

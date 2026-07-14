@@ -91,6 +91,10 @@ export const createYouApi = async ({
         name: tool,
       })
 
+      if (result.isError) {
+        throw new Error(`Tool ${tool} returned an error`)
+      }
+
       if (result.structuredContent === undefined) {
         throw new Error(`Tool ${tool} did not return structured content`)
       }
