@@ -26,35 +26,24 @@ export type YouApiConfig = {
   profile?: string
 }
 
-const buildMcpUrl = ({ allowedTools, apiKey, profile }: Pick<YouApiConfig, 'allowedTools' | 'apiKey' | 'profile'>) => {
+const buildMcpUrl = ({ allowedTools, profile }: Pick<YouApiConfig, 'allowedTools' | 'profile'>) => {
   const url = new URL(BASE_MCP_SERVER_URL)
 
   if (profile) {
     url.searchParams.set('profile', profile)
-    return url
   }
 
   const tools = Array.isArray(allowedTools)
     ? allowedTools.length > 0
       ? allowedTools.join(',')
       : undefined
-    : allowedTools || (apiKey ? process.env.YDC_ALLOWED_TOOLS : undefined)
+    : allowedTools || process.env.YDC_ALLOWED_TOOLS
 
   if (tools) {
     url.searchParams.set('tools', tools)
   }
 
   return url
-}
-
-const getAuthorizationHeaders = (apiKey?: string, profile?: string) => {
-  if (!apiKey || profile === 'free') {
-    return undefined
-  }
-
-  return {
-    Authorization: `Bearer ${apiKey}`,
-  }
 }
 
 export type YouApi = {
@@ -72,9 +61,9 @@ export const createYouApi = async ({
   apiKey = process.env.YDC_API_KEY,
   profile,
 }: YouApiConfig = {}): Promise<YouApi> => {
-  const transport = new StreamableHTTPClientTransport(buildMcpUrl({ allowedTools, apiKey, profile }), {
+  const transport = new StreamableHTTPClientTransport(buildMcpUrl({ allowedTools, profile }), {
     requestInit: {
-      headers: getAuthorizationHeaders(apiKey, profile),
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
     },
   })
   const client = new Client({

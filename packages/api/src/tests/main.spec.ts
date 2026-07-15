@@ -192,6 +192,49 @@ describe('createYouApi', () => {
     await you.close()
   })
 
+  test('sends the Authorization header even when profile is free', async () => {
+    const you = await createYouApi({
+      profile: 'free',
+      apiKey: 'config-key',
+    })
+
+    await you.tools()
+
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?profile=free')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
+    await you.close()
+  })
+
+  test('consults YDC_ALLOWED_TOOLS even when no API key is configured', async () => {
+    delete process.env.YDC_API_KEY
+    process.env.YDC_ALLOWED_TOOLS = 'you-search,you-research'
+
+    const you = await createYouApi()
+
+    await you.tools()
+
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?tools=you-search%2Cyou-research')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === undefined)).toBe(true)
+    await you.close()
+  })
+
+  test('emits both profile and tools query params when both are provided', async () => {
+    const you = await createYouApi({
+      profile: 'thoughtspot',
+      allowedTools: ['you-search'],
+      apiKey: 'config-key',
+    })
+
+    await you.tools()
+
+    const trace = readTrace()
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?profile=thoughtspot&tools=you-search')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
+    await you.close()
+  })
+
   test('returns advertised tool schemas by tool name', async () => {
     const you = await createYouApi({
       allowedTools: 'you-search',
