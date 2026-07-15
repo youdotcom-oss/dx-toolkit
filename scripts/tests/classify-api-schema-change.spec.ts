@@ -385,6 +385,37 @@ describe('classifySchemaChange', () => {
       }),
     ).toBe('major')
   })
+
+  test('classifies output additionalProperties schema removal as major', () => {
+    expect(
+      classifySchemaChange(
+        {
+          ...basePayload,
+          'you-search': {
+            inputSchema: basePayload['you-search'].inputSchema,
+            outputSchema: {
+              additionalProperties: {
+                type: 'string',
+              },
+              properties: {
+                results: {
+                  type: 'object',
+                },
+              },
+              type: 'object',
+            },
+          },
+        },
+        {
+          ...basePayload,
+          'you-search': {
+            inputSchema: basePayload['you-search'].inputSchema,
+            outputSchema: basePayload['you-search'].outputSchema,
+          },
+        },
+      ),
+    ).toBe('major')
+  })
 })
 
 describe('readCurrentPayload', () => {

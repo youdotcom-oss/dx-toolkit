@@ -148,7 +148,7 @@ const classifyAdditionalPropertiesChange = (
       )
     }
 
-    return 'minor'
+    return surface === 'output' ? 'major' : 'minor'
   }
 
   if (nextAdditionalProperties && typeof nextAdditionalProperties === 'object') {
