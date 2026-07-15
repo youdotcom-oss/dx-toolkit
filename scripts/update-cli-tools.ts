@@ -4,7 +4,6 @@ import { resolve } from 'node:path'
 
 type ToolContractEntry = {
   name: string
-  supportsFreeProfile: boolean
 }
 
 type ToolContractPayload = {
@@ -23,13 +22,12 @@ const getValidatedPayload = (payload: Partial<ToolContractPayload>) => {
 
   const tools = [...payload.tools]
     .map((tool) => {
-      if (!tool || typeof tool.name !== 'string' || typeof tool.supportsFreeProfile !== 'boolean') {
-        throw new Error('Each tool must include string name and boolean supportsFreeProfile')
+      if (!tool || typeof tool.name !== 'string') {
+        throw new Error('Each tool must include a string name')
       }
 
       return {
         name: tool.name,
-        supportsFreeProfile: tool.supportsFreeProfile,
       }
     })
     .sort((left, right) => left.name.localeCompare(right.name))
@@ -65,9 +63,8 @@ export const TOOL_CONTRACT = {
   tools: [
 ${validatedPayload.tools
   .map(
-    ({ name, supportsFreeProfile }) => `    {
+    ({ name }) => `    {
       name: ${toTypeScriptString(name)},
-      supportsFreeProfile: ${supportsFreeProfile},
     },`,
   )
   .join('\n')}

@@ -87,7 +87,7 @@ describe('ydc tools', () => {
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual({
-      contractHash: '602506b581cfeb48fcc0b27e8e1f0c070f957a2048e5f8632793da7de7e19028',
+      contractHash: 'eb28a7ce9289045254f5b3ed78be8eec5b7caf25bec8457e5a47fae0b070f283',
       surfaceVersion: '2026.05.14',
       tools: ['you-contents', 'you-finance', 'you-research', 'you-search'],
     })
@@ -278,7 +278,7 @@ describe('ydc schema', () => {
     expect(JSON.parse(stdout)).toEqual(youSearchOutputSchema)
   })
 
-  test('uses profile routing and strips auth for free search schema requests', async () => {
+  test('uses profile routing and sends auth for free search schema requests', async () => {
     const traceFile = join(tmpdir(), `${randomUUID()}.jsonl`)
     const child = Bun.spawn({
       cmd: [
@@ -320,8 +320,8 @@ describe('ydc schema', () => {
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual(youSearchInputSchema)
     expect(trace.length).toBeGreaterThan(0)
-    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?profile=free')).toBe(true)
-    expect(trace.every(({ headers }) => !('authorization' in headers))).toBe(true)
+    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp?profile=free&tools=you-search')).toBe(true)
+    expect(trace.every(({ headers }) => headers.authorization === 'Bearer secret-key')).toBe(true)
   })
 })
 
@@ -367,6 +367,78 @@ describe('ydc tool execution', () => {
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual({ ok: true })
+  })
+
+  test('exits non-zero when a hosted tool returns an error result', async () => {
+    const child = Bun.spawn({
+      cmd: [
+        'bun',
+        '--preload',
+        './src/tests/mcp-fetch.preload.ts',
+        './src/cli.ts',
+        'you-search',
+        '{"query":"tool-error"}',
+      ],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_API_KEY: '',
+        YDC_TEST_MCP_TOOLS: JSON.stringify([
+          {
+            inputSchema: youSearchInputSchema,
+            name: 'you-search',
+          },
+        ]),
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('returned an error')
+  })
+
+  test('exits non-zero when a hosted tool omits structured content', async () => {
+    const child = Bun.spawn({
+      cmd: [
+        'bun',
+        '--preload',
+        './src/tests/mcp-fetch.preload.ts',
+        './src/cli.ts',
+        'you-search',
+        '{"query":"missing-structured-content"}',
+      ],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_API_KEY: '',
+        YDC_TEST_MCP_TOOLS: JSON.stringify([
+          {
+            inputSchema: youSearchInputSchema,
+            name: 'you-search',
+          },
+        ]),
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('did not return structured content')
   })
 
   test('rejects malformed JSON input with a plain error message', async () => {
@@ -452,6 +524,37 @@ describe('ydc tool execution', () => {
     })
   })
 
+  test('uses YDC_ALLOWED_TOOLS for dry-runs even without an api key', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--dry-run'],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_API_KEY: '',
+        YDC_ALLOWED_TOOLS: 'you-search,you-finance',
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout)).toEqual({
+      arguments: {
+        query: 'DX Toolkit',
+      },
+      headers: {},
+      tool: 'you-search',
+      url: 'https://api.you.com/mcp?tools=you-search%2Cyou-finance',
+    })
+  })
+
   test('reads JSON input from stdin when the positional JSON argument is omitted', async () => {
     const child = Bun.spawn({
       cmd: ['bun', '--preload', './src/tests/mcp-fetch.preload.ts', './src/cli.ts', 'you-search'],
@@ -492,7 +595,7 @@ describe('ydc tool execution', () => {
     expect(JSON.parse(stdout)).toEqual({ ok: true })
   })
 
-  test('uses profile routing and strips auth for free search dry-runs', async () => {
+  test('uses profile routing and sends auth for free search dry-runs', async () => {
     const child = Bun.spawn({
       cmd: [
         'bun',
@@ -525,9 +628,11 @@ describe('ydc tool execution', () => {
       arguments: {
         query: 'DX Toolkit',
       },
-      headers: {},
+      headers: {
+        Authorization: 'Bearer [REDACTED]',
+      },
       tool: 'you-search',
-      url: 'https://api.you.com/mcp?profile=free',
+      url: 'https://api.you.com/mcp?profile=free&tools=you-search',
     })
   })
 
@@ -547,7 +652,7 @@ describe('ydc tool execution', () => {
 
     expect(exitCode).toBe(1)
     expect(stdout).toBe('')
-    expect(stderr).toContain('Missing value for --profile')
+    expect(stderr).toContain('--profile')
   })
 
   test('rejects --api-key when the next token is another flag', async () => {
@@ -566,12 +671,52 @@ describe('ydc tool execution', () => {
 
     expect(exitCode).toBe(1)
     expect(stdout).toBe('')
-    expect(stderr).toContain('Missing value for --api-key')
+    expect(stderr).toContain('--api-key')
   })
 
-  test('rejects --profile for tools that do not support the free profile', async () => {
+  test('accepts --profile=value equals form', async () => {
     const child = Bun.spawn({
-      cmd: ['bun', './src/cli.ts', 'you-research', '{"query":"DX Toolkit"}', '--profile', 'free'],
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--dry-run', '--profile=free'],
+      cwd: `${import.meta.dir}/../..`,
+      env: { ...process.env, YDC_API_KEY: '' },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout).url).toBe('https://api.you.com/mcp?profile=free&tools=you-search')
+  })
+
+  test('accepts --api-key=value equals form', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--dry-run', '--api-key=secret-key'],
+      cwd: `${import.meta.dir}/../..`,
+      env: { ...process.env, YDC_API_KEY: '' },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout).headers).toEqual({ Authorization: 'Bearer [REDACTED]' })
+  })
+
+  test('rejects unknown flags instead of silently ignoring them', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-search', '{"query":"DX Toolkit"}', '--bogus'],
       cwd: `${import.meta.dir}/../..`,
       stderr: 'pipe',
       stdout: 'pipe',
@@ -585,7 +730,37 @@ describe('ydc tool execution', () => {
 
     expect(exitCode).toBe(1)
     expect(stdout).toBe('')
-    expect(stderr).toContain('--profile is only supported for you-search')
+    expect(stderr).toContain('--bogus')
+  })
+
+  test('passes --profile through to the server for any tool', async () => {
+    const child = Bun.spawn({
+      cmd: ['bun', './src/cli.ts', 'you-research', '{"query":"DX Toolkit"}', '--profile', 'thoughtspot', '--dry-run'],
+      cwd: `${import.meta.dir}/../..`,
+      env: {
+        ...process.env,
+        YDC_API_KEY: '',
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+
+    expect(exitCode).toBe(0)
+    expect(stderr).toBe('')
+    expect(JSON.parse(stdout)).toEqual({
+      arguments: {
+        query: 'DX Toolkit',
+      },
+      headers: {},
+      tool: 'you-research',
+      url: 'https://api.you.com/mcp?profile=thoughtspot&tools=you-research',
+    })
   })
 
   test('executes you-search against the hosted MCP server', async () => {

@@ -43,14 +43,27 @@ const createTestServer = () => {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools,
   }))
-  server.setRequestHandler(CallToolRequestSchema, async () => ({
-    content: [
-      {
-        text: JSON.stringify({ ok: true }),
-        type: 'text',
-      },
-    ],
-  }))
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const query = request.params.arguments?.query
+
+    if (query === 'tool-error') {
+      return {
+        content: [{ text: 'Error: tool failed', type: 'text' as const }],
+        isError: true,
+      }
+    }
+
+    if (query === 'missing-structured-content') {
+      return {
+        content: [{ text: 'No results found.', type: 'text' as const }],
+      }
+    }
+
+    return {
+      content: [{ text: JSON.stringify({ ok: true }), type: 'text' as const }],
+      structuredContent: { ok: true },
+    }
+  })
 
   return server
 }
