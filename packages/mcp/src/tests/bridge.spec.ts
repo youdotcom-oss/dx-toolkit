@@ -13,11 +13,13 @@ type MockTransport = {
   onerror?: (error: Error) => void
   onmessage?: (message: JSONRPCMessage) => void
   send: ReturnType<typeof mock<(message: JSONRPCMessage) => Promise<void>>>
+  start: ReturnType<typeof mock<() => Promise<void>>>
 }
 
 const createMockTransport = (): MockTransport => ({
   close: mock(async () => {}),
   send: mock(async () => {}),
+  start: mock(async () => {}),
 })
 
 const flushMicrotasks = async () => {
@@ -76,7 +78,7 @@ describe('createBridge', () => {
 
   test('HTTP close closes both transports and exits 0', async () => {
     process.exit = mockedExit
-    process.stderr.write = mockedStderrWrite
+    process.stderr.write = mockedStderrWrite as unknown as typeof process.stderr.write
 
     const stdio = createMockTransport()
     const http = createMockTransport()
@@ -93,7 +95,7 @@ describe('createBridge', () => {
 
   test('STDIO close closes both transports and exits 0', async () => {
     process.exit = mockedExit
-    process.stderr.write = mockedStderrWrite
+    process.stderr.write = mockedStderrWrite as unknown as typeof process.stderr.write
 
     const stdio = createMockTransport()
     const http = createMockTransport()
@@ -110,7 +112,7 @@ describe('createBridge', () => {
 
   test('HTTP send failure exits 1', async () => {
     process.exit = mockedExit
-    process.stderr.write = mockedStderrWrite
+    process.stderr.write = mockedStderrWrite as unknown as typeof process.stderr.write
 
     const stdio = createMockTransport()
     const http = createMockTransport()
@@ -132,7 +134,7 @@ describe('createBridge', () => {
 
   test('STDIO send failure exits 1', async () => {
     process.exit = mockedExit
-    process.stderr.write = mockedStderrWrite
+    process.stderr.write = mockedStderrWrite as unknown as typeof process.stderr.write
 
     const stdio = createMockTransport()
     const http = createMockTransport()
@@ -156,7 +158,7 @@ describe('createBridge', () => {
 
   test('closing guard prevents duplicate shutdown', async () => {
     process.exit = mockedExit
-    process.stderr.write = mockedStderrWrite
+    process.stderr.write = mockedStderrWrite as unknown as typeof process.stderr.write
 
     const stdio = createMockTransport()
     const http = createMockTransport()
