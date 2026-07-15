@@ -302,6 +302,89 @@ describe('classifySchemaChange', () => {
       ),
     ).toBe('major')
   })
+
+  test('classifies input additionalProperties tightening as major', () => {
+    expect(
+      classifySchemaChange(basePayload, {
+        ...basePayload,
+        'you-search': {
+          inputSchema: {
+            additionalProperties: false,
+            properties: {
+              query: {
+                type: 'string',
+              },
+            },
+            required: ['query'],
+            type: 'object',
+          },
+          outputSchema: basePayload['you-search'].outputSchema,
+        },
+      }),
+    ).toBe('major')
+  })
+
+  test('treats duplicate enum values as patch when the enum set is unchanged', () => {
+    expect(
+      classifySchemaChange(
+        {
+          ...basePayload,
+          'you-search': {
+            inputSchema: {
+              properties: {
+                query: {
+                  enum: ['basic', 'advanced'],
+                  type: 'string',
+                },
+              },
+              required: ['query'],
+              type: 'object',
+            },
+            outputSchema: basePayload['you-search'].outputSchema,
+          },
+        },
+        {
+          ...basePayload,
+          'you-search': {
+            inputSchema: {
+              properties: {
+                query: {
+                  enum: ['basic', 'advanced', 'advanced'],
+                  type: 'string',
+                },
+              },
+              required: ['query'],
+              type: 'object',
+            },
+            outputSchema: basePayload['you-search'].outputSchema,
+          },
+        },
+      ),
+    ).toBe('patch')
+  })
+
+  test('classifies output required fields becoming optional as major', () => {
+    expect(
+      classifySchemaChange(basePayload, {
+        ...basePayload,
+        'you-contents': {
+          inputSchema: basePayload['you-contents'].inputSchema,
+          outputSchema: {
+            properties: {
+              output: {
+                items: {
+                  type: 'object',
+                },
+                type: 'array',
+              },
+            },
+            required: [],
+            type: 'object',
+          },
+        },
+      }),
+    ).toBe('major')
+  })
 })
 
 describe('readCurrentPayload', () => {

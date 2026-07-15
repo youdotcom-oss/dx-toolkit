@@ -76,9 +76,17 @@ const semanticSchema = (schema: unknown): unknown => {
   return Object.fromEntries(
     Object.entries(schema)
       .filter(([key]) => !metadataKeys.has(key))
-      .map(([key, value]) => [key, semanticSchema(value)]),
+      .map(([key, value]) => [
+        key,
+        key === 'enum' && Array.isArray(value) ? uniqueEnumValues(value) : semanticSchema(value),
+      ]),
   )
 }
+
+const uniqueEnumValues = (values: unknown[]) =>
+  [...new Map(values.map((value) => [stableStringify(value), value])).values()].sort((left, right) =>
+    stableStringify(left).localeCompare(stableStringify(right)),
+  )
 
 const getSchemaObject = (schema: JsonSchema): JsonSchemaObject => {
   if (schema === true) return {}
@@ -99,12 +107,55 @@ const isEnumWidening = (previousSchema: JsonSchemaObject, nextSchema: JsonSchema
     return false
   }
 
+  const previousValues = new Set(previousSchema.enum.map(stableStringify))
   const nextValues = new Set(nextSchema.enum.map(stableStringify))
 
   return (
     previousSchema.enum.every((value) => nextValues.has(stableStringify(value))) &&
-    nextSchema.enum.length > previousSchema.enum.length
+    nextValues.size > previousValues.size
   )
+}
+
+const classifyAdditionalPropertiesChange = (
+  previousSchema: JsonSchemaObject,
+  nextSchema: JsonSchemaObject,
+  surface: SchemaSurface,
+): ChangeLevel => {
+  const previousAdditionalProperties = previousSchema.additionalProperties
+  const nextAdditionalProperties = nextSchema.additionalProperties
+
+  if (
+    stableStringify(semanticSchema(previousAdditionalProperties)) ===
+    stableStringify(semanticSchema(nextAdditionalProperties))
+  ) {
+    return 'patch'
+  }
+
+  if (nextAdditionalProperties === false && previousAdditionalProperties !== false) {
+    return 'major'
+  }
+
+  if (previousAdditionalProperties === false && nextAdditionalProperties !== false) {
+    return 'minor'
+  }
+
+  if (previousAdditionalProperties && typeof previousAdditionalProperties === 'object') {
+    if (nextAdditionalProperties && typeof nextAdditionalProperties === 'object') {
+      return classifyJsonSchemaChange(
+        getSchemaObject(previousAdditionalProperties),
+        getSchemaObject(nextAdditionalProperties),
+        surface,
+      )
+    }
+
+    return 'minor'
+  }
+
+  if (nextAdditionalProperties && typeof nextAdditionalProperties === 'object') {
+    return 'major'
+  }
+
+  return 'major'
 }
 
 const classifyObjectSchemaChange = (
@@ -116,7 +167,7 @@ const classifyObjectSchemaChange = (
   const nextProperties = nextSchema.properties ?? {}
   const previousRequired = new Set(previousSchema.required ?? [])
   const nextRequired = new Set(nextSchema.required ?? [])
-  let changeLevel: ChangeLevel = 'patch'
+  let changeLevel = classifyAdditionalPropertiesChange(previousSchema, nextSchema, surface)
 
   for (const propertyName of Object.keys(previousProperties)) {
     if (!(propertyName in nextProperties)) {
@@ -125,6 +176,18 @@ const classifyObjectSchemaChange = (
 
     if (surface === 'input' && !previousRequired.has(propertyName) && nextRequired.has(propertyName)) {
       return 'major'
+    }
+
+    if (surface === 'output' && previousRequired.has(propertyName) && !nextRequired.has(propertyName)) {
+      return 'major'
+    }
+
+    if (surface === 'input' && previousRequired.has(propertyName) && !nextRequired.has(propertyName)) {
+      changeLevel = maxChangeLevel(changeLevel, 'minor')
+    }
+
+    if (surface === 'output' && !previousRequired.has(propertyName) && nextRequired.has(propertyName)) {
+      changeLevel = maxChangeLevel(changeLevel, 'minor')
     }
 
     changeLevel = maxChangeLevel(
