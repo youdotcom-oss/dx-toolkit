@@ -54,14 +54,21 @@ ydc you-search '{"query":"latest bun release"}'
 echo '{"query":"latest bun release"}' | ydc you-search
 ```
 
+On success the tool's structured output is printed as JSON and the process
+exits `0`. If the tool returns an error (`isError`) or omits structured
+content, a message is printed to stderr and the process exits non-zero.
+
 ## Flags
 
 - `--api-key <key>`
   Uses that API key instead of `YDC_API_KEY`.
 - `--dry-run`
   Prints the resolved URL, tool id, sanitized headers, and JSON arguments.
-- `--profile free`
-  Supported only for `you-search`. In this mode the CLI routes to `?profile=free` and strips auth headers.
+- `--profile <name>`
+  Routes to `?profile=<name>` for any hosted profile. The You.com MCP server
+  applies the profile's tool ceiling and intersects it with the requested tool.
+  When an API key is available, `Authorization: Bearer ...` is sent regardless of
+  the profile (including `free`, which ignores the header on the server side).
 - `-h, --help`
   Prints usage, available commands, tools, and flags, then exits.
 
@@ -69,6 +76,9 @@ echo '{"query":"latest bun release"}' | ydc you-search
 
 - `YDC_API_KEY`
   Optional default API key.
+- `YDC_ALLOWED_TOOLS`
+  Optional comma-separated hosted tool ids. Consulted whenever set, independent
+  of whether an API key is configured.
 
 ## Notes
 

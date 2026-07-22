@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { renderToolContract } from './update-cli-tools.ts'
+import { renderToolContract } from '../update-cli-tools.ts'
 
 describe('renderToolContract', () => {
   test('escapes payload strings when generating the tool contract module', () => {
@@ -8,7 +8,6 @@ describe('renderToolContract', () => {
       tools: [
         {
           name: `you-search';globalThis.pwned=true;//`,
-          supportsFreeProfile: true,
         },
       ],
     })

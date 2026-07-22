@@ -43,14 +43,27 @@ const createTestServer = () => {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools,
   }))
-  server.setRequestHandler(CallToolRequestSchema, async () => ({
-    content: [
-      {
-        text: JSON.stringify({ ok: true }),
-        type: 'text',
-      },
-    ],
-  }))
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const query = request.params.arguments?.query
+
+    if (query === 'tool-error') {
+      return {
+        content: [{ text: 'Error: tool failed', type: 'text' as const }],
+        isError: true,
+      }
+    }
+
+    if (query === 'missing-structured-content') {
+      return {
+        content: [{ text: 'No results found.', type: 'text' as const }],
+      }
+    }
+
+    return {
+      content: [{ text: JSON.stringify({ ok: true }), type: 'text' as const }],
+      structuredContent: { ok: true },
+    }
+  })
 
   return server
 }
@@ -65,9 +78,12 @@ const mockedFetch: typeof fetch = Object.assign(
     const sessionId = request.headers.get('mcp-session-id')
 
     if (traceFile) {
+      const body = parseJsonBody(await request.clone().text())
+
       appendFileSync(
         traceFile,
         `${JSON.stringify({
+          body,
           headers: Object.fromEntries(request.headers.entries()),
           method: request.method,
           url: request.url,
@@ -107,3 +123,15 @@ const mockedFetch: typeof fetch = Object.assign(
 )
 
 globalThis.fetch = mockedFetch
+
+function parseJsonBody(value: string): unknown {
+  if (!value) {
+    return undefined
+  }
+
+  try {
+    return JSON.parse(value) as unknown
+  } catch {
+    return undefined
+  }
+}
