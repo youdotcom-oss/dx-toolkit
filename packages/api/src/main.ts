@@ -7,6 +7,8 @@ export type {
   KnownToolInput,
   KnownToolName,
   KnownToolOutput,
+  YouBalanceInput,
+  YouBalanceOutput,
   YouContentsInput,
   YouContentsOutput,
   YouResearchInput,
