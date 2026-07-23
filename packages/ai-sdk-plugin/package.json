@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/ai-sdk-plugin",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Vercel AI SDK tools for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {

@@ -19,7 +19,7 @@
     },
     "packages/ai-sdk-plugin": {
       "name": "@youdotcom-oss/ai-sdk-plugin",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "dependencies": {
         "@ai-sdk/mcp": "^1.0.42",
         "@modelcontextprotocol/sdk": "^1.29.0",
