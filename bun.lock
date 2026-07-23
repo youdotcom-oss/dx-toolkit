@@ -35,7 +35,7 @@
     },
     "packages/api": {
       "name": "@youdotcom-oss/api",
-      "version": "0.5.2",
+      "version": "0.6.0",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0",
       },

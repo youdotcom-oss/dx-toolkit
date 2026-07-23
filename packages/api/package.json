@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/api",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Minimal TypeScript API wrapper for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {
