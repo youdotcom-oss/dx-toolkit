@@ -87,9 +87,9 @@ describe('ydc tools', () => {
     expect(exitCode).toBe(0)
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual({
-      contractHash: 'eb28a7ce9289045254f5b3ed78be8eec5b7caf25bec8457e5a47fae0b070f283',
-      surfaceVersion: '2026.05.14',
-      tools: ['you-contents', 'you-finance', 'you-research', 'you-search'],
+      contractHash: 'dad771e3d324f1020f3af8f2ea506844be1dea559af3e6f65bb9e7febb65286a',
+      surfaceVersion: '2026.07.23',
+      tools: ['you-balance', 'you-contents', 'you-discover', 'you-finance', 'you-research', 'you-search'],
     })
   })
 })

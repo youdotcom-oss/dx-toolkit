@@ -1,7 +1,48 @@
 // This file is generated. Do not edit by hand.
-export const API_TOOL_SCHEMA_HASH = '21d8d2b89ea820b8afc5da4cc7399263f3ab0699a684256a0f0fb8f2af6069e5'
+export const API_TOOL_SCHEMA_HASH = '0c74f7091eca6ec01a70e3bc62029873e7dac682b473ddcc7c39fa1df35ddf65'
 
 export const API_TOOL_SCHEMAS = {
+  'you-balance': {
+    inputSchema: {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      properties: {},
+      type: 'object',
+    },
+    outputSchema: {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      additionalProperties: false,
+      properties: {
+        data: {
+          additionalProperties: false,
+          properties: {
+            attributes: {
+              additionalProperties: false,
+              properties: {
+                balance: {
+                  description: 'Remaining credit balance in cents. Divide by 100 to convert to USD.',
+                  type: 'number',
+                },
+              },
+              required: ['balance'],
+              type: 'object',
+            },
+            id: {
+              description: 'A hashed identifier for the billing entity (user or organization).',
+              type: 'string',
+            },
+            type: {
+              description: 'The type of billing entity. Always "account".',
+              type: 'string',
+            },
+          },
+          required: ['type', 'id', 'attributes'],
+          type: 'object',
+        },
+      },
+      required: ['data'],
+      type: 'object',
+    },
+  },
   'you-contents': {
     inputSchema: {
       $schema: 'http://json-schema.org/draft-07/schema#',
@@ -509,6 +550,18 @@ export const API_TOOL_SCHEMAS = {
   },
 } as const
 
+export type YouBalanceInput = Record<string, unknown>
+
+export type YouBalanceOutput = {
+  data: {
+    attributes: {
+      balance: number
+    }
+    id: string
+    type: string
+  }
+}
+
 export type YouContentsInput = {
   crawl_timeout?: number
   format?: 'markdown' | 'html'
@@ -686,12 +739,14 @@ export type YouSearchOutput = {
 export type KnownToolName = keyof typeof API_TOOL_SCHEMAS
 
 type KnownToolInputMap = {
+  'you-balance': YouBalanceInput
   'you-contents': YouContentsInput
   'you-research': YouResearchInput
   'you-search': YouSearchInput
 }
 
 type KnownToolOutputMap = {
+  'you-balance': YouBalanceOutput
   'you-contents': YouContentsOutput
   'you-research': YouResearchOutput
   'you-search': YouSearchOutput

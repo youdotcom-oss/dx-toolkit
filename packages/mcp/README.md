@@ -31,22 +31,26 @@ npx @youdotcom-oss/mcp
 
 The hosted MCP capability surface includes:
 
-- `you-contents`
-- `you-finance`
-- `you-research`
 - `you-search`
+- `you-contents`
+- `you-research`
+- `you-finance`
+- `you-balance`
+- `you-discover`
 
 The default hosted MCP URL exposes the default tool set:
 
 - `you-search`
-- `you-research`
 - `you-contents`
+- `you-research`
+- `you-balance`
+- `you-discover`
 
 `you-finance` is not included in the default tool set. Request it explicitly with `tools`.
 
 `tools` scopes the visible tool set.
 
-Today, `profile=free` is a search-only mode. It overrides `tools` and does not expose `you-research`, `you-contents`, `you-finance`, or livecrawl.
+Today, `profile=free` is a search-only mode. It overrides `tools` and exposes only `you-search` (not `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, or livecrawl).
 
 Examples:
 

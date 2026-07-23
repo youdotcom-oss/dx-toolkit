@@ -33,7 +33,7 @@ type ToolSchema = {
 
 type ToolSchemaPayload = Record<string, ToolSchema>
 
-const knownTools = ['you-contents', 'you-research', 'you-search'] as const
+const knownTools = ['you-balance', 'you-contents', 'you-research', 'you-search'] as const
 
 const toTypeScriptString = (value: string) => `'${JSON.stringify(value).slice(1, -1).replaceAll("'", "\\'")}'`
 

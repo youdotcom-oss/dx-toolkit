@@ -1,6 +1,6 @@
 # Vercel AI SDK Plugin for You.com
 
-Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` and returns the underlying AI SDK MCP client. By default, `await client.tools()` resolves to the default hosted tool set: `you-search`, `you-research`, and `you-contents`.
+Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` and returns the underlying AI SDK MCP client. By default, `await client.tools()` resolves to the default hosted tool set: `you-search`, `you-contents`, `you-research`, `you-balance`, and `you-discover`.
 
 ## Features
 
@@ -85,7 +85,7 @@ try {
 }
 ```
 
-`createYouClient()` returns the underlying MCP client. Call `await client.tools()` to resolve the default hosted tool set (`you-search`, `you-research`, and `you-contents`) unless you scope it with `tools`, and call `await client.close()` when finished.
+`createYouClient()` returns the underlying MCP client. Call `await client.tools()` to resolve the default hosted tool set (`you-search`, `you-contents`, `you-research`, `you-balance`, and `you-discover`) unless you scope it with `tools`, and call `await client.close()` when finished.
 
 Set your You.com API key as an environment variable:
 
@@ -185,7 +185,7 @@ If you want the default tools plus finance, request all of them explicitly:
 
 ```typescript
 const client = await createYouClient({
-  tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
+  tools: ['you-search', 'you-contents', 'you-research', 'you-balance', 'you-discover', 'you-finance'],
 });
 
 const tools = await client.tools();
@@ -218,8 +218,10 @@ The package always connects to `https://api.you.com/mcp`.
 The default hosted tool set is:
 
 - `you-search`
-- `you-research`
 - `you-contents`
+- `you-research`
+- `you-balance`
+- `you-discover`
 
 Optional tools:
 
@@ -231,7 +233,7 @@ Optional tools:
 
 `profile` selects a hosted server profile. `tools` scopes which tools are visible. If `profile` is provided, it takes precedence over `tools`.
 
-Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-research`, `you-contents`, `you-finance`, or livecrawl.
+Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, or livecrawl.
 
 ### Using different model providers
 
@@ -303,8 +305,10 @@ const result = await generateText({
 Default tools:
 
 - `you-search`
-- `you-research`
 - `you-contents`
+- `you-research`
+- `you-balance`
+- `you-discover`
 
 Optional tools:
 
