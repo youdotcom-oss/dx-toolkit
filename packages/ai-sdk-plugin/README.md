@@ -185,7 +185,7 @@ If you want the default tools plus finance, request all of them explicitly:
 
 ```typescript
 const client = await createYouClient({
-  tools: ['you-search', 'you-research', 'you-contents', 'you-finance'],
+  tools: ['you-search', 'you-contents', 'you-research', 'you-balance', 'you-discover', 'you-finance'],
 });
 
 const tools = await client.tools();
