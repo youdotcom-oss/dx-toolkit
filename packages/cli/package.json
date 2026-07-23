@@ -1,6 +1,6 @@
 {
   "name": "@youdotcom-oss/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Agent-first CLI bridge for the hosted You.com MCP server",
   "license": "MIT",
   "engines": {
