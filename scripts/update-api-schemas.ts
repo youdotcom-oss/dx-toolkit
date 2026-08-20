@@ -2,8 +2,7 @@ import { createHash } from 'node:crypto'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 
 const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 const DEFAULT_OUTPUT_PATH = resolve(import.meta.dir, '..', 'packages', 'api', 'src', 'tool-schemas.ts')
@@ -33,7 +32,15 @@ type ToolSchema = {
 
 type ToolSchemaPayload = Record<string, ToolSchema>
 
-const knownTools = ['you-balance', 'you-contents', 'you-research', 'you-search'] as const
+const knownTools = [
+  'you-answer',
+  'you-balance',
+  'you-contents',
+  'you-discover',
+  'you-finance',
+  'you-research',
+  'you-search',
+] as const
 
 const toTypeScriptString = (value: string) => `'${JSON.stringify(value).slice(1, -1).replaceAll("'", "\\'")}'`
 
@@ -155,7 +162,22 @@ const objectSchemaToType = (schema: JsonSchemaObject, rootSchema: JsonSchemaObje
   )
 
   if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
-    members.push(`[key: string]: ${schemaToType(schema.additionalProperties, rootSchema)}`)
+    const additionalType = schemaToType(schema.additionalProperties, rootSchema)
+
+    if (properties.length > 0) {
+      // TypeScript requires every explicit property to be assignable to the
+      // index signature's value type. Union the `additionalProperties` type
+      // with each explicit property type so primitives (e.g. `string`) stay
+      // assignable alongside an object-shaped `additionalProperties`. Fall
+      // back to `unknown` if any member is multi-line (a nested object type),
+      // since a multi-line union would break the single-line index signature.
+      const propertyTypes = properties.map(([, value]) => schemaToType(value, rootSchema))
+      const unionTypes = [...new Set([additionalType, ...propertyTypes])]
+      const indexType = unionTypes.some((type) => type.includes('\n')) ? 'unknown' : unionTypes.join(' | ')
+      members.push(`[key: string]: ${indexType}`)
+    } else {
+      members.push(`[key: string]: ${additionalType}`)
+    }
   } else if (properties.length === 0 && schema.additionalProperties !== false) {
     return 'Record<string, unknown>'
   }
@@ -264,7 +286,13 @@ const formatGeneratedSource = async (source: string) => {
 const fetchApiSchemas = async (): Promise<ToolSchemaPayload> => {
   const apiKey = process.env.YDC_API_KEY
   const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined
-  const transport = new StreamableHTTPClientTransport(new URL(BASE_MCP_SERVER_URL), {
+  // The server's default tool set excludes `you-finance` (served via a separate
+  // route), so request every known tool explicitly. With no `profile`, the
+  // server's tool ceiling is the full `ALL_TOOLS` set, so this returns every
+  // known tool's schema in a single `listTools` call.
+  const url = new URL(BASE_MCP_SERVER_URL)
+  url.searchParams.set('tools', knownTools.join(','))
+  const transport = new StreamableHTTPClientTransport(url, {
     requestInit: {
       headers,
     },

@@ -2,9 +2,8 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
-import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js'
+import { Client, type JSONRPCMessage } from '@modelcontextprotocol/client'
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio'
 import { createBridge } from '../bridge.ts'
 
 type MockTransport = {

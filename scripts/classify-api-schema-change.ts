@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 
 const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 const DEFAULT_SCHEMA_PATH = resolve(import.meta.dir, '..', 'packages', 'api', 'src', 'tool-schemas.ts')

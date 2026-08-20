@@ -166,7 +166,7 @@ MCP servers (like `@youdotcom-oss/mcp`) have higher thresholds (100ms/50%/400KB)
 **MCP Server Overhead Sources**:
 - **Stdio transport**: Process IPC adds 20-40ms latency
 - **JSON-RPC protocol**: Serialization/deserialization adds 10-20ms
-- **Client SDK**: `@modelcontextprotocol/sdk` protocol overhead
+- **Client SDK**: `@modelcontextprotocol/client` protocol overhead
 - **Process spawning**: Each test spawns MCP server as subprocess
 - **State management**: Client state, connection pools, schemas
 

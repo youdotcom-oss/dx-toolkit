@@ -1,15 +1,18 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { randomUUID } from 'node:crypto'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Server } from '@modelcontextprotocol/sdk/server/index.js'
-import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
+import { createMcpHandler, fromJsonSchema, type JsonSchemaType, McpServer } from '@modelcontextprotocol/server'
 import type { YouSearchInput, YouSearchOutput } from '../main.ts'
 import { createYouApi } from '../main.ts'
 
-const testTools = [
+type ToolSchema = {
+  properties?: Record<string, unknown>
+  required?: string[]
+  type: 'object'
+}
+
+const testTools: Array<{ inputSchema: ToolSchema; name: string; outputSchema?: ToolSchema }> = [
   {
     inputSchema: {
       properties: {
@@ -65,14 +68,6 @@ const testTools = [
   },
 ]
 
-const transports = new Map<
-  string,
-  {
-    server: Server
-    transport: WebStandardStreamableHTTPServerTransport
-  }
->()
-
 let originalFetch: typeof fetch
 let tempDir: string
 let traceFile: string
@@ -103,10 +98,6 @@ describe('createYouApi', () => {
       process.env.YDC_ALLOWED_TOOLS = originalAllowedTools
     }
 
-    await Promise.allSettled(
-      [...transports.values()].map(({ server, transport }) => Promise.all([server.close(), transport.close()])),
-    )
-    transports.clear()
     rmSync(tempDir, { force: true, recursive: true })
   })
 
@@ -174,7 +165,13 @@ describe('createYouApi', () => {
 
     expect(tools.tools.map(({ name }) => name)).toEqual(['you-contents', 'you-research', 'you-search'])
     const trace = readTrace()
-    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp')).toBe(true)
+    expect(
+      trace.every(
+        ({ url }) =>
+          url ===
+          'https://api.you.com/mcp?tools=you-answer%2Cyou-balance%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
+      ),
+    ).toBe(true)
     expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
     await you.close()
   })
@@ -188,7 +185,13 @@ describe('createYouApi', () => {
     await you.tools()
 
     const trace = readTrace()
-    expect(trace.every(({ url }) => url === 'https://api.you.com/mcp')).toBe(true)
+    expect(
+      trace.every(
+        ({ url }) =>
+          url ===
+          'https://api.you.com/mcp?tools=you-answer%2Cyou-balance%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
+      ),
+    ).toBe(true)
     await you.close()
   })
 
@@ -249,7 +252,7 @@ describe('createYouApi', () => {
 })
 
 const createTestServer = () => {
-  const server = new Server(
+  const mcp = new McpServer(
     {
       name: 'test-api-mcp-server',
       version: '1.0.0',
@@ -263,39 +266,47 @@ const createTestServer = () => {
     },
   )
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: testTools,
-  }))
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    receivedToolInputs.push(request.params.arguments)
-
-    if (request.params.arguments?.query === 'missing-structured-content') {
-      return {
-        content: [],
-      }
-    }
-
-    if (request.params.arguments?.query === 'tool-error') {
-      return {
-        content: [],
-        isError: true,
-        structuredContent: {
-          message: 'Tool failed',
-        },
-      }
-    }
-
-    return {
-      content: [],
-      structuredContent: {
-        input: request.params.arguments,
-        ok: true,
+  for (const tool of testTools) {
+    mcp.registerTool(
+      tool.name,
+      {
+        inputSchema: fromJsonSchema(tool.inputSchema as JsonSchemaType),
       },
-    }
-  })
+      async (args) => {
+        receivedToolInputs.push(args)
+        const query = (args as { query?: string } | undefined)?.query
 
-  return server
+        if (query === 'missing-structured-content') {
+          return {
+            content: [],
+          }
+        }
+
+        if (query === 'tool-error') {
+          return {
+            content: [],
+            isError: true,
+            structuredContent: {
+              message: 'Tool failed',
+            },
+          }
+        }
+
+        return {
+          content: [],
+          structuredContent: {
+            input: args,
+            ok: true,
+          },
+        }
+      },
+    )
+  }
+
+  return mcp
 }
+
+const handler = createMcpHandler(createTestServer, { legacy: 'stateless' })
 
 const createMockedFetch = (activeTraceFile: string): typeof fetch =>
   Object.assign(
@@ -304,7 +315,6 @@ const createMockedFetch = (activeTraceFile: string): typeof fetch =>
         input instanceof Request
           ? new Request(input, init)
           : new Request(input instanceof URL ? input.toString() : input, init)
-      const sessionId = request.headers.get('mcp-session-id')
 
       await Bun.write(
         activeTraceFile,
@@ -315,31 +325,7 @@ const createMockedFetch = (activeTraceFile: string): typeof fetch =>
         })}\n`,
       )
 
-      if (sessionId) {
-        const activeTransport = transports.get(sessionId)?.transport
-
-        if (activeTransport) {
-          return activeTransport.handleRequest(request)
-        }
-      }
-
-      const server = createTestServer()
-      let transport!: WebStandardStreamableHTTPServerTransport
-
-      transport = new WebStandardStreamableHTTPServerTransport({
-        enableJsonResponse: true,
-        onsessionclosed: (closedSessionId) => {
-          transports.delete(closedSessionId)
-        },
-        onsessioninitialized: (initializedSessionId) => {
-          transports.set(initializedSessionId, { server, transport })
-        },
-        sessionIdGenerator: () => randomUUID(),
-      })
-
-      await server.connect(transport)
-
-      return transport.handleRequest(request)
+      return handler.fetch(request)
     },
     {
       preconnect: globalThis.fetch.preconnect.bind(globalThis.fetch),

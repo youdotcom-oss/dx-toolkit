@@ -42,7 +42,7 @@
   },
   "scripts": {
     "build": "bun run build:bundle && bun run build:types",
-    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @modelcontextprotocol/sdk",
+    "build:bundle": "bun build src/main.ts --outdir dist --target node --external @modelcontextprotocol/client",
     "build:types": "tsc --project tsconfig.build.json --declaration --emitDeclarationOnly --noEmit false",
     "check": "bun run check:biome && bun run check:types && bun run check:package",
     "check:biome": "biome check",
@@ -56,9 +56,10 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/client": "^2.0.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
     "@types/bun": "latest"
   }
 }

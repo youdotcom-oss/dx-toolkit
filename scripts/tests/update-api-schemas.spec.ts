@@ -4,6 +4,12 @@ import { resolve } from 'node:path'
 import { renderApiSchemas } from '../update-api-schemas.ts'
 
 const basePayload = {
+  'you-answer': {
+    inputSchema: {
+      properties: {},
+      type: 'object',
+    },
+  },
   'you-balance': {
     inputSchema: {
       properties: {},
@@ -79,6 +85,18 @@ const basePayload = {
           type: 'object',
         },
       },
+      type: 'object',
+    },
+  },
+  'you-discover': {
+    inputSchema: {
+      properties: {},
+      type: 'object',
+    },
+  },
+  'you-finance': {
+    inputSchema: {
+      properties: {},
       type: 'object',
     },
   },

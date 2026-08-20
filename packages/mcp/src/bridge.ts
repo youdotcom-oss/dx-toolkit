@@ -1,4 +1,4 @@
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
+import type { Transport } from '@modelcontextprotocol/client'
 
 export const createBridge = (stdio: Transport, http: Transport): void => {
   let closing = false

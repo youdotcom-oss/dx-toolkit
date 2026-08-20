@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 import packageJson from '../package.json' with { type: 'json' }
 import { TOOL_CONTRACT } from './tools.ts'
 
