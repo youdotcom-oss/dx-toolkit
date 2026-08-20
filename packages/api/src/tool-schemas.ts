@@ -1,5 +1,5 @@
 // This file is generated. Do not edit by hand.
-export const API_TOOL_SCHEMA_HASH = '6a34e1d43e2249641bb24f52357826b3a2fc5ac39d3920d344f87e538bc0eeed'
+export const API_TOOL_SCHEMA_HASH = '15eb272d4e37ef1355c1c641128c9c7bfc4654209fe8e341cc1eae97f7f4bf55'
 
 export const API_TOOL_SCHEMAS = {
   'you-answer': {
@@ -209,46 +209,6 @@ export const API_TOOL_SCHEMAS = {
         },
       },
       required: ['answer', 'citations', 'results'],
-      type: 'object',
-    },
-  },
-  'you-balance': {
-    inputSchema: {
-      properties: {},
-      type: 'object',
-    },
-    outputSchema: {
-      $schema: 'https://json-schema.org/draft/2020-12/schema',
-      additionalProperties: false,
-      properties: {
-        data: {
-          additionalProperties: false,
-          properties: {
-            attributes: {
-              additionalProperties: false,
-              properties: {
-                balance: {
-                  description: 'Remaining credit balance in cents. Divide by 100 to convert to USD.',
-                  type: 'number',
-                },
-              },
-              required: ['balance'],
-              type: 'object',
-            },
-            id: {
-              description: 'A hashed identifier for the billing entity (user or organization).',
-              type: 'string',
-            },
-            type: {
-              description: 'The type of billing entity. Always "account".',
-              type: 'string',
-            },
-          },
-          required: ['type', 'id', 'attributes'],
-          type: 'object',
-        },
-      },
-      required: ['data'],
       type: 'object',
     },
   },
@@ -1296,18 +1256,6 @@ export type YouAnswerOutput = {
   }
 }
 
-export type YouBalanceInput = Record<string, unknown>
-
-export type YouBalanceOutput = {
-  data: {
-    attributes: {
-      balance: number
-    }
-    id: string
-    type: string
-  }
-}
-
 export type YouContentsInput = {
   crawl_timeout?: number
   formats?: Array<'markdown' | 'html' | 'metadata'>
@@ -1578,7 +1526,6 @@ export type KnownToolName = keyof typeof API_TOOL_SCHEMAS
 
 type KnownToolInputMap = {
   'you-answer': YouAnswerInput
-  'you-balance': YouBalanceInput
   'you-contents': YouContentsInput
   'you-discover': YouDiscoverInput
   'you-finance': YouFinanceInput
@@ -1588,7 +1535,6 @@ type KnownToolInputMap = {
 
 type KnownToolOutputMap = {
   'you-answer': YouAnswerOutput
-  'you-balance': YouBalanceOutput
   'you-contents': YouContentsOutput
   'you-discover': YouDiscoverOutput
   'you-finance': YouFinanceOutput

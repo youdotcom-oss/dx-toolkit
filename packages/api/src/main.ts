@@ -14,8 +14,6 @@ export type {
   KnownToolOutput,
   YouAnswerInput,
   YouAnswerOutput,
-  YouBalanceInput,
-  YouBalanceOutput,
   YouContentsInput,
   YouContentsOutput,
   YouDiscoverInput,

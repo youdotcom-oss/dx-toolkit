@@ -169,7 +169,7 @@ describe('createYouApi', () => {
       trace.every(
         ({ url }) =>
           url ===
-          'https://api.you.com/mcp?tools=you-answer%2Cyou-balance%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
+          'https://api.you.com/mcp?tools=you-answer%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
       ),
     ).toBe(true)
     expect(trace.every(({ headers }) => headers.authorization === 'Bearer config-key')).toBe(true)
@@ -189,7 +189,7 @@ describe('createYouApi', () => {
       trace.every(
         ({ url }) =>
           url ===
-          'https://api.you.com/mcp?tools=you-answer%2Cyou-balance%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
+          'https://api.you.com/mcp?tools=you-answer%2Cyou-contents%2Cyou-discover%2Cyou-finance%2Cyou-research%2Cyou-search',
       ),
     ).toBe(true)
     await you.close()
