@@ -4,36 +4,9 @@ import { resolve } from 'node:path'
 import { renderApiSchemas } from '../update-api-schemas.ts'
 
 const basePayload = {
-  'you-balance': {
+  'you-answer': {
     inputSchema: {
       properties: {},
-      type: 'object',
-    },
-    outputSchema: {
-      properties: {
-        data: {
-          properties: {
-            attributes: {
-              properties: {
-                balance: {
-                  type: 'number',
-                },
-              },
-              required: ['balance'],
-              type: 'object',
-            },
-            id: {
-              type: 'string',
-            },
-            type: {
-              type: 'string',
-            },
-          },
-          required: ['type', 'id', 'attributes'],
-          type: 'object',
-        },
-      },
-      required: ['data'],
       type: 'object',
     },
   },
@@ -82,6 +55,18 @@ const basePayload = {
       type: 'object',
     },
   },
+  'you-discover': {
+    inputSchema: {
+      properties: {},
+      type: 'object',
+    },
+  },
+  'you-finance': {
+    inputSchema: {
+      properties: {},
+      type: 'object',
+    },
+  },
   'you-search': {
     inputSchema: {
       properties: {
@@ -110,9 +95,8 @@ describe('renderApiSchemas', () => {
     expect(output).toContain(`export const API_TOOL_SCHEMAS = {`)
     expect(output).toContain(`export type YouSearchInput = {`)
     expect(output).toContain(`query: string`)
-    expect(output).toContain(`export type YouBalanceInput = Record<string, unknown>`)
-    expect(output).toContain(`export type YouBalanceOutput = {`)
-    expect(output).toContain(`balance: number`)
+    expect(output).toContain(`export type YouContentsInput = {`)
+    expect(output).toContain(`urls: Array<string>`)
     expect(output).toContain(`export type KnownToolOutput<T extends KnownToolName> = KnownToolOutputMap[T]`)
   })
 })

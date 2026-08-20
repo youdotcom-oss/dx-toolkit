@@ -37,6 +37,7 @@ The hosted MCP capability surface includes:
 - `you-finance`
 - `you-balance`
 - `you-discover`
+- `you-answer`
 
 The default hosted MCP URL exposes the default tool set:
 
@@ -45,12 +46,13 @@ The default hosted MCP URL exposes the default tool set:
 - `you-research`
 - `you-balance`
 - `you-discover`
+- `you-answer`
 
 `you-finance` is not included in the default tool set. Request it explicitly with `tools`.
 
 `tools` scopes the visible tool set.
 
-Today, `profile=free` is a search-only mode. It overrides `tools` and exposes only `you-search` (not `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, or livecrawl).
+Today, `profile=free` is a search-only mode. It overrides `tools` and exposes only `you-search` (not `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, `you-answer`, or livecrawl).
 
 Examples:
 

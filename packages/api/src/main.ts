@@ -1,22 +1,31 @@
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 import packageJson from '../package.json' with { type: 'json' }
-import type { KnownToolInput, KnownToolName, KnownToolOutput } from './tool-schemas.ts'
+import {
+  API_TOOL_SCHEMA_HASH,
+  API_TOOL_SCHEMAS,
+  type KnownToolInput,
+  type KnownToolName,
+  type KnownToolOutput,
+} from './tool-schemas.ts'
 
 export type {
   KnownToolInput,
   KnownToolName,
   KnownToolOutput,
-  YouBalanceInput,
-  YouBalanceOutput,
+  YouAnswerInput,
+  YouAnswerOutput,
   YouContentsInput,
   YouContentsOutput,
+  YouDiscoverInput,
+  YouDiscoverOutput,
+  YouFinanceInput,
+  YouFinanceOutput,
   YouResearchInput,
   YouResearchOutput,
   YouSearchInput,
   YouSearchOutput,
 } from './tool-schemas.ts'
-export { API_TOOL_SCHEMA_HASH, API_TOOL_SCHEMAS } from './tool-schemas.ts'
+export { API_TOOL_SCHEMA_HASH, API_TOOL_SCHEMAS }
 
 const BASE_MCP_SERVER_URL = 'https://api.you.com/mcp'
 
@@ -41,8 +50,17 @@ const buildMcpUrl = ({ allowedTools, profile }: Pick<YouApiConfig, 'allowedTools
       : undefined
     : allowedTools || process.env.YDC_ALLOWED_TOOLS
 
+  // The api package is consumed imperatively (a caller wires specific tool
+  // calls), not by an agent browsing a tool list. So a connection with no
+  // explicit scope advertises every known tool by default — keeping the typed
+  // surface truthful, since every `KnownToolName` (including `you-finance`,
+  // which the server only exposes via an explicit `?tools=` filter) is callable
+  // on a default connection. A `profile` already scopes the tool set, so it is
+  // left to define the ceiling without an explicit `?tools=` override.
   if (tools) {
     url.searchParams.set('tools', tools)
+  } else if (!profile) {
+    url.searchParams.set('tools', Object.keys(API_TOOL_SCHEMAS).join(','))
   }
 
   return url

@@ -62,15 +62,14 @@
   },
   "types": "./dist/main.d.ts",
   "dependencies": {
-    "@ai-sdk/mcp": "^1.0.42",
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@ai-sdk/mcp": "^2.0.34"
   },
   "peerDependencies": {
-    "ai": "^6.0.168"
+    "ai": "^7.0.0"
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "^3.0.71",
+    "@ai-sdk/anthropic": "^4.0.40",
     "@types/bun": "latest",
-    "ai": "^6.0.168"
+    "ai": "^7.0.70"
   }
 }

@@ -109,6 +109,13 @@ export YDC_ALLOWED_TOOLS="you-search,you-research,you-contents"
 
 Explicit `allowedTools` takes precedence over `YDC_ALLOWED_TOOLS`.
 
+When neither `allowedTools` nor `YDC_ALLOWED_TOOLS` is provided and no `profile`
+is set, the package advertises every known tool by default
+(`?tools=<all known tool names>`). This keeps the typed surface truthful — every
+`KnownToolName` is callable on a default connection, including `you-finance`
+(which the server only exposes via an explicit `?tools=` filter). Pass
+`allowedTools` or a `profile` to narrow the set.
+
 ### Profiles and auth
 
 Set `profile` to route to a hosted profile (sent as `?profile=...`):

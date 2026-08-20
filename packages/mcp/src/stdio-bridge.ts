@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
+import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { createBridge } from './bridge.ts'
 
 const url = new URL('https://api.you.com/mcp')

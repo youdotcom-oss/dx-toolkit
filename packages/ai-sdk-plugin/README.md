@@ -1,6 +1,6 @@
 # Vercel AI SDK Plugin for You.com
 
-Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` and returns the underlying AI SDK MCP client. By default, `await client.tools()` resolves to the default hosted tool set: `you-search`, `you-contents`, `you-research`, `you-balance`, and `you-discover`.
+Give your AI applications **real-time access to the web** through the hosted You.com MCP server. This package exposes an async `createYouClient()` helper that connects to `https://api.you.com/mcp` and returns the underlying AI SDK MCP client. By default, `await client.tools()` resolves to the default hosted tool set: `you-search`, `you-contents`, `you-research`, `you-balance`, `you-discover`, and `you-answer`.
 
 ## Features
 
@@ -85,7 +85,7 @@ try {
 }
 ```
 
-`createYouClient()` returns the underlying MCP client. Call `await client.tools()` to resolve the default hosted tool set (`you-search`, `you-contents`, `you-research`, `you-balance`, and `you-discover`) unless you scope it with `tools`, and call `await client.close()` when finished.
+`createYouClient()` returns the underlying MCP client. Call `await client.tools()` to resolve the default hosted tool set (`you-search`, `you-contents`, `you-research`, `you-balance`, `you-discover`, and `you-answer`) unless you scope it with `tools`, and call `await client.close()` when finished.
 
 Set your You.com API key as an environment variable:
 
@@ -222,6 +222,7 @@ The default hosted tool set is:
 - `you-research`
 - `you-balance`
 - `you-discover`
+- `you-answer`
 
 Optional tools:
 
@@ -233,7 +234,7 @@ Optional tools:
 
 `profile` selects a hosted server profile. `tools` scopes which tools are visible. If `profile` is provided, it takes precedence over `tools`.
 
-Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, or livecrawl.
+Today, `profile: 'free'` is a search-only mode. It overrides `tools` and does not expose `you-contents`, `you-research`, `you-finance`, `you-balance`, `you-discover`, `you-answer`, or livecrawl.
 
 ### Using different model providers
 
@@ -309,6 +310,7 @@ Default tools:
 - `you-research`
 - `you-balance`
 - `you-discover`
+- `you-answer`
 
 Optional tools:
 
